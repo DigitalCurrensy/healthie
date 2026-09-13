@@ -16,7 +16,7 @@ import { useHistory } from "@/lib/history";
 
 export const Route = createFileRoute("/scan")({
   validateSearch: (s: Record<string, unknown>) => ({
-    autostart: s.autostart === "1" || s.autostart === true,
+    autostart: s.autostart === "1" || s.autostart === true || s.autostart === "true",
     mode: s.mode === "photo" ? ("photo" as const) : ("barcode" as const),
   }),
   component: ScanPage,

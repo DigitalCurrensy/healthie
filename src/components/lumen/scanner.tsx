@@ -53,10 +53,17 @@ export function beginLiveScan(mode: ScanMode, apply: (session: CameraSession) =>
   apply({
     mode,
     stream: null,
-    // Preview iframe: show the gate immediately. Real camera still attaches if the host allows it.
     error: cameraIsEmbedded() ? "blocked" : null,
     demo: false,
   });
+  if (cameraIsEmbedded()) {
+    try {
+      const url = new URL(lensHref(mode), window.location.origin);
+      window.open(url.toString(), "healthie-lens");
+    } catch {
+      /* popup blocked — overlay still opens */
+    }
+  }
   return pending.then((result) => {
     apply({ mode, stream: result.stream, error: result.error, demo: result.demo });
   });
@@ -839,32 +846,22 @@ export function ScanLaunchButton({
   size?: "default" | "sm" | "lg" | "icon";
   children: React.ReactNode;
 }) {
-  const [embedded, setEmbedded] = useState(false);
   const [opening, setOpening] = useState(false);
 
   useEffect(() => {
-    setEmbedded(cameraIsEmbedded());
     unlockPreviewCamera();
   }, []);
 
-  function onClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    if (disabled || opening) {
-      e.preventDefault();
-      return;
-    }
-    // Top-level page: keep the tap in this window. Preview iframe: let the
-    // browser open /lens in a new tab (the only place getUserMedia can succeed).
-    if (!embedded) e.preventDefault();
+  function onClick() {
+    if (disabled || opening) return;
     const pending = beginLiveScan(mode, onSession);
     setOpening(true);
     void pending.finally(() => setOpening(false));
   }
 
   return (
-    <Button asChild variant={variant} size={size} className={className} disabled={disabled || opening}>
-      <a href={lensHref(mode)} target="_blank" rel="opener" onClick={onClick}>
-        {children}
-      </a>
+    <Button type="button" variant={variant} size={size} className={className} disabled={disabled || opening} onClick={onClick}>
+      {children}
     </Button>
   );
 }
