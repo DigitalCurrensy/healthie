@@ -187,8 +187,11 @@ async function createSql(): Promise<Sql> {
  * both backends — define tables there, never inline in server functions.
  */
 export function getSql(): Promise<Sql> {
+  if (typeof navigator !== "undefined" && /Cloudflare-Workers/i.test(navigator.userAgent ?? "")) {
+    return Promise.reject(new Error("no-sql-on-edge"));
+  }
   sqlPromise ??= createSql().catch((err) => {
-    sqlPromise = null; // don't memoize failures — let the next call retry
+    sqlPromise = null;
     throw err;
   });
   return sqlPromise;

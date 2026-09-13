@@ -1,47 +1,23 @@
-# Go-live verification — Healthie scanner demo
+# Live demo — Cloudflare
 
-This app is an independent pack scorer. It is not the Healthie EMR (gethealthie.com). Scans write to **your history and list** on this phone. There is no `createChartingNote` GraphQL to an EMR.
+**App:** https://healthie.boiled-emoji.workers.dev
 
-## Presenter packs (print these)
+**Keep it:** claim the account within 60 minutes  
+https://dash.cloudflare.com/claim-preview?claimToken=7Y1khwHf-0Tj0uxu87EX1B6vJbOJ-8HjZn7Rg6xO9eU
 
-1. **5449000000996** Coca-Cola Classic — Poor. A can is a dessert.
-2. **3274080005003** Evian — Excellent. Water.
-3. **3337875598071** CeraVe Foaming Cleanser — Bathroom. Same 0–100 disc.
+If you do not claim, Cloudflare deletes this preview.
 
-Open `/demo` for the script. Open `/scan` from the **home screen** for the live lens.
+## On the demo phone
 
-## Domain 1 — Camera
+1. Open https://healthie.boiled-emoji.workers.dev/demo in Safari or Chrome — not inside this Grok window.
+2. Share → Add to Home Screen (iPhone) or the browser’s Install app (Android).
+3. Open **Healthie** from the icon on the home screen.
+4. Scan these packs:
 
-| Check | Status |
-| --- | --- |
-| Iframe `allow=camera` | Attempted from inside. Parent host still wins. Use Open the lens / home screen. |
-| 720p, 24–30 fps, rear camera, continuous focus | Yes |
-| Worker decode, ROI crop | Yes. 1D only in the worker. |
-| QR / 2D | Off in the live lens (stops marketing-QR false locks). Paste a Digital Link if you have one. |
-| 5s keypad | Yes |
-| Mic | Not requested. We do not listen. |
+| Pack | Code | What you should see |
+| --- | --- | --- |
+| Coca-Cola Classic | 5449000000996 | Poor. A can is a dessert. |
+| Evian | 3274080005003 | Excellent. Water. |
+| CeraVe Foaming Cleanser | 3337875598071 | Bathroom. Same 0–100 disc. |
 
-## Domain 2 — Code + lookup
-
-| Check | Status |
-| --- | --- |
-| Modulo-10 before lookup | Yes. Junk and Instagram QRs never fire a request. |
-| Haptics 100ms + beep, then freeze the stream | Yes |
-| Recent packs cached on device | Yes |
-| EMR mutations | Not this product. History is the chart. |
-
-## Domain 3 — Edge
-
-| Check | Status |
-| --- | --- |
-| HTTPS | Required. Camera will not start on http. |
-| `Permissions-Policy: camera=(self)` | `/_headers` + Vite dev headers |
-| Cloudflare Pages | Drop `public/_headers` on Pages. This sandbox preview is not Pages. |
-
-## Domain 4 — Score
-
-Colour disc, neighbour when below 75, listening pulse on the viewfinder while decoding.
-
-## Domain 5 — Compliance
-
-“Healthie is a reading aid, not a diagnosis.” On pack, method, and demo.
+Vibrate + beep on a valid code. History stores on the phone.

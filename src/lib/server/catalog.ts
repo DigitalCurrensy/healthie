@@ -8,7 +8,7 @@ import { matchCatalogName } from "@/lib/catalog/lookup";
 import { productAllergens, productConcerns } from "@/lib/catalog/flags";
 import { cosineSimilarity, scoreProduct } from "@/lib/scoring";
 import type { MatchedIngredient, Nutrition, ProductType } from "@/lib/scoring";
-import { recordIsScorable, titleLooksLikeWater } from "@/lib/catalog/quality";
+import { recordIsScorable, titleLooksLikeWater, isDemoBarcode, isDemoBrand } from "@/lib/catalog/quality";
 import { AISLES } from "@/lib/catalog/aisles";
 import { brandSlug } from "@/lib/catalog/brands";
 import { realPackUrl } from "@/lib/catalog/pack-image";
@@ -29,13 +29,14 @@ export async function ensureCatalog(): Promise<void> {
     globalRef.__healthieSeedVersion__ = SEED_VERSION;
   }
   globalRef.__healthieSeed__ ??= (async () => {
-    const sql = await getSql();
-    await purgeJunk(sql);
-    const [{ n: ingN } = { n: 0 }] = await sql<{ n: number }>`select count(*)::int as n from ingredients`;
-    if (ingN < INGREDIENTS.length) {
-      for (const ing of INGREDIENTS) {
-        await sql.query(
-          `insert into ingredients
+    try {
+      const sql = await getSql();
+      await purgeJunk(sql);
+      const [{ n: ingN } = { n: 0 }] = await sql<{ n: number }>`select count(*)::int as n from ingredients`;
+      if (ingN < INGREDIENTS.length) {
+        for (const ing of INGREDIENTS) {
+          await sql.query(
+            `insert into ingredients
             (id, name, aliases, inci_code, e_number, hazard_rating, risk_class, kind, is_additive, description)
            values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
            on conflict (id) do update set
@@ -44,25 +45,28 @@ export async function ensureCatalog(): Promise<void> {
              hazard_rating = excluded.hazard_rating,
              risk_class = excluded.risk_class,
              description = excluded.description`,
-          [
-            ing.id,
-            ing.name,
-            JSON.stringify(ing.aliases),
-            ing.inciCode ?? null,
-            ing.eNumber ?? null,
-            ing.hazard,
-            ing.riskClass,
-            ing.kind,
-            ing.isAdditive,
-            ing.description,
-          ],
-        );
+            [
+              ing.id,
+              ing.name,
+              ing.aliases ? JSON.stringify(ing.aliases) : "[]",
+              ing.inciCode ?? null,
+              ing.eNumber ?? null,
+              ing.hazard,
+              ing.riskClass,
+              ing.kind,
+              ing.isAdditive,
+              ing.description,
+            ],
+          );
+        }
       }
+      for (const def of PRODUCTS) {
+        await upsertEvaluated(evaluateDef(def));
+      }
+      kickWorld();
+    } catch {
+      /* Edge / Worker: in-memory shelves still score. */
     }
-    for (const def of PRODUCTS) {
-      await upsertEvaluated(evaluateDef(def));
-    }
-    kickWorld();
   })().catch((err) => {
     globalRef.__healthieSeed__ = undefined;
     throw err;
@@ -275,28 +279,35 @@ async function hydrate(row: ProductRow): Promise<EvaluatedProduct> {
 }
 
 export async function findByBarcode(barcode: string): Promise<EvaluatedProduct | null> {
-  const sql = await getSql();
-  for (const code of barcodeVariants(barcode)) {
-    const rows = await sql<ProductRow>`select * from products where gtin_barcode = ${code} limit 1`;
-    if (!rows[0]) continue;
-    const product = await hydrate(rows[0]);
-    if (
-      !recordIsScorable({
-        title: product.title,
-        type: product.type,
-        ingredientsText: product.ingredientsText,
-        ingredientCount: product.ingredients.length,
-        nutrition: product.nutrition,
-        isWater: product.isWater,
-      })
-    ) {
-      if (rows[0].source !== "catalog") {
-        await sql.query(`delete from product_ingredients where product_id = $1`, [rows[0].id]);
-        await sql.query(`delete from products where id = $1`, [rows[0].id]);
+  const wanted = new Set(barcodeVariants(barcode));
+  const def = PRODUCTS.find((p) => wanted.has(p.barcode) || barcodeVariants(p.barcode).some((c) => wanted.has(c)));
+  if (def) return evaluateDef(def);
+  try {
+    const sql = await getSql();
+    for (const code of wanted) {
+      const rows = await sql<ProductRow>`select * from products where gtin_barcode = ${code} limit 1`;
+      if (!rows[0]) continue;
+      const product = await hydrate(rows[0]);
+      if (
+        !recordIsScorable({
+          title: product.title,
+          type: product.type,
+          ingredientsText: product.ingredientsText,
+          ingredientCount: product.ingredients.length,
+          nutrition: product.nutrition,
+          isWater: product.isWater,
+        })
+      ) {
+        if (rows[0].source !== "catalog") {
+          await sql.query(`delete from product_ingredients where product_id = $1`, [rows[0].id]);
+          await sql.query(`delete from products where id = $1`, [rows[0].id]);
+        }
+        return null;
       }
-      return null;
+      return product;
     }
-    return product;
+  } catch {
+    return null;
   }
   return null;
 }
@@ -352,7 +363,21 @@ export async function listCatalog(filter?: {
 }
 
 export async function recommendFor(product: EvaluatedProduct): Promise<EvaluatedProduct[]> {
-  const sql = await getSql();
+  const fromMemory = () =>
+    PRODUCTS.filter(
+      (p) => p.type === product.type && p.categoryPath === product.categoryPath && p.barcode !== product.barcode,
+    )
+      .map((d) => evaluateDef(d))
+      .filter((c) => c.score.overall >= 75)
+      .sort((a, b) => b.score.overall - a.score.overall)
+      .slice(0, 3);
+
+  let sql: Awaited<ReturnType<typeof getSql>>;
+  try {
+    sql = await getSql();
+  } catch {
+    return fromMemory();
+  }
   const literal = pgFloat8Literal(product.embedding);
 
   const rank = (rows: EvaluatedProduct[]) =>
@@ -433,23 +458,53 @@ function toCard(r: CardRow): CatalogCard {
   };
 }
 
+function memoryCards(): CatalogCard[] {
+  return PRODUCTS.filter((p) => !isDemoBarcode(p.barcode) && !isDemoBrand(p.brand)).map((p) => {
+    const scored = evaluateDef(p);
+    return {
+      barcode: p.barcode,
+      title: p.title,
+      brand: p.brand,
+      type: p.type,
+      categoryPath: p.categoryPath,
+      isOrganic: p.isOrganic,
+      overallScore: scored.score.overall,
+      imageUrl: realPackUrl(p.imageUrl ?? null),
+      additiveCount: scored.additiveCount,
+    };
+  });
+}
+
 export async function listCards(): Promise<CatalogCard[]> {
-  const sql = await getSql();
-  const rows = await sql<CardRow>`
+  try {
+    const sql = await getSql();
+    const rows = await sql<CardRow>`
     select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
     from products order by brand, title`;
-  return rows.map(toCard);
+    if (rows.length) return rows.map(toCard);
+  } catch {
+    /* edge */
+  }
+  return memoryCards();
 }
 
 export async function listCardsByAisle(path: string, limit = 200): Promise<CatalogCard[]> {
-  const sql = await getSql();
-  const rows = await sql<CardRow>`
+  try {
+    const sql = await getSql();
+    const rows = await sql<CardRow>`
     select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
     from products
     where category_path = ${path}
     order by overall_score desc
     limit ${limit}`;
-  return rows.map(toCard);
+    if (rows.length) return rows.map(toCard);
+  } catch {
+    /* edge */
+  }
+  return memoryCards()
+    .filter((c) => c.categoryPath === path)
+    .sort((a, b) => b.overallScore - a.overallScore)
+    .slice(0, limit);
 }
 
 export async function barcodesInAisle(path: string): Promise<Set<string>> {

@@ -60,7 +60,12 @@ const globalAuthRef = globalThis as typeof globalThis & {
   __grokAuthPreviewSecret__?: string;
 };
 function previewAuthSecret(): string {
-  globalAuthRef.__grokAuthPreviewSecret__ ??= randomBytes(32).toString("hex");
+  if (globalAuthRef.__grokAuthPreviewSecret__) return globalAuthRef.__grokAuthPreviewSecret__;
+  try {
+    globalAuthRef.__grokAuthPreviewSecret__ = randomBytes(32).toString("hex");
+  } catch {
+    globalAuthRef.__grokAuthPreviewSecret__ = "healthie-edge-preview-secret-32bytes-min";
+  }
   return globalAuthRef.__grokAuthPreviewSecret__;
 }
 

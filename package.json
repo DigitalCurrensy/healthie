@@ -13,7 +13,7 @@
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
     "preview": "node scripts/with-app-env.mjs vite preview",
     "preview:restart": "node scripts/preview.mjs restart",
-    "preview:stop": "node scripts/preview.mjs stop",
+    "deploy:cf": "NITRO_PRESET=cloudflare-pages CF_PAGES=1 node scripts/with-app-env.mjs vite build && node scripts/copy-pglite-assets.mjs && npx wrangler pages deploy dist --project-name=healthie",
     "typecheck": "tsc --noEmit",
     "check:auth": "node scripts/check-auth-invariant.mjs",
     "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts src/lib/scan/geometry.test.ts src/lib/server/dump-logic.test.ts src/lib/server/prices.test.ts src/lib/account-merge.test.ts && npx tsx --test src/lib/scoring/scoring.test.ts src/lib/catalog/lookup.test.ts src/lib/catalog/quality.test.ts src/lib/scan/image.test.ts",
