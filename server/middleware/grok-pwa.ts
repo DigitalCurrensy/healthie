@@ -67,17 +67,20 @@ export default async function grokPwaMiddleware(
   next: () => unknown | Promise<unknown>,
 ): Promise<unknown> {
   const method = (event.req.method ?? "GET").toUpperCase();
-  if (method !== "GET") return next();
+  if (method !== "GET" && method !== "HEAD") return next();
 
   const path = event.url.pathname;
   const urlWithQuery = path + event.url.search;
   const host = requestHost(event);
 
   if (isShareCrawler(event.req.headers.get("user-agent") ?? "") && isDocumentPath(path)) {
-    return new Response(renderCrawlerShareHtml({ host, site: grokOgIdentity.site }), {
+    const html = renderCrawlerShareHtml({ host, site: grokOgIdentity.site });
+    return new Response(method === "HEAD" ? null : html, {
       headers: {
         "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=300",
+        "cache-control": "no-store",
+        vary: "User-Agent",
+        "x-robots-tag": "all",
       },
     });
   }

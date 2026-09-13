@@ -6,16 +6,21 @@
   X-Content-Type-Options: nosniff
 
 /og.jpg
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
 
 /brand/*
   Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
 
 /icon-*.png
   Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
 
 /apple-touch.png
   Cache-Control: public, max-age=86400
+  Access-Control-Allow-Origin: *
 
 /favicon.svg
   Cache-Control: public, max-age=86400

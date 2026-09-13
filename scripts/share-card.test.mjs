@@ -24,13 +24,13 @@ test("Healthie identity passes the X summary_large_image checklist", () => {
   assert.ok(attr(tags, "twitter:title").length <= 70);
   assert.ok(attr(tags, "twitter:description").length > 0);
   assert.ok(attr(tags, "twitter:description").length <= 200);
-  assert.equal(attr(tags, "twitter:image"), `https://${host}/og.jpg`);
+  assert.match(attr(tags, "twitter:image"), new RegExp(`^https://${host}/og\\.jpg`));
   assert.match(attr(tags, "twitter:image"), /^https:\/\//);
   assert.equal(attr(tags, "twitter:site"), "@IAmAdrianSwish");
   assert.equal(attr(tags, "twitter:creator"), "@IAmAdrianSwish");
   assert.equal(attr(tags, "og:title"), "Healthie");
   assert.ok(attr(tags, "og:description").length > 0);
-  assert.equal(attr(tags, "og:image"), `https://${host}/og.jpg`);
+  assert.match(attr(tags, "og:image"), new RegExp(`^https://${host}/og\\.jpg`));
   assert.equal(attr(tags, "og:image:width"), "1200");
   assert.equal(attr(tags, "og:image:height"), "630");
   assert.equal(attr(tags, "og:image:type"), "image/jpeg");
@@ -50,10 +50,12 @@ test("Twitterbot and iMessage user-agents get the crawler share card", () => {
     true,
   );
   assert.equal(isShareCrawler("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)"), false);
+  assert.equal(isShareCrawler("Grok-Preview/1.0"), false);
+  assert.equal(isShareCrawler("Mozilla/5.0 (Linux) AppleWebKit/537.36 Chrome/120.0.0.0"), false);
 
   const html = renderCrawlerShareHtml({ host, site });
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
-  assert.match(html, /name="twitter:image" content="https:\/\/healthie\.invented-sloth\.workers\.dev\/og\.jpg"/);
+  assert.match(html, /name="twitter:image" content="https:\/\/healthie\.invented-sloth\.workers\.dev\/og\.jpg/);
   assert.match(html, /name="twitter:site" content="@IAmAdrianSwish"/);
   assert.match(html, /property="og:url"/);
   assert.ok(html.length < 4000);

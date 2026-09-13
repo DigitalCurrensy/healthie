@@ -133,6 +133,18 @@ function Home() {
           indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet. Scan
           anything — if it isn’t here yet, we look it up.
         </p>
+        <figure className="mt-6 overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-border)]">
+          <img
+            src="/og.jpg"
+            alt="Healthie — scan a pack, see the score"
+            width={1200}
+            height={630}
+            className="h-auto w-full object-cover"
+          />
+          <figcaption className="px-4 py-3 text-sm leading-relaxed text-muted">
+            This is the card that shows up when you send Healthie in Mail, Messages, or on X.
+          </figcaption>
+        </figure>
       </section>
 
       <section className="healthie-in-2 mt-7 space-y-3">

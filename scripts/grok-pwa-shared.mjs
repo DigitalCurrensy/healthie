@@ -368,7 +368,7 @@ function twitterHandle(site = {}) {
 }
 
 export function isShareCrawler(userAgent = "") {
-  return /facebookexternalhit|facebot|twitterbot|applebot|slackbot|whatsapp|linkedinbot|discordbot|telegrambot|pinterest|iframely|embedly|redditbot|skypeuripreview|googlebot|bingbot|duckduckbot|applenews|semrushbot|ahrefsbot|preview/i.test(
+  return /facebookexternalhit|facebot|twitterbot|applebot|slackbot|whatsapp|linkedinbot|discordbot|telegrambot|pinterest|iframely|embedly|redditbot|skypeuripreview|googlebot|bingbot|duckduckbot|applenews|semrushbot|ahrefsbot|baiduspider|yandexbot|ia_archiver/i.test(
     String(userAgent ?? ""),
   );
 }
@@ -382,7 +382,7 @@ export function renderCrawlerShareHtml({ host = "", site = {} } = {}) {
   const twitterTitle = escapeHtml(clipMeta(rawTitle, 70));
   const twitterDescription = escapeHtml(clipMeta(rawDescription, 200));
   const origin = publicHost ? `https://${publicHost}` : "";
-  const image = `${origin}/og.jpg`;
+  const image = `${origin}/og.jpg?v=healthie`;
   const logoPath = String(site.logo ?? "/brand/og-logo.png").trim() || "/brand/og-logo.png";
   const logo = `${origin}${logoPath.startsWith("/") ? logoPath : `/${logoPath}`}`;
   const alt = escapeHtml(String(site.imageAlt ?? "").trim() || `${rawTitle} logo`);
