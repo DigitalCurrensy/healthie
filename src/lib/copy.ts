@@ -225,7 +225,7 @@ export function brandVsShop(avg: number, shopAvg: number): string {
 export const VOICE = {
   independent: "No brand pays for a better score.",
   localPrefs: "Without an account, notes stay on this phone.",
-  scanHint: "Scan barcode opens the lens. In this preview, use Open live camera for the real camera. Take photo snaps the front. Camera roll is only if you already have a shot.",
+  scanHint: "Point the camera at the barcode. If this window blocks the lens, add Healthie to your home screen.",
   labelHint: "No barcode on the front? Take a photo of the pack. We’ll read the name.",
   notFound: "We don’t have this barcode yet. Photograph the front of the pack — we’ll read the name, even if there is no code in the shot.",
   disclaimer:

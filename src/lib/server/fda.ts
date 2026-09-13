@@ -2,24 +2,39 @@ import { normalizeBarcode } from "@/lib/utils";
 
 export type FdaRecall = {
   eventId: string;
+  recallNumber: string;
   classification: string;
   firm: string;
   product: string;
   codes: string;
   reason: string;
   date: string;
+  started: string;
   status: string;
+  quantity: string;
+  where: string;
+  how: string;
+  city: string;
+  state: string;
 };
 
 type FdaRaw = {
   event_id?: string;
+  recall_number?: string;
   classification?: string;
   recalling_firm?: string;
   product_description?: string;
   code_info?: string;
+  more_code_info?: string;
   reason_for_recall?: string;
   report_date?: string;
+  recall_initiation_date?: string;
   status?: string;
+  product_quantity?: string;
+  distribution_pattern?: string;
+  voluntary_mandated?: string;
+  city?: string;
+  state?: string;
 };
 
 const globalRef = globalThis as typeof globalThis & {
@@ -29,17 +44,28 @@ const globalRef = globalThis as typeof globalThis & {
 const TTL = 6 * 60 * 60 * 1000;
 const GENERIC = /^(classic|original|organic|natural|the|and|with|food|pack|size)$/i;
 
+function clean(s?: string): string {
+  return (s || "").replace(/\s+/g, " ").trim();
+}
+
 function mapRow(r: FdaRaw): FdaRecall | null {
   if (!r.product_description) return null;
   return {
-    eventId: String(r.event_id || ""),
+    eventId: String(r.event_id || r.recall_number || ""),
+    recallNumber: r.recall_number || "",
     classification: r.classification || "",
     firm: r.recalling_firm || "",
-    product: r.product_description,
-    codes: r.code_info || "",
-    reason: (r.reason_for_recall || "").replace(/\s+/g, " ").trim(),
+    product: clean(r.product_description),
+    codes: clean([r.code_info, r.more_code_info].filter(Boolean).join(" ")),
+    reason: clean(r.reason_for_recall),
     date: r.report_date || "",
+    started: r.recall_initiation_date || "",
     status: r.status || "",
+    quantity: clean(r.product_quantity),
+    where: clean(r.distribution_pattern),
+    how: clean(r.voluntary_mandated),
+    city: r.city || "",
+    state: r.state || "",
   };
 }
 
@@ -62,14 +88,14 @@ export async function loadFdaFeed(): Promise<FdaRecall[]> {
       if ((json.results ?? []).length < 100) break;
     }
   } catch {
-    /* openFDA down — keep last cache or empty */
+    /* feed down — keep last cache or empty */
   }
   if (rows.length) globalRef.__fdaFeed__ = { at: Date.now(), rows };
   return globalRef.__fdaFeed__?.rows ?? rows;
 }
 
-function digits(s: string): string {
-  return s.replace(/\D/g, "");
+function digitRuns(s: string): string[] {
+  return s.match(/\d{8,14}/g) ?? [];
 }
 
 export function matchFdaRecall(
@@ -80,9 +106,10 @@ export function matchFdaRecall(
   const tail = gtin.slice(-12);
   const tail11 = gtin.slice(-11);
   for (const r of feed) {
-    const codes = digits(r.codes);
-    if (codes.length >= 8 && (codes.includes(tail) || codes.includes(gtin) || (tail11.length >= 11 && codes.includes(tail11)))) {
-      return r;
+    for (const code of digitRuns(r.codes)) {
+      if (code === gtin || code === tail || (tail11.length >= 11 && code === tail11) || code.endsWith(tail) || tail.endsWith(code)) {
+        return r;
+      }
     }
   }
   const brand = input.brand.trim().toLowerCase();
@@ -103,9 +130,17 @@ export function matchFdaRecall(
 
 export function fdaToHit(r: FdaRecall): { kind: "recall"; title: string; detail: string } {
   const klass = r.classification ? `${r.classification}. ` : "";
+  const why = r.reason || r.product;
   return {
     kind: "recall",
     title: "This pack is on an ongoing recall",
-    detail: `${klass}${r.reason || r.product}`.slice(0, 280),
+    detail: `${klass}${why}`.slice(0, 280),
   };
+}
+
+export function classLabel(classification: string): string {
+  if (/class i\b/i.test(classification)) return "Serious risk";
+  if (/class ii/i.test(classification)) return "Could cause harm";
+  if (/class iii/i.test(classification)) return "Unlikely to cause harm";
+  return classification || "Recall";
 }

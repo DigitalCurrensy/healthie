@@ -93,12 +93,12 @@ function AislePage() {
       </div>
 
       {worldState === "loading" ? (
-        <p className="mt-8 text-sm text-muted">Checking the world pantry…</p>
+        <p className="mt-8 text-sm text-muted">Looking for more packs in this aisle…</p>
       ) : extra.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-xl font-bold">Also scanned worldwide</h2>
           <p className="mt-1 text-sm text-muted">
-            Live from Open Food Facts / Open Beauty Facts. Open one to score it the Healthie way.
+            More packs people scan in this aisle. Open one for the Healthie score.
           </p>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {extra.map((p) => (

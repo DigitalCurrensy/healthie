@@ -126,7 +126,7 @@ function ScanPage() {
 
       <section className="mt-8">
         <h2 className="font-display text-xl font-bold">Try a pack we already scored</h2>
-        <p className="mt-1 text-sm text-muted">Same lab as a live scan — useful on a computer, or while the lens warms up.</p>
+        <p className="mt-1 text-sm text-muted">Same score as a live scan — useful on a computer, or while the lens warms up.</p>
         <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
           {SAMPLE_PACKS.map((p) => (
             <button

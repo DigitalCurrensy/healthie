@@ -14,7 +14,7 @@ function InstallPage() {
       <PageHeader
         kicker="The live lens"
         title="On your home screen"
-        body="This preview cannot hold a camera. The app can. Add Healthie to the home screen, open it from the icon, then scan. That is the native path."
+        body="Add Healthie to your home screen, open it from the icon, then scan. That’s how the camera opens on a phone."
       />
       <img
         src="/images/install.jpg"
@@ -33,7 +33,7 @@ function InstallPage() {
         </li>
         <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
           <p className="font-medium">Then scan</p>
-          <p className="mt-1 text-muted">The lens is Scan. A Digital Link QR that is a GTIN unlocks the pack. Instagram does not.</p>
+          <p className="mt-1 text-muted">Scan a barcode. A marketing QR that isn’t a product code is ignored.</p>
         </li>
       </ol>
       <div className="mt-6 flex gap-2">
@@ -43,7 +43,7 @@ function InstallPage() {
           </Link>
         </Button>
         <Button asChild variant="secondary">
-          <Link to="/method">The mixer</Link>
+          <Link to="/method">How scoring works</Link>
         </Button>
       </div>
     </AppShell>

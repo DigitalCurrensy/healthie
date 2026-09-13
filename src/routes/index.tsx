@@ -115,7 +115,7 @@ function Home() {
         <p className="mt-4 text-sm text-muted">
           <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
           indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet. Scan
-          anything — live lookup covers the long tail when this pantry is up.
+          anything — if it isn’t here yet, we look it up.
         </p>
       </section>
 

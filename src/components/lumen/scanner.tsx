@@ -306,7 +306,7 @@ export function ScannerSheet({
           if (cancelled || locked) return;
           setReady(false);
           setError(cameraErrorCopy("blocked"));
-          setStatus("Camera closed. Open live camera in a new tab, or photograph the pack.");
+          setStatus("Camera closed. Open the lens in a new tab, or photograph the pack.");
         };
         track?.addEventListener("ended", onEnded);
         track?.addEventListener("mute", onEnded);
@@ -579,7 +579,7 @@ export function ScannerSheet({
               <Button asChild size="lg" className="h-14 w-full max-w-sm text-base">
                 <a href={lensHref(mode)} target="_blank" rel="opener">
                   <ExternalLink className="size-4" />
-                  Open live camera
+                  Open the lens
                 </a>
               </Button>
             ) : onRetry ? (
@@ -590,7 +590,7 @@ export function ScannerSheet({
             ) : null}
             <p className="max-w-sm text-center text-sm leading-relaxed text-accent-fg/75">
               {embedded
-                ? "This window can’t use your camera. Tap Open live camera, allow the lens, then point at the barcode."
+                ? "This window can’t use your camera. Open the lens, allow it, then point at the barcode."
                 : (error ?? "Allow the camera, photograph the pack, or type the numbers.")}
             </p>
             {onLabel ? (
@@ -621,7 +621,7 @@ export function ScannerSheet({
         )}
         {demo && ready ? (
           <p className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full bg-fg/70 px-3 py-1 text-[11px] font-medium text-accent-fg">
-            Sample view — use Open live camera for the real lens
+            Sample view — open the lens for the real camera
           </p>
         ) : null}
         {zoom.ok && ready && !shortScreen && !landscape ? (

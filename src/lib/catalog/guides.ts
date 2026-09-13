@@ -54,7 +54,7 @@ const CORE_GUIDES: Guide[] = [
       },
       {
         heading: "What the number is made of",
-        body: "Food: 50% nutrition (sugar, salt, saturated fat, fibre, protein, fruit), 25% extras, 20% processing (NOVA), 5% organic. Then ceilings. A weak nutrition box cannot be rated Good. One high-concern extra cannot hide in a long list. Two of them, and the pack is Avoid. Creams and washes use a different mixer: the worst actor sets the ceiling. One rough preservative keeps a pretty bottle out of the green.",
+        body: "Food: 50% nutrition (sugar, salt, saturated fat, fibre, protein, fruit), 25% extras, 20% processing, 5% organic. Then ceilings. A weak nutrition box cannot be rated Good. One high-concern extra cannot hide in a long list. Two of them, and the pack is Avoid. Creams and washes use a different recipe: the worst actor sets the ceiling. One rough preservative keeps a pretty bottle out of the green.",
       },
       {
         heading: "Ceilings, in plain English",

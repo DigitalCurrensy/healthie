@@ -2,11 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/lumen/shell";
 import { PageHeader } from "@/components/lumen/empty";
-import { ScoreChip } from "@/components/lumen/score-ring";
+import { ScoreChip, ScoreRing } from "@/components/lumen/score-ring";
 import { useHistory } from "@/lib/history";
 import { loadLabInsights } from "@/lib/server/functions";
 import { bandLabel, scoreBand } from "@/lib/utils";
 import { formatWorldCount } from "@/lib/world";
+import { scoreCart } from "@/lib/catalog/cart";
+import { usePrefs } from "@/lib/prefs";
 
 export const Route = createFileRoute("/insights")({
   loader: () => loadLabInsights(),
@@ -15,19 +17,20 @@ export const Route = createFileRoute("/insights")({
 
 function InsightsPage() {
   const items = useHistory((s) => s.items);
+  const list = usePrefs((s) => s.list);
   const { lab, world } = Route.useLoaderData();
   const avg = items.length === 0 ? null : Math.round(items.reduce((s, i) => s + i.score, 0) / items.length);
   const worst = items.reduce<(typeof items)[number] | null>((w, i) => (!w || i.score < w.score ? i : w), null);
   const best = items.reduce<(typeof items)[number] | null>((w, i) => (!w || i.score > w.score ? i : w), null);
-  const vsLab =
-    avg == null ? null : avg - lab.avgScore;
+  const vsLab = avg == null ? null : avg - lab.avgScore;
+  const week = scoreCart(list);
   const letter =
     avg == null
-      ? null
+      ? `The shelves average ${lab.avgScore}. ${lab.nova4Pct}% of the food is ultra-processed. Drinks and snacks pull that number down — that's a supermarket.`
       : avg >= 75
-        ? "Your cart is in good shape. Keep reaching for the green ones."
+        ? "Your scans are in good shape. Keep reaching for the green ones."
         : avg >= 50
-          ? `A mixed bag — ${vsLab != null && vsLab < 0 ? `${Math.abs(vsLab)} below our shelf average.` : "in range of the shop."} Swap the lowest score this week.`
+          ? `A mixed bag${vsLab != null && vsLab < 0 ? ` — ${Math.abs(vsLab)} below the shelf average` : ""}. Swap the lowest score this week.`
           : "A lot of red this week. Pick one habit — drinks, snacks, or a bathroom bottle — and change that first.";
 
   return (
@@ -35,30 +38,39 @@ function InsightsPage() {
       <PageHeader
         kicker="The shop letter"
         title="Insights"
-        body="What the shelves actually look like — scored from the live pantry, not a dummy cart. We stock the worst on purpose so a cola and a bottle of water don’t look the same."
+        body="What these shelves actually look like. Cola and still water sit in the same shop, so the average is honest."
       />
 
       <section className="mt-8 rounded-xl bg-accent px-5 py-6 text-accent-fg shadow-[var(--shadow-border)]">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-accent-fg/70">World pantry</p>
-        <p className="mt-2 font-display text-4xl font-bold tabular-nums tracking-tight">
-          {formatWorldCount(world.foodCount + world.beautyCount + world.petCount)}
-        </p>
-        <p className="mt-2 max-w-prose text-sm leading-relaxed text-accent-fg/80">
-          Food, beauty, and pet barcodes from the public pantry. {lab.productCount.toLocaleString()} scored on this
-          shelf right now. Scan a pack that isn’t here — live lookup still covers the long tail.
-        </p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-accent-fg/70">The shop today</p>
+        <p className="mt-2 font-display text-4xl font-bold tabular-nums tracking-tight">{lab.avgScore}</p>
+        <p className="mt-1 text-sm text-accent-fg/80">Shelf average · {lab.productCount.toLocaleString()} packs scored</p>
+        <p className="mt-3 max-w-prose text-sm leading-relaxed text-accent-fg/80">{letter}</p>
       </section>
+
+      {week ? (
+        <section className="mt-6 flex items-start gap-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+          <ScoreRing score={week.overall} size={72} />
+          <div className="min-w-0">
+            <p className="kicker">Your list</p>
+            <p className="mt-1 text-[15px] leading-relaxed">{week.headline}</p>
+            {week.sugarLine ? <p className="mt-2 text-sm leading-relaxed text-muted">{week.sugarLine}</p> : null}
+            <Link to="/lists" className="mt-2 inline-block text-sm font-medium text-accent">
+              Open the list
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {items.length > 0 ? (
         <section className="mt-8 space-y-3">
           <div className="rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
-            <p className="kicker">Your average</p>
+            <p className="kicker">Your scans</p>
             <p className="mt-1 font-display text-5xl font-bold tabular-nums">{avg}</p>
             <p className="mt-1 text-sm text-muted">
               {items.length} scanned · {avg != null ? bandLabel(scoreBand(avg)) : ""}
               {vsLab != null ? ` · ${vsLab >= 0 ? "+" : ""}${vsLab} vs the shop` : ""}
             </p>
-            {letter ? <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">{letter}</p> : null}
           </div>
           {best && worst ? (
             <div className="grid grid-cols-2 gap-2">
@@ -85,8 +97,7 @@ function InsightsPage() {
         </section>
       ) : (
         <p className="mt-6 max-w-prose text-sm leading-relaxed text-muted">
-          You haven’t scanned yet. Below is the letter from the {lab.productCount} packs on our shelves — not a dummy
-          cart. About half score Poor because supermarket drinks and snacks are in here on purpose.
+          Scan a pack and your week shows up here. Until then, this is the letter from the shelves.
         </p>
       )}
 
@@ -94,8 +105,8 @@ function InsightsPage() {
         {[
           [lab.productCount, "Packs scored"],
           [lab.brandCount, "Brands"],
-          [lab.avgScore, "Shelf average"],
           [`${lab.nova4Pct}%`, "Ultra-processed food"],
+          [formatWorldCount(world.foodCount + world.beautyCount + world.petCount), "Indexed worldwide"],
         ].map(([n, label]) => (
           <div key={String(label)} className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
             <p className="font-display text-2xl font-bold tabular-nums">{n}</p>
@@ -137,22 +148,19 @@ function InsightsPage() {
         </ul>
         {lab.organicDelta != null ? (
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Organic packs average {lab.organicAvg}/100. The rest average {lab.conventionalAvg}/100. Organic is a bonus, not a
-            free pass — the gap is {lab.organicDelta > 0 ? `+${lab.organicDelta}` : lab.organicDelta} points.
+            Organic packs average {lab.organicAvg}/100. The rest average {lab.conventionalAvg}/100. Organic is a bonus,
+            not a free pass — the gap is {lab.organicDelta > 0 ? `+${lab.organicDelta}` : lab.organicDelta} points.
           </p>
         ) : null}
         <p className="mt-2 text-sm text-muted">
           {lab.highRiskPct}% of packs carry at least one high-concern extra. Food {lab.foodAvg ?? "—"} · beauty{" "}
-          {lab.cosmeticAvg ?? "—"} · pet {lab.petAvg ?? "—"}. The shelf average is {lab.avgScore} because we stock colas
-          and honest water in the same shop.
+          {lab.cosmeticAvg ?? "—"} · pet {lab.petAvg ?? "—"}.
         </p>
       </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Brand ranking</h2>
-        <p className="mt-1 text-sm text-muted">
-          Houses with 3 or more packs. The number is the house average. No brand pays for a better one.
-        </p>
+        <p className="mt-1 text-sm text-muted">Houses with 3 or more packs. The number is the house average. No brand pays for a better one.</p>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
             <p className="kicker">Cleaner houses</p>
@@ -178,7 +186,7 @@ function InsightsPage() {
           <div>
             <p className="kicker">Treat houses</p>
             <ul className="mt-2 flex flex-col gap-1.5">
-              {lab.brandsTreat.map((b, i) => (
+              {lab.brandsTreat.map((b) => (
                 <li key={b.slug}>
                   <Link
                     to="/brand/$slug"
@@ -200,7 +208,7 @@ function InsightsPage() {
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Aisles, worst to best</h2>
-        <p className="mt-1 text-sm text-muted">Average score of everything we stock in that aisle. Tap through.</p>
+        <p className="mt-1 text-sm text-muted">Average of everything we stock in that aisle. Tap through.</p>
         <div className="mt-4 flex flex-col gap-2">
           {lab.aisles.map((a) => (
             <Link
@@ -224,7 +232,7 @@ function InsightsPage() {
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">The extras that show up</h2>
-        <p className="mt-1 text-sm text-muted">How often a flagged additive appears across the shop — not a scare list, a frequency list.</p>
+        <p className="mt-1 text-sm text-muted">How often a flagged additive appears across the shop — a frequency list, not a scare list.</p>
         <ul className="mt-4 divide-y divide-border rounded-xl bg-surface shadow-[var(--shadow-border)]">
           {lab.extras.map((e) => (
             <li key={e.id}>
@@ -245,7 +253,7 @@ function InsightsPage() {
 
       <section className="mt-10 mb-4">
         <h2 className="font-display text-xl font-bold">The swaps that move the number</h2>
-        <p className="mt-1 text-sm text-muted">Same aisle. Worst pack we stock versus the keep. The lift is the point.</p>
+        <p className="mt-1 text-sm text-muted">Same aisle. Worst pack we stock versus the keep.</p>
         <div className="mt-4 flex flex-col gap-2">
           {lab.swaps.map((s) => (
             <div key={s.from.barcode} className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
@@ -265,6 +273,15 @@ function InsightsPage() {
             </div>
           ))}
         </div>
+        <p className="mt-6 text-sm text-muted">
+          <Link to="/recalls" className="font-medium text-accent">
+            Ongoing recalls
+          </Link>
+          {" · "}
+          <Link to="/method" className="font-medium text-accent">
+            How scoring works
+          </Link>
+        </p>
       </section>
     </AppShell>
   );

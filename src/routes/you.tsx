@@ -39,7 +39,7 @@ function YouPage() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(blob, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "healthie-lab.json";
+    a.download = "healthie-notes.json";
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -57,7 +57,7 @@ function YouPage() {
         prefs.setOnboardingDone(true);
         setImportNote("Lab card restored on this phone.");
       } catch {
-        setImportNote("That file isn’t a Healthie lab card.");
+        setImportNote("That file isn’t a Healthie notes file.");
       }
     };
     reader.readAsText(file);
@@ -78,12 +78,12 @@ function YouPage() {
       <section className="mt-6 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
         <p className="kicker">{user ? "Signed in" : "Across phones"}</p>
         <h2 className="mt-1 font-display text-xl font-bold">
-          {user ? "This lab is yours" : "Take history with you"}
+          {user ? "These notes are yours" : "Take history with you"}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           {user
             ? "Scans, saved packs, the list, and these notes live on your account. Open Healthie on another phone and sign in — it’s already there."
-            : "Without an account, notes stay on this phone. Sign in with Google, X, or email and the next device is the same lab."}
+            : "Without an account, notes stay on this phone. Sign in with Google, X, or email and the next device is the same."}
         </p>
         <div className="mt-4">
           {isPending ? (
@@ -174,7 +174,7 @@ function YouPage() {
       </section>
 
       <section className="mt-8 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
-        <h2 className="font-display text-xl font-medium">Your lab card</h2>
+        <h2 className="font-display text-xl font-medium">Your notes</h2>
         <p className="mt-1 text-sm text-muted">
           {user
             ? "Synced to your account. Export a file if you want a local copy."
@@ -185,7 +185,7 @@ function YouPage() {
           value={prefs.labName}
           onChange={(e) => prefs.setLabName(e.target.value)}
           placeholder="A name, if you like"
-          aria-label="Name on your lab card"
+          aria-label="A name for these notes"
           maxLength={40}
         />
         <div className="mt-3 grid grid-cols-2 gap-2">

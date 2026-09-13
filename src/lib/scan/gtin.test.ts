@@ -92,4 +92,18 @@ describe("GS1 check digit — 11 retail cases", () => {
     assert.equal(validateScannedBarcode("https://instagram.com/cocacola"), null);
     assert.equal(validateScannedBarcode("https://coca-cola.com/en/brands"), null);
   });
+
+  it("15 uses best-before (15) when there is no use-by (17)", () => {
+    const scan = inspectScannedBarcode("https://id.gs1.org/01/05449000000996/15/271231");
+    assert.equal(scan?.gtin, "5449000000996");
+    assert.equal(scan?.expiry, "271231");
+    assert.equal(scan?.bestBefore, "271231");
+  });
+
+  it("16 reads a parenthetical lot and use-by", () => {
+    const scan = inspectScannedBarcode("(01)05449000000996(17)271231(10)LOT42");
+    assert.equal(scan?.gtin, "5449000000996");
+    assert.equal(scan?.lot, "LOT42");
+    assert.equal(scan?.expiry, "271231");
+  });
 });

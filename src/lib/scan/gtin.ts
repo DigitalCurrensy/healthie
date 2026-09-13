@@ -7,7 +7,20 @@ export type Gs1Scan = {
   lot?: string;
   expiry?: string;
   serial?: string;
+  bestBefore?: string;
+  produced?: string;
 };
+
+const GS = "\u001d";
+const FIXED_AI: Record<string, number> = {
+  "01": 14,
+  "11": 6,
+  "13": 6,
+  "15": 6,
+  "16": 6,
+  "17": 6,
+};
+const VAR_AI = new Set(["10", "21"]);
 
 export function gtinCheckDigit(body: string): number {
   const digits = body.replace(/\D/g, "");
@@ -76,11 +89,77 @@ export function detectRetailFormat(code: string): RetailFormat | null {
   return null;
 }
 
+function applyAi(out: Record<string, string>, ai: string, val: string) {
+  if (!val) return;
+  out[ai] = decodeURIComponent(val);
+}
+
+function scanFromAis(ais: Record<string, string>): Gs1Scan | null {
+  const rawGtin = ais["01"];
+  if (!rawGtin) return null;
+  const gtin = toLookupGtin(rawGtin.padStart(14, "0"));
+  if (!gtin) return null;
+  const bestBefore = ais["15"] || ais["16"];
+  const expiry = ais["17"] || bestBefore;
+  return {
+    gtin,
+    lot: ais["10"],
+    expiry,
+    serial: ais["21"],
+    bestBefore,
+    produced: ais["11"] || ais["13"],
+  };
+}
+
+/** Parenthetical element string: (01)0544…(17)271231(10)LOT */
+export function parseGs1ElementString(raw: string): Gs1Scan | null {
+  const text = raw.trim();
+  const marked = [...text.matchAll(/\((\d{2,4})\)([^()]+)/g)];
+  if (marked.length > 0) {
+    const ais: Record<string, string> = {};
+    for (const m of marked) applyAi(ais, m[1]!, m[2]!.replace(new RegExp(GS, "g"), "").trim());
+    return scanFromAis(ais);
+  }
+  let compact = text.replace(/[\s()]/g, "").replace(/^\][A-Za-z0-9]{2}/, "");
+  if (!compact) return null;
+  const ais: Record<string, string> = {};
+  let i = 0;
+  while (i < compact.length - 1) {
+    if (compact[i] === GS) {
+      i += 1;
+      continue;
+    }
+    const ai = compact.slice(i, i + 2);
+    const fixed = FIXED_AI[ai];
+    if (fixed) {
+      const val = compact.slice(i + 2, i + 2 + fixed);
+      if (val.length < fixed) break;
+      applyAi(ais, ai, val);
+      i += 2 + fixed;
+      continue;
+    }
+    if (VAR_AI.has(ai)) {
+      i += 2;
+      let val = "";
+      while (i < compact.length && compact[i] !== GS) {
+        val += compact[i];
+        i += 1;
+      }
+      applyAi(ais, ai, val);
+      if (compact[i] === GS) i += 1;
+      continue;
+    }
+    break;
+  }
+  return scanFromAis(ais);
+}
+
 /**
- * GS1 Digital Link: a QR that *is* a GTIN, not a marketing URL.
+ * GS1 Digital Link URI 1.2: a QR that *is* a product code, not a marketing URL.
  * https://id.gs1.org/01/05449000000996
  * https://brand.example/01/05449000000996/10/LOT/17/271231
  * Query-string AIs: ?17=271231&10=ABC
+ * Dates: 17 use-by, 15 best-before, 16 sell-by, 11 production, 13 pack.
  */
 export function parseGs1DigitalLink(raw: string): Gs1Scan | null {
   const text = raw.trim();
@@ -99,78 +178,47 @@ export function parseGs1DigitalLink(raw: string): Gs1Scan | null {
     return null;
   }
 
+  const ais: Record<string, string> = {};
   const parts = url.pathname.split("/").filter(Boolean);
-  let gtin14: string | null = null;
-  let lot: string | undefined;
-  let expiry: string | undefined;
-  let serial: string | undefined;
-
   for (let i = 0; i < parts.length; i += 1) {
     const ai = parts[i]!;
     const val = parts[i + 1];
     if (!val) continue;
     if (ai === "01" && /^\d{8,14}$/.test(val)) {
-      gtin14 = val.padStart(14, "0");
+      applyAi(ais, "01", val.padStart(14, "0"));
       i += 1;
-    } else if (ai === "10") {
-      lot = decodeURIComponent(val);
-      i += 1;
-    } else if (ai === "17" && /^\d{6}$/.test(val)) {
-      expiry = val;
-      i += 1;
-    } else if (ai === "21") {
-      serial = decodeURIComponent(val);
+    } else if (VAR_AI.has(ai) || FIXED_AI[ai]) {
+      applyAi(ais, ai, val);
       i += 1;
     }
   }
 
   url.searchParams.forEach((v, k) => {
-    if (k === "01" && !gtin14 && /^\d{8,14}$/.test(v)) gtin14 = v.padStart(14, "0");
-    if (k === "10" && !lot) lot = v;
-    if (k === "17" && !expiry && /^\d{6}$/.test(v)) expiry = v;
-    if (k === "21" && !serial) serial = v;
+    if ((k === "01" || VAR_AI.has(k) || FIXED_AI[k]) && v) applyAi(ais, k, k === "01" ? v.padStart(14, "0") : v);
   });
 
-  if (!gtin14) return null;
-  const gtin = toLookupGtin(gtin14);
-  if (!gtin) return null;
-  return { gtin, lot, expiry, serial };
+  return scanFromAis(ais);
 }
 
-/**
- * GS1-128 / GS1 DataBar: AI (01) carries a GTIN-14.
- * Warehouse case codes look like (01)05449000000996 or 0105449000000996.
- */
 export function extractGs1Gtin(raw: string): string | null {
-  const fromLink = parseGs1DigitalLink(raw);
-  if (fromLink) return fromLink.gtin;
-  const compact = raw.trim().replace(/[\s()]/g, "").replace(/^\][A-Za-z0-9]{2}/, "");
-  let gtin14: string | null = null;
-  const marked = compact.match(/(?:^|[^0-9])01(\d{14})/);
-  if (marked) gtin14 = marked[1]!;
-  else if (/^01\d{14}/.test(compact) && compact.length >= 16) gtin14 = compact.slice(2, 16);
-  if (!gtin14) return null;
-  return toLookupGtin(gtin14);
+  return parseGs1DigitalLink(raw)?.gtin ?? parseGs1ElementString(raw)?.gtin ?? null;
 }
 
 export function inspectScannedBarcode(raw: string): Gs1Scan | null {
   const fromLink = parseGs1DigitalLink(raw);
   if (fromLink) return fromLink;
-  const fromAi = extractGs1Gtin(raw);
-  if (fromAi) return { gtin: fromAi };
+  const fromEl = parseGs1ElementString(raw);
+  if (fromEl) return fromEl;
   const gtin = toLookupGtin(raw.trim());
   return gtin ? { gtin } : null;
 }
 
-/**
- * Camera-path gate. Returns a lookup-ready digit string, or null if the read
- * is not a valid retail code. A marketing QR with no GTIN is rejected.
- */
+/** Camera-path gate. Marketing QR with no product code is rejected. */
 export function validateScannedBarcode(raw: string): string | null {
   return inspectScannedBarcode(raw)?.gtin ?? null;
 }
 
-/** YYMMDD from AI (17) → a shop date, or null. */
+/** YYMMDD from a date AI → a shop date, or null. */
 export function formatGs1Expiry(yymmdd?: string): string | null {
   if (!yymmdd || !/^\d{6}$/.test(yymmdd)) return null;
   const yy = Number(yymmdd.slice(0, 2));
@@ -178,5 +226,5 @@ export function formatGs1Expiry(yymmdd?: string): string | null {
   const dd = Number(yymmdd.slice(4, 6));
   if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
   const year = yy >= 70 ? 1900 + yy : 2000 + yy;
-  return `${dd} ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][mm - 1]} ${year}`;
+  return new Date(year, mm - 1, dd).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }

@@ -38,11 +38,11 @@ export function InstallCard() {
   return (
     <section className="mt-6 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
       <p className="kicker">On your home screen</p>
-      <p className="mt-1 font-medium">The live camera lives here, not in the preview.</p>
+      <p className="mt-1 font-medium">Add Healthie to your home screen so the camera can open.</p>
       <p className="mt-1 text-sm leading-relaxed text-muted">
         {iosHint
-          ? "On iPhone: Share → Add to Home Screen. Open Healthie from the icon. That’s the lens."
-          : "Add Healthie to your home screen. The lens runs as an app, not inside this window."}
+          ? "On iPhone: Share → Add to Home Screen. Open the icon. That’s the lens."
+          : "Install the app, open it from the icon, then scan."}
       </p>
       {deferred ? (
         <Button className="mt-3" onClick={() => void install()}>

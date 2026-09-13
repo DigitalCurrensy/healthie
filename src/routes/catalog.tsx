@@ -93,7 +93,7 @@ function CatalogPage() {
       <PageHeader
         kicker="The shop"
         title="Aisles"
-        body="Twenty-seven aisles. Hundreds of packs — food, beauty, pet, household. We stock the worst on purpose so the mixer is honest. Search the world pantry when our shelves aren’t enough."
+        body="Twenty-seven aisles of food, beauty, pet, and household. Search by name or barcode. If it isn’t on these shelves, we’ll look further."
       />
 
       {modeLabel ? (
@@ -239,10 +239,10 @@ function CatalogPage() {
         </div>
         <p className="mt-4 text-sm text-muted">
           {searching
-            ? "Looking in Open Food Facts…"
+            ? "Searching more packs…"
             : remote
-              ? `${filtered.length} matches · local shelves and the world pantry`
-              : `${filtered.length} products on the Healthie shelves`}
+              ? `${filtered.length} matches`
+              : `${filtered.length} products on the shelves`}
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {visible.map((p) => (

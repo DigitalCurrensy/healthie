@@ -107,7 +107,7 @@ function GuidePage() {
       {examples.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-xl font-bold">On our shelves</h2>
-          <p className="mt-1 text-sm text-muted">Real packs. Tap one — the score is the same lab as this note.</p>
+          <p className="mt-1 text-sm text-muted">Real packs. Tap one — the score is the same as the rest of the shop.</p>
           <div className="mt-4 flex flex-col gap-2">
             {examples.slice(0, 6).map((p) => (
               <ProductCard

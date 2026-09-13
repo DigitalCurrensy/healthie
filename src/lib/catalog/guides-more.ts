@@ -539,7 +539,7 @@ export const MORE_GUIDES: Guide[] = [
     sections: [
       {
         heading: "What Healthie can do",
-        body: "If the Open Food Facts record or our catalog lists an allergen, and you ticked it in You, we put a stop on the product page. That is the point of the profile.",
+        body: "If we have the allergen on the recipe, and you ticked it in You, we put a stop on the product page. That is the point of the notes.",
       },
       {
         heading: "What we cannot do",

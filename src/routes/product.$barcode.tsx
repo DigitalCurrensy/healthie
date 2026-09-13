@@ -58,7 +58,7 @@ function ProductPending() {
   return (
     <AppShell>
       <p className="kicker">Looking it up</p>
-      <h1 className="mt-2 font-display text-3xl font-medium">Searching the world pantry</h1>
+      <h1 className="mt-2 font-display text-3xl font-medium">Looking it up</h1>
       <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">
         Our shelves first, then public product facts. A moment.
       </p>
@@ -145,8 +145,8 @@ function NotFound({ barcode }: { barcode: string }) {
       <h1 className="mt-2 font-display text-3xl font-medium tracking-[-0.04em]">We don’t have this barcode</h1>
       <p className="mt-3 max-w-prose font-mono text-sm text-muted">{barcode}</p>
       <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">
-        We searched our shelves and the Open Food Facts world pantry. This code isn’t in either with enough of a label
-        to score — so we won’t invent a number.
+        We searched the shelves and the public pantry. This code isn’t in either with enough of a label to score — so we
+        won’t invent a number.
       </p>
       <div className="mt-6 grid gap-2 sm:max-w-md">
         <Button
@@ -576,7 +576,7 @@ function ProductView({
           rel="noreferrer"
           className="tap-link font-medium text-accent underline-offset-4 hover:underline"
         >
-          View on Open Food Facts
+          Pack facts (open data)
         </a>
       </p>
       <p className="mt-4 mb-4 text-sm text-muted">{VOICE.disclaimer}</p>
@@ -672,7 +672,7 @@ function Glance({ product, howOften }: { product: EvaluatedProduct; howOften: st
             target="_blank"
             rel="noreferrer"
           >
-            {product.type === "cosmetic" ? "Open Beauty Facts" : product.type === "pet" ? "Open Pet Food Facts" : "Open Food Facts"}
+            Source pack facts
           </a>
         </Button>
         <Button asChild variant="secondary" size="sm">

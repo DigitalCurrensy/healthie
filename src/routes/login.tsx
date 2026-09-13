@@ -58,12 +58,12 @@ function Login() {
           <HealthieWordmark />
         </Link>
         <HealthieLockup className="mx-auto mt-8 w-48 sm:w-56" />
-        <p className="kicker mt-8">Your lab, any phone</p>
+        <p className="kicker mt-8">Your notes, any phone</p>
         <h1 className="mt-2 font-display text-[2.15rem] font-bold leading-[1.05] tracking-[-0.04em]">
           History follows you.
         </h1>
         <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">
-          Sign in and scans, saved packs, and your notes sync. The next phone is the same lab — not a blank slate.
+          Sign in and scans, saved packs, and your notes sync. The next phone is the same — not a blank slate.
         </p>
 
         {!authEnabled ? (

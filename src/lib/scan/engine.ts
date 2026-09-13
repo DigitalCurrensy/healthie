@@ -594,13 +594,13 @@ export function cameraErrorCopy(code: string): string {
       return "Another app is using the camera. Close it, or photograph the pack instead.";
     case "blocked":
     case "insecure":
-      return "This preview window cannot use the camera. Open live camera in a new tab — that page can.";
+      return "This window can’t use the camera. Open the lens in a new tab, or photograph the pack.";
     case "timeout":
-      return "The camera took too long to open. Open live camera in a new tab, or photograph the pack.";
+      return "The camera took too long to open. Open the lens in a new tab, or photograph the pack.";
     case "unsupported":
       return "This browser will not open a live camera. Photograph the pack or type the numbers.";
     default:
-      return "Could not open the camera here. Open live camera in a new tab, or photograph the pack.";
+      return "Could not open the camera here. Open the lens in a new tab, or photograph the pack.";
   }
 }
 

@@ -57,13 +57,20 @@ describe("openFDA match", () => {
     const feed: FdaRecall[] = [
       {
         eventId: "1",
+        recallNumber: "F-0001-2026",
         classification: "Class I",
         firm: "Acme",
         product: "Something else entirely",
         codes: "UPC 012345678905 lot A",
         reason: "Listeria",
         date: "20260901",
+        started: "20260820",
         status: "Ongoing",
+        quantity: "12 cases",
+        where: "Nationwide",
+        how: "Voluntary",
+        city: "Austin",
+        state: "TX",
       },
     ];
     const hit = matchFdaRecall({ barcode: "012345678905", title: "Plain Oats", brand: "Quaker" }, feed);

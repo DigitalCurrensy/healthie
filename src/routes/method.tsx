@@ -12,9 +12,9 @@ function MethodPage() {
   return (
     <AppShell>
       <PageHeader
-        kicker={`Mixer ${MIXER_VERSION}`}
+        kicker="The rules"
         title="How scoring works"
-        body="A number from 0 to 100, the same for food, beauty, and pet. No brand pays for a better score. We read the pack — nutrition and the ingredient list — and we keep the language human. This page is the frozen method. Print it. Cite it. The disc does not move because a brand called."
+        body="A number from 0 to 100, the same for food, beauty, and pet. No brand pays for a better score. We read the pack — nutrition and the ingredient list — and we keep the language human."
         action={
           <div className="flex gap-2">
             <Button variant="secondary" size="sm" onClick={() => window.print()}>
@@ -286,16 +286,15 @@ function MethodPage() {
       <section className="mt-8">
         <h2 className="font-display text-xl font-medium">Where the data comes from</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">
-          Our shelves first. Then the nightly Open Food Facts dump — about 4.7 million food barcodes, plus beauty and
-          pet. We pull the newest night’s changes into this pantry. A pack that isn’t here yet is looked up live, so
-          the long tail still scores when the pantry is already up.
+          Our shelves first. Then public product facts — millions of food, beauty, and pet barcodes. A pack that isn’t
+          here yet is looked up when you scan it.
         </p>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">
           Shelf prices come from Open Prices, the public receipt and tag log. Sign in and scans, saved packs, and your
           notes follow you to the next phone.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Product facts © Open Food Facts contributors, ODbL. Healthie is a reading aid, not a diagnosis.{" "}
+          Product facts from open data contributors. Healthie is a reading aid, not a diagnosis.{" "}
           <Link
             to="/guides/$slug"
             params={{ slug: "how-to-read-a-score" }}
@@ -304,6 +303,7 @@ function MethodPage() {
             How to read a score
           </Link>
         </p>
+        <p className="mt-6 text-xs text-subtle">Method {MIXER_VERSION}</p>
       </section>
     </AppShell>
   );

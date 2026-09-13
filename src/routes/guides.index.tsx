@@ -24,7 +24,7 @@ function GuidesIndex() {
       <PageHeader
         kicker="Read once, shop faster"
         title="Guides"
-        body="Short notes from the same lab that scores the pack — sugar, gut extras, GLP-1 carts, kids’ lunchboxes, retinol, the freezer. Pick who you are shopping for."
+        body="Short notes for the shop — sugar, gut extras, kids’ lunchboxes, retinol, the freezer. Pick who you are shopping for."
       />
 
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
