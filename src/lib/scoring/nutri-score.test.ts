@@ -48,4 +48,16 @@ describe("Nutri-Score 2023", () => {
     const milk = computeNutriScore(n(250, 5, 2, 0.1, 0, 3.4, 0, 3.5), "beverage");
     assert.ok(milk.pPoints >= 7, `protein should count on a drink, pPoints ${milk.pPoints}`);
   });
+
+  it("uses 2023 salt (20 steps) and fibre tables on general food", () => {
+    const salty = computeNutriScore(n(1600, 2, 3, 2.0, 1.0, 7, 0, 20), "food");
+    const quiet = computeNutriScore(n(1600, 2, 3, 0.1, 1.0, 7, 0, 20), "food");
+    assert.ok(salty.nPoints > quiet.nPoints, "2 g salt must cost more than 0.1 g");
+    assert.ok(salty.letter === "D" || salty.letter === "E");
+  });
+
+  it("does not let protein rescue a high-N factory food (cap at N≥7)", () => {
+    const upf = computeNutriScore(n(2200, 20, 8, 1.8, 1, 12, 0, 30), "food");
+    assert.ok(upf.letter === "D" || upf.letter === "E", `high N food was ${upf.letter} raw ${upf.raw}`);
+  });
 });

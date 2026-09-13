@@ -11,9 +11,10 @@ function thresholdPoints(value: number, cuts: number[]): number {
 const FOOD_ENERGY = [335, 670, 1005, 1340, 1675, 2010, 2345, 2680, 3015, 3350];
 const FOOD_SUGARS = [4.5, 9, 13.5, 18, 22.5, 27, 31, 36, 41, 45];
 const FOOD_SAT = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-const FOOD_SODIUM = [90, 180, 270, 360, 450, 540, 630, 720, 810, 900];
-const FOOD_FIBER = [0.9, 1.9, 2.8, 3.7, 4.7];
-const FOOD_PROTEIN = [1.6, 3.2, 4.8, 6.4, 8.0];
+/** Nutri-Score 2023 general foods: salt 0–20 at 0.2 g, not the old 10-step sodium table. */
+const FOOD_SALT = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0];
+const FOOD_FIBER = [3.0, 4.1, 5.2, 6.3, 7.4];
+const FOOD_PROTEIN = [2.4, 4.8, 7.2, 9.6, 12.0, 14.4, 17.0];
 
 /** Nutri-Score 2023 beverages: non-linear energy and sugars, salt on a 0.2 g scale. */
 const BEV_ENERGY = [30, 90, 150, 210, 240, 270, 300, 330, 360, 390];
@@ -57,7 +58,6 @@ export function computeNutriScore(
     return { raw: -15, nPoints: 0, pPoints: 0, letter: "A" };
   }
 
-  const sodium = sodiumMg(nutrition);
   const isBeverage = category === "beverage";
 
   let nPoints: number;
@@ -68,7 +68,7 @@ export function computeNutriScore(
       thresholdPoints(nutrition.energyKj, FOOD_ENERGY) +
       thresholdPoints(nutrition.sugars, FOOD_SUGARS) +
       thresholdPoints(ratio, satRatioCuts) +
-      thresholdPoints(sodium, FOOD_SODIUM);
+      thresholdPoints(nutrition.salt || 0, FOOD_SALT);
   } else if (isBeverage) {
     nPoints =
       thresholdPoints(nutrition.energyKj, BEV_ENERGY) +
@@ -81,7 +81,7 @@ export function computeNutriScore(
       thresholdPoints(nutrition.energyKj, FOOD_ENERGY) +
       thresholdPoints(nutrition.sugars, FOOD_SUGARS) +
       thresholdPoints(nutrition.saturatedFat, FOOD_SAT) +
-      thresholdPoints(sodium, FOOD_SODIUM);
+      thresholdPoints(nutrition.salt || 0, FOOD_SALT);
   }
 
   const fruit = isBeverage ? fruitPointsBev(nutrition.fruitsVegetables) : fruitPointsFood(nutrition.fruitsVegetables);
@@ -91,7 +91,9 @@ export function computeNutriScore(
     : thresholdPoints(nutrition.protein, FOOD_PROTEIN);
   if (category === "red-meat") protein = Math.min(protein, 2);
 
-  const proteinAlways = isBeverage || category === "cheese" || nPoints < 11 || fruit >= (isBeverage ? 6 : 5);
+  const fruitMaxed = fruit >= (isBeverage ? 6 : 5);
+  const proteinAlways =
+    isBeverage || category === "cheese" || category === "fat" || nPoints < 7 || fruitMaxed;
   const pPoints = fruit + fiber + (proteinAlways ? protein : 0);
   const raw = nPoints - pPoints;
 

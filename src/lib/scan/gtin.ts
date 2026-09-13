@@ -60,6 +60,8 @@ export function detectRetailFormat(code: string): RetailFormat | null {
  * is not a valid retail code. Manual keypad entry does not use this gate.
  */
 export function validateScannedBarcode(raw: string): string | null {
+  const fromAi = extractGs1Gtin(raw);
+  if (fromAi) return fromAi;
   const trimmed = raw.trim();
   const digits = trimmed.replace(/\D/g, "");
   if (digits.length === 8) {
@@ -76,4 +78,19 @@ export function validateScannedBarcode(raw: string): string | null {
     return digits.startsWith("0") ? digits.slice(1) : digits;
   }
   return null;
+}
+
+/**
+ * GS1-128 / GS1 DataBar: AI (01) carries a GTIN-14.
+ * Warehouse case codes look like (01)05449000000996 or 0105449000000996.
+ */
+export function extractGs1Gtin(raw: string): string | null {
+  const compact = raw.trim().replace(/[\s()]/g, "").replace(/^\][A-Za-z0-9]{2}/, "");
+  let gtin14: string | null = null;
+  const marked = compact.match(/(?:^|[^0-9])01(\d{14})/);
+  if (marked) gtin14 = marked[1]!;
+  else if (/^01\d{14}/.test(compact) && compact.length >= 16) gtin14 = compact.slice(2, 16);
+  if (!gtin14 || !hasValidGtinCheck(gtin14)) return null;
+  if (gtin14.startsWith("0")) return gtin14.slice(1);
+  return gtin14;
 }

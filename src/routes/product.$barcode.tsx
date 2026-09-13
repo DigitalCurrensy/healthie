@@ -22,6 +22,8 @@ import { packWatchouts } from "@/lib/catalog/flags";
 import { aisleFor } from "@/lib/catalog/aisles";
 import { brandSlug } from "@/lib/catalog/brands";
 import { offProductUrl } from "@/lib/catalog/pack-image";
+import { aisleStanding } from "@/lib/catalog/standing";
+import { councilNote, servingHonesty } from "@/lib/catalog/council";
 import { toast } from "sonner";
 import {
   additiveCountLabel,
@@ -265,6 +267,9 @@ function ProductView({
   const you = forYouScore(product, prefs);
   const aisle = aisleFor(product.categoryPath);
   const brand = brandSlug(product.brand);
+  const standing = aisleStanding(product);
+  const council = councilNote(product, standing);
+  const serving = servingHonesty(product);
 
   const [copied, setCopied] = useState(false);
   const [priceBoard, setPriceBoard] = useState(prices);
@@ -341,6 +346,13 @@ function ProductView({
       </header>
 
       <p className="mt-4 max-w-prose text-[15px] leading-relaxed">{s.headline}</p>
+      {standing ? <p className="mt-2 text-sm leading-relaxed text-muted">{standing.line}</p> : null}
+      {serving ? <p className="mt-2 text-sm leading-relaxed text-muted">{serving}</p> : null}
+
+      <section className="mt-4 rounded-lg bg-surface px-4 py-3 shadow-[var(--shadow-border)]">
+        <p className="kicker">{council.kicker}</p>
+        <p className="mt-1 text-[15px] leading-relaxed">{council.body}</p>
+      </section>
 
       {watchouts.length > 0 ? (
         <section className="mt-4">

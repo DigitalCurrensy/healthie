@@ -66,4 +66,10 @@ describe("GS1 check digit — 11 retail cases", () => {
     assert.equal(validateScannedBarcode("not-a-code"), null);
     assert.equal(detectRetailFormat("ABC12345"), null);
   });
+
+  it("12 unlocks a GS1-128 AI (01) case code to Coca-Cola", () => {
+    assert.equal(validateScannedBarcode("(01)05449000000996"), "5449000000996");
+    assert.equal(validateScannedBarcode("0105449000000996"), "5449000000996");
+    assert.equal(validateScannedBarcode("]C10105449000000996"), "5449000000996");
+  });
 });

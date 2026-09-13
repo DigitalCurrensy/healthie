@@ -76,6 +76,41 @@ function MethodPage() {
       </section>
 
       <section className="mt-8">
+        <h2 className="font-display text-xl font-medium">The council — three locks Yuka does not have</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          A dietitian, an additive scientist, and a shopper would agree on these. They are not a paid board. They are
+          rules that cannot be bought.
+        </p>
+        <ul className="mt-4 space-y-3 text-[15px] leading-relaxed">
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">A weak nutrition box cannot be Good</p>
+            <p className="mt-1 text-muted">
+              Nutri-Score 2023 — including the drink-sweetener penalty — is half the number. A cola is a weak box. That
+              is the ceiling.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Ultra-processed food cannot be Good</p>
+            <p className="mt-1 text-muted">
+              Yuka can still paint a chip yellow. We will not. A factory recipe is a treat, not a habit. Doritos is the
+              proof.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">One high-concern extra cannot hide</p>
+            <p className="mt-1 text-muted">
+              Nitrites, some dyes, a paraben on a cream. Watch-outs sit on the pack without extra taps. Pregnancy and
+              child notes do not wait for a profile.
+            </p>
+          </li>
+        </ul>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted">
+          On every pack we also say where it sits in its aisle, and — for a drink or a chip — what a real serving is,
+          not just per 100 g. A can of cola is a dessert. Per 100 ml pretends it isn’t.
+        </p>
+      </section>
+
+      <section className="mt-8">
         <h2 className="font-display text-xl font-medium">How processed — four groups</h2>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">
           This is the NOVA system, from public-health research. It asks how far a pack is from a kitchen, not how many
