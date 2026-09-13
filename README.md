@@ -55,6 +55,8 @@ Yuka, EWG, Fooducate, and Open Food Facts exist. Healthie is not a clone of any 
 | [docs/BRAND.md](docs/BRAND.md) | Lockup, cream paper, independence line |
 | [BUILT-VS-NOT.md](BUILT-VS-NOT.md) | Honest inventory |
 
+This repository holds the product source (TanStack Start app) plus the house docs.
+
 ## Run it
 
 ```bash
@@ -74,7 +76,7 @@ npm run build
 
 Copy secrets only if you are wiring a live database or OAuth. Without them, the catalog, scores, guides, and scan path still run (PGLite fallback).
 
-Do not commit `.env`. Camera needs a **secure context** (HTTPS or localhost) and a top-level page — an embedded preview often cannot hold a live lens. Photograph the pack and type-the-numbers are the honest fallback, not a fake camera.
+Do not commit `.env`. Camera needs a **secure context** (HTTPS or localhost) and a **top-level page**. An embedded preview cannot hold a live lens — Scan barcode opens `/lens` in a new tab, and the overlay stays open for photograph / type / sample packs. There is no fake barcode in the viewfinder.
 
 ## Architecture
 

@@ -1,0 +1,21 @@
+{
+  "name": "healthie-score",
+  "opset": 13,
+  "fingerprint": "healthie-opset13-score-v3",
+  "inputs": [
+    "nutritionQuality",
+    "additiveScore",
+    "processingScore",
+    "organic",
+    "isCosmetic",
+    "isPet",
+    "composition",
+    "hazardCap",
+    "proteinBoost",
+    "letterCap",
+    "novaCap",
+    "riskCap"
+  ],
+  "output": "overall",
+  "notes": "Food: clip(round(0.5*NQ + 0.25*ADD + 0.2*PROC + 5*ORG),0,100). Pet: clip(round(0.4*NQ + 0.4*ADD + 0.15*PROC + 5*ORG + proteinBoost),0,100). Cosmetic: min(clip(composition,0,100), hazardCap). Letter/NOVA/risk ceilings are applied in TypeScript after this mix. Load with onnxruntime-web later; the in-app interpreter in src/lib/edge/score-graph.ts is the current executor."
+}

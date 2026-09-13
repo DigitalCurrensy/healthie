@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f1f0eb;
+  --color-surface: #ffffff;
+  --color-surface-2: #e8e6df;
+  --color-fg: #111110;
+  --color-muted: #5c5a55;
+  --color-subtle: #8a8780;
+  --color-border: #d4d1c9;
+  --color-accent: #102e28;
+  --color-accent-fg: #f4f3ef;
+  --color-pine: #102e28;
+  --color-sage: #4e6e60;
+  --color-score-excellent: #187a45;
+  --color-score-good: #7a9240;
+  --color-score-poor: #c85a28;
+  --color-score-bad: #b42318;
+  --color-hazard-green: #187a45;
+  --color-hazard-yellow: #b8862a;
+  --color-hazard-orange: #c85a28;
+  --color-hazard-red: #b42318;
+
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(17, 17, 16, 0.07),
+    0px 1px 2px -1px rgba(17, 17, 16, 0.06),
+    0px 2px 8px -4px rgba(17, 17, 16, 0.05);
+  --shadow-border-hover:
+    0px 0px 0px 1px rgba(17, 17, 16, 0.12),
+    0px 8px 20px -10px rgba(17, 17, 16, 0.14),
+    0px 2px 6px -2px rgba(17, 17, 16, 0.06);
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    overscroll-behavior-y: contain;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    line-height: 1.5;
+    min-height: 100dvh;
+    overscroll-behavior-y: contain;
+  }
+
+  a,
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  label {
+    touch-action: manipulation;
+  }
+
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: color-mix(in oklab, var(--color-pine) 14%, transparent);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-wrap: balance;
+    letter-spacing: -0.04em;
+    line-height: 1.12;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-pine) 22%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes healthie-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.healthie-in {
+  animation: healthie-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.healthie-in-2 {
+  animation: healthie-in 320ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+
+.healthie-in-3 {
+  animation: healthie-in 320ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+}
+
+.healthie-in-4 {
+  animation: healthie-in 320ms cubic-bezier(0.22, 1, 0.36, 1) 160ms both;
+}
+
+.panel {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-border);
+  border-radius: var(--radius-lg);
+}
+
+.kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.tap-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
+.scan-window {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 30%;
+  height: 32%;
+  border-radius: var(--radius-md);
+  transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scan-window-dim {
+  opacity: 0.28;
+}
+
+.scan-window-lock .scan-corner {
+  border-color: var(--color-score-excellent);
+}
+
+.scan-corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: var(--color-accent-fg);
+  border-style: solid;
+  border-width: 0;
+  transition: border-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scan-tl {
+  top: -2px;
+  left: -2px;
+  border-top-width: 3px;
+  border-left-width: 3px;
+}
+
+.scan-tr {
+  top: -2px;
+  right: -2px;
+  border-top-width: 3px;
+  border-right-width: 3px;
+}
+
+.scan-bl {
+  bottom: -2px;
+  left: -2px;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+}
+
+.scan-br {
+  bottom: -2px;
+  right: -2px;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+}
+
+.scan-lock {
+  border-color: var(--color-score-excellent);
+}
+
+.file-ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 16px;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
+.pack-beverages { background: #16343c; color: #d5e8ec; }
+.pack-breakfast { background: #4a3a28; color: #f0e4d0; }
+.pack-dairy { background: #2a3c48; color: #dce8ee; }
+.pack-spreads { background: #3d2a1c; color: #edd8c4; }
+.pack-snacks { background: #5a2e22; color: #f0d4c4; }
+.pack-chocolate { background: #2a1814; color: #e8d0c0; }
+.pack-staples { background: #2c3228; color: #dde4d4; }
+.pack-condiments { background: #4a2418; color: #f0d4c8; }
+.pack-skincare { background: #2a3034; color: #e4e8ea; }
+.pack-hair { background: #1c2428; color: #d8e4e8; }
+.pack-sun { background: #5a4820; color: #f4ead0; }
+.pack-body { background: #243028; color: #dce8e0; }
+.pack-pet { background: #2c241c; color: #e8dcc8; }
+.pack-frozen { background: #1a2e3c; color: #d4e6f0; }
+.pack-baby { background: #3a322c; color: #f0e4d8; }
+.pack-bakery { background: #4a3424; color: #f0e0cc; }
+.pack-coffee { background: #241814; color: #e8d8c8; }
+.pack-protein { background: #243028; color: #dce8e0; }
+.pack-meat { background: #3a2424; color: #f0d8d4; }
+.pack-candy { background: #3a1830; color: #f0d8e8; }
+.pack-makeup { background: #2c2430; color: #e8dce8; }
+.pack-oral { background: #1c2c30; color: #d4e8e8; }
+.pack-alcohol { background: #1a2418; color: #dce8d4; }
+.pack-vitamins { background: #243040; color: #d8e4f0; }
+.pack-household { background: #2a3030; color: #e0e8e4; }
+.pack-seafood { background: #1c3038; color: #d4e8ee; }
+.pack-icecream { background: #3a2830; color: #f0dce4; }
+.pack-default { background: #1e2a28; color: #dce8e4; }
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .scan-window {
+    top: 12%;
+    height: 58%;
+    left: 18%;
+    right: 18%;
+  }
+}
+
+@media (max-height: 720px) {
+  .scan-window {
+    top: 18%;
+    height: 42%;
+  }
+}
+
+.scan-laser {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 8%;
+  height: 2px;
+  background: var(--color-accent-fg);
+  opacity: 0.85;
+  animation: scan-laser 1600ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  box-shadow: 0 0 12px color-mix(in oklab, var(--color-accent-fg) 70%, transparent);
+}
+
+@keyframes scan-laser {
+  0% {
+    top: 10%;
+    opacity: 0.2;
+  }
+  50% {
+    top: 86%;
+    opacity: 1;
+  }
+  100% {
+    top: 10%;
+    opacity: 0.2;
+  }
+}
