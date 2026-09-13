@@ -10,7 +10,7 @@ import {
 } from "./grok-pwa-shared.mjs";
 
 const site = JSON.parse(readFileSync(join(process.cwd(), "src/lib/og/site.json"), "utf8"));
-const host = "healthie.invented-sloth.workers.dev";
+const host = "healthie.example";
 
 function attr(html, key) {
   const property = html.match(new RegExp(`(?:property|name)="${key}" content="([^"]*)"`, "i"));
@@ -55,7 +55,7 @@ test("Twitterbot and iMessage user-agents get the crawler share card", () => {
 
   const html = renderCrawlerShareHtml({ host, site });
   assert.match(html, /name="twitter:card" content="summary_large_image"/);
-  assert.match(html, /name="twitter:image" content="https:\/\/healthie\.invented-sloth\.workers\.dev\/og\.jpg/);
+  assert.match(html, /name="twitter:image" content="https:\/\/healthie\.example\/og\.jpg/);
   assert.match(html, /name="twitter:site" content="@IAmAdrianSwish"/);
   assert.match(html, /property="og:url"/);
   assert.ok(html.length < 4000);

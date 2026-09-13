@@ -31,7 +31,5 @@ export const GROK_ISSUER_DEFAULT = "https://auth.grok.me";
  */
 export const PREVIEW_ALLOWED_HOSTS = [
   "*.grok-sandbox.com",
-  "*.workers.dev",
-  "*.pages.dev",
-  "healthie.boiled-emoji.workers.dev",
+  "*.grok.me",
 ] as const;

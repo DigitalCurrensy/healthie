@@ -1,17 +1,12 @@
-# Live demo — Cloudflare
+# Live demo
 
-**App:** https://healthie.boiled-emoji.workers.dev
-
-**Keep it:** claim the account within 60 minutes  
-https://dash.cloudflare.com/claim-preview?claimToken=7Y1khwHf-0Tj0uxu87EX1B6vJbOJ-8HjZn7Rg6xO9eU
-
-If you do not claim, Cloudflare deletes this preview.
+There is no public Healthie domain yet. Do not send a `workers.dev` or `pages.dev` link — those are disposable sandbox hosts. iMessage, Mail, and X will not grow a Healthie card from them.
 
 ## On the demo phone
 
-1. Open https://healthie.boiled-emoji.workers.dev/demo in Safari or Chrome — not inside this Grok window.
-2. Share → Add to Home Screen (iPhone) or the browser’s Install app (Android).
-3. Open **Healthie** from the icon on the home screen.
+1. Open **this Healthie preview** in Safari or Chrome on the phone — not inside the Grok window.
+2. Share → Add to Home Screen (iPhone) or Install app (Android).
+3. Open **Healthie** from the icon.
 4. Scan these packs:
 
 | Pack | Code | What you should see |
@@ -21,3 +16,5 @@ If you do not claim, Cloudflare deletes this preview.
 | CeraVe Foaming Cleanser | 3337875598071 | Bathroom. Same 0–100 disc. |
 
 Vibrate + beep on a valid code. History stores on the phone.
+
+To send a pack, use the in-app **Share** button. That copies the page you are on — never a sandbox hostname.

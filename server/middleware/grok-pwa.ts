@@ -21,8 +21,6 @@ import {
   createHeadInjector,
   isDocumentPath,
   isInstallQuery,
-  isShareCrawler,
-  renderCrawlerShareHtml,
   renderInstallPageHtml,
   renderWebManifest,
 } from "../../scripts/grok-pwa-shared.mjs";
@@ -73,17 +71,8 @@ export default async function grokPwaMiddleware(
   const urlWithQuery = path + event.url.search;
   const host = requestHost(event);
 
-  if (isShareCrawler(event.req.headers.get("user-agent") ?? "") && isDocumentPath(path)) {
-    const html = renderCrawlerShareHtml({ host, site: grokOgIdentity.site });
-    return new Response(method === "HEAD" ? null : html, {
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "no-store",
-        vary: "User-Agent",
-        "x-robots-tag": "all",
-      },
-    });
-  }
+  // Same HTML for every user-agent (Apple TN3156). Do not fork a crawler stub:
+  // Messages caches the first fetch and will not grow a card from mismatched bodies.
 
   if (path === "/__grok/manifest.webmanifest" || path === "/__grok/manifest.json") {
     return new Response(renderWebManifest(requestHost(event)), {

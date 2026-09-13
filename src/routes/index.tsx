@@ -142,7 +142,7 @@ function Home() {
             className="h-auto w-full object-cover"
           />
           <figcaption className="px-4 py-3 text-sm leading-relaxed text-muted">
-            This is the card that shows up when you send Healthie in Mail, Messages, or on X.
+            Healthie — scan a pack, see the score.
           </figcaption>
         </figure>
       </section>
