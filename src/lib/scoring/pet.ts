@@ -102,6 +102,7 @@ export function scorePet(input: {
     letterCap: caps.letterCap,
     novaCap: caps.novaCap,
     riskCap: caps.riskCap,
+    trafficCap: caps.trafficCap,
     cappedBy,
     headline: foodHeadline({
       overall,

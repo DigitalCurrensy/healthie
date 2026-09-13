@@ -17,6 +17,19 @@ function n(
 /** Widely scanned supermarket SKUs. Live Open Food Facts covers the rest of the world. */
 export const MORE_PRODUCTS: ProductDef[] = [
   {
+    barcode: "0028400090896",
+    title: "Doritos Nacho Cheese",
+    brand: "Doritos",
+    type: "food",
+    categoryPath: "snacks",
+    isOrganic: false,
+    ingredientIds: ["corn", "palm-oil", "salt", "e621", "e631", "e102", "e110", "e129"],
+    ingredientsText:
+      "Corn, vegetable oil (corn, canola, and/or sunflower), maltodextrin, salt, cheddar cheese, whey, monosodium glutamate, cheddar cheese flavour, yellow 6, yellow 5, red 40, disodium inosinate.",
+    nutrition: n(2260, 2.5, 3.5, 1.6, 3.6, 7, 0, 28),
+    novaGroup: 4,
+  },
+  {
     barcode: "5449000054227",
     title: "Coca-Cola Zero Sugar",
     brand: "Coca-Cola",

@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/lumen/shell";
 import { ProductCard } from "@/components/lumen/product-card";
 import { PageHeader } from "@/components/lumen/empty";
+import { ScoreRing, BandLegend } from "@/components/lumen/score-ring";
 import { Button } from "@/components/ui/button";
 import { loadBrand, loadBrandWorld } from "@/lib/server/functions";
-import { typeLabel } from "@/lib/copy";
+import { typeLabel, brandVerdict, brandVsShop, bandLabel } from "@/lib/copy";
+import { ordinal } from "@/lib/catalog/brand-metrics";
+import { scoreBand } from "@/lib/utils";
 import type { CatalogCard } from "@/lib/server/catalog";
 
 export const Route = createFileRoute("/brand/$slug")({
@@ -14,7 +17,7 @@ export const Route = createFileRoute("/brand/$slug")({
 });
 
 function BrandPage() {
-  const { brand, local } = Route.useLoaderData();
+  const { brand, local, shopAvg, rank, metrics } = Route.useLoaderData();
   const [extra, setExtra] = useState<CatalogCard[]>([]);
 
   useEffect(() => {
@@ -34,18 +37,74 @@ function BrandPage() {
   }
 
   const rows = local;
-  const avg =
-    rows.length === 0 ? null : Math.round(rows.reduce((s, p) => s + p.overallScore, 0) / rows.length);
+  const avg = metrics?.avg ?? (rows.length === 0 ? null : Math.round(rows.reduce((s, p) => s + p.overallScore, 0) / rows.length));
   const best = rows.reduce<(typeof rows)[number] | null>((a, b) => (!a || a.overallScore >= b.overallScore ? a ?? b : b), null);
   const worst = rows.reduce<(typeof rows)[number] | null>((a, b) => (!a || a.overallScore <= b.overallScore ? a ?? b : b), null);
+  const bands = metrics?.bands;
 
   return (
     <AppShell>
       <PageHeader
         kicker="Brand"
         title={brand.name}
-        body={`${rows.length} on our shelves${avg != null ? ` · average ${avg}/100` : ""}. Open Food Facts fills the rest. No brand pays for a better number.`}
+        body={avg != null ? brandVerdict(avg, rows.length || metrics?.count || 0) : `${rows.length} on our shelves. No brand pays for a better number.`}
       />
+
+      {avg != null ? (
+        <section className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start">
+          <ScoreRing score={avg} size={96} />
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-2xl font-bold tracking-[-0.04em]">
+              {bandLabel(scoreBand(avg))} house
+            </p>
+            <p className="mt-1 text-[15px] leading-relaxed text-muted">{brandVsShop(avg, shopAvg)}</p>
+            {rank ? (
+              <p className="mt-1 text-[15px] leading-relaxed text-muted">
+                {ordinal(rank.place)} of {rank.of} houses with 3 or more packs. Higher is cleaner.
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-muted">Too few packs here to rank against other houses.</p>
+            )}
+            <p className="mt-2 text-sm text-muted">{brand.types.map((t) => typeLabel(t as "food" | "cosmetic" | "pet")).join(" · ")}</p>
+          </div>
+        </section>
+      ) : null}
+
+      {bands && rows.length > 1 ? (
+        <section className="mt-6">
+          <h2 className="font-display text-lg font-bold">How the house scores</h2>
+          <ul className="mt-3 space-y-2">
+            {(
+              [
+                ["excellent", "Excellent", "bg-score-excellent"],
+                ["good", "Good", "bg-score-good"],
+                ["poor", "Poor", "bg-score-poor"],
+                ["bad", "Avoid", "bg-score-bad"],
+              ] as const
+            ).map(([key, label, cls]) => {
+              const n = bands[key];
+              const pct = rows.length ? Math.round((n / (metrics?.count || rows.length)) * 100) : 0;
+              return (
+                <li key={key}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-semibold">{label}</span>
+                    <span className="tabular-nums text-muted">
+                      {n} · {pct}%
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-2">
+                    <div className={`h-full ${cls}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-3">
+            <BandLegend />
+          </div>
+        </section>
+      ) : null}
+
       {best && worst && rows.length > 1 ? (
         <div className="mt-6 grid grid-cols-2 gap-2">
           <Link
@@ -68,7 +127,7 @@ function BrandPage() {
           </Link>
         </div>
       ) : null}
-      <p className="mt-4 text-sm text-muted">{brand.types.map((t) => typeLabel(t as "food" | "cosmetic" | "pet")).join(" · ")}</p>
+
       <div className="mt-6 flex flex-col gap-2">
         {rows
           .slice()
@@ -89,8 +148,8 @@ function BrandPage() {
       </div>
       {extra.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-display text-xl font-bold">Also on the world pantry</h2>
-          <p className="mt-1 text-sm text-muted">Live from Open Food Facts. Open one to score it the Healthie way.</p>
+          <h2 className="font-display text-xl font-bold">Also scanned worldwide</h2>
+          <p className="mt-1 text-sm text-muted">Same scoring rules. Open one to read the pack the Healthie way.</p>
           <div className="mt-4 flex flex-col gap-2">
             {extra.map((p) => (
               <ProductCard

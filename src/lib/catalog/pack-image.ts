@@ -97,6 +97,13 @@ const TONE: Record<string, string> = {
   icecream: "pack-icecream",
 };
 
+export function packFaceStyle(barcode?: string | null): { background: string; color: string } {
+  const d = (barcode || "0").replace(/\D/g, "") || "0";
+  let h = 0;
+  for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
+  return { background: `hsl(${h} 32% 88%)`, color: `hsl(${h} 28% 22%)` };
+}
+
 export function packToneClass(categoryPath?: string, type?: ProductType): string {
   if (categoryPath && TONE[categoryPath]) return TONE[categoryPath];
   if (type === "cosmetic") return "pack-skincare";

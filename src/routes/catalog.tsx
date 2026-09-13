@@ -6,10 +6,10 @@ import { PageHeader } from "@/components/lumen/empty";
 import { BandLegend } from "@/components/lumen/score-ring";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { listFeatured, searchCatalog } from "@/lib/server/functions";
+import { listShelves, searchCatalog } from "@/lib/server/functions";
 import { AISLES } from "@/lib/catalog/aisles";
-import { allBrands } from "@/lib/catalog/brands";
-import { typeLabel } from "@/lib/copy";
+import { metricsFromCards, rankedHouses } from "@/lib/catalog/brand-metrics";
+import { bandLabel, typeLabel } from "@/lib/copy";
 import { scoreBand, type ScoreBand } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import type { CatalogCard } from "@/lib/server/catalog";
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/catalog")({
   validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
     q: typeof search.q === "string" ? search.q : undefined,
   }),
-  loader: () => listFeatured(),
+  loader: () => listShelves(),
   component: CatalogPage,
 });
 
@@ -32,10 +32,20 @@ function CatalogPage() {
   const [query, setQuery] = useState(q ?? "");
   const [kind, setKind] = useState<Kind>("all");
   const [band, setBand] = useState<BandFilter>("all");
-  const [shown, setShown] = useState(36);
+  const [shown, setShown] = useState(60);
   const [remote, setRemote] = useState<CatalogCard[] | null>(null);
   const [searching, setSearching] = useState(false);
-  const brands = allBrands();
+  const houses = useMemo(() => metricsFromCards(seeded), [seeded]);
+  const ranked = useMemo(() => rankedHouses(houses, 3), [houses]);
+  const keepers = ranked.slice(0, 8);
+  const treats = [...ranked].reverse().slice(0, 8);
+  const aisleCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of seeded) {
+      map.set(p.categoryPath, (map.get(p.categoryPath) ?? 0) + 1);
+    }
+    return map;
+  }, [seeded]);
 
   useEffect(() => {
     const needle = query.trim();
@@ -77,31 +87,96 @@ function CatalogPage() {
       <PageHeader
         kicker="The shop"
         title="Aisles"
-        body="Twenty-seven aisles of food, beauty, pet, and household. Search the world pantry, or stay on our shelves — we stock the worst on purpose so the mixer is honest."
+        body="Twenty-seven aisles. Hundreds of packs — food, beauty, pet, household. We stock the worst on purpose so the mixer is honest. Search the world pantry when our shelves aren’t enough."
       />
 
       <section className="mt-8">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {AISLES.map((a) => (
-            <AisleCard key={a.slug} slug={a.slug} title={a.title} kicker={a.kicker} image={a.image} />
+            <AisleCard
+              key={a.slug}
+              slug={a.slug}
+              title={a.title}
+              kicker={a.kicker}
+              image={a.image}
+              count={aisleCounts.get(a.path) ?? 0}
+            />
           ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Brand ranking</h2>
+        <p className="mt-1 max-w-prose text-sm leading-relaxed text-muted">
+          Houses with 3 or more packs, ranked by average score. No brand pays for a better number.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="kicker">Cleaner houses</p>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {keepers.map((b, i) => (
+                <li key={b.slug}>
+                  <Link
+                    to="/brand/$slug"
+                    params={{ slug: b.slug }}
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-surface px-3 py-2 shadow-[var(--shadow-border)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="text-xs tabular-nums text-muted">{i + 1} · </span>
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {b.count} packs · {bandLabel(scoreBand(b.avg))}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-bold tabular-nums">{b.avg}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="kicker">Treat houses</p>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {treats.map((b, i) => (
+                <li key={b.slug}>
+                  <Link
+                    to="/brand/$slug"
+                    params={{ slug: b.slug }}
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-lg bg-surface px-3 py-2 shadow-[var(--shadow-border)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="text-xs tabular-nums text-muted">{ranked.length - i} · </span>
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="block truncate text-xs text-muted">
+                        {b.count} packs · {bandLabel(scoreBand(b.avg))}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-bold tabular-nums">{b.avg}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
       <section className="mt-10">
         <h2 className="font-display text-xl font-bold">Brands</h2>
         <div className="mt-3 flex flex-wrap gap-2">
-          {brands.slice(0, 48).map((b) => (
-            <Button key={b.slug} size="sm" variant="secondary" asChild>
-              <Link to="/brand/$slug" params={{ slug: b.slug }}>
-                {b.name}
-                <span className="text-muted"> {b.count}</span>
-              </Link>
-            </Button>
-          ))}
+          {[...houses]
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+            .slice(0, 96)
+            .map((b) => (
+              <Button key={b.slug} size="sm" variant="secondary" asChild>
+                <Link to="/brand/$slug" params={{ slug: b.slug }}>
+                  {b.name}
+                  <span className="text-muted"> {b.avg}</span>
+                </Link>
+              </Button>
+            ))}
         </div>
-        {brands.length > 48 ? (
-          <p className="mt-2 text-sm text-muted">{brands.length} brands on the shelves. Search to jump to the rest.</p>
+        {houses.length > 96 ? (
+          <p className="mt-2 text-sm text-muted">{houses.length} brands on the shelves. The number is the house average. Search to jump to the rest.</p>
         ) : null}
       </section>
 
@@ -112,7 +187,7 @@ function CatalogPage() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              setShown(36);
+              setShown(60);
             }}
             placeholder="Search a name, brand, or barcode worldwide"
             aria-label="Search catalog"
@@ -137,7 +212,7 @@ function CatalogPage() {
                 ["bad", "Avoid"],
               ] as const
             ).map(([k, label]) => (
-              <Button key={k} size="sm" variant={band === k ? "default" : "secondary"} onClick={() => { setBand(k); setShown(36); }}>
+              <Button key={k} size="sm" variant={band === k ? "default" : "secondary"} onClick={() => { setBand(k); setShown(60); }}>
                 {label}
               </Button>
             ))}

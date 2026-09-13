@@ -12,10 +12,10 @@ Private house. Digital Currensy Inc. Not EventFix. Not AutoShield. Houses do not
 
 | Number | Word | Meaning |
 | --- | --- | --- |
-| 80–100 | Excellent | A keep. Short list, honest recipe. |
-| 60–79 | Good | Fine sometimes. Not the best in the aisle. |
-| 40–59 | Poor | A treat at best. Look one shelf over. |
-| 0–39 | Avoid | Hard pass for a regular shop. |
+| 75–100 | Excellent | A keep. Short list, honest recipe. |
+| 50–74 | Good | Fine sometimes. Not the best in the aisle. |
+| 25–49 | Poor | A treat at best. Look one shelf over. |
+| 0–24 | Avoid | Hard pass for a regular shop. |
 
 Sugars in teaspoons. Salt in a day’s worth. Additives by name, not E-code soup. Beauty and pet food use the same voice — calm, not lab-coat.
 
@@ -24,7 +24,7 @@ Sugars in teaspoons. Salt in a day’s worth. Additives by name, not E-code soup
 | Desk | What it does |
 | --- | --- |
 | **Scan** `/` `/scan` | Barcode lens, take a photo of the pack, camera roll, or type the numbers |
-| **Product** `/product/:barcode` | 0–100 score, why, ingredients, Nutri-Score / NOVA in human words, prices, swaps |
+| **Product** `/product/:barcode` | 0–100 score, why in plain words, ingredients, prices, swaps |
 | **Aisles** `/aisles` | Food, body & beauty, pet — walk the store |
 | **Catalog** `/catalog` | Search by name or barcode |
 | **Guides** `/guides` | How to read a score, sugar, palm, fragrance, pet bowls, pregnancy, sun |
@@ -55,8 +55,6 @@ Yuka, EWG, Fooducate, and Open Food Facts exist. Healthie is not a clone of any 
 | [docs/BRAND.md](docs/BRAND.md) | Lockup, cream paper, independence line |
 | [BUILT-VS-NOT.md](BUILT-VS-NOT.md) | Honest inventory |
 
-This repository holds the product source (TanStack Start app) plus the house docs.
-
 ## Run it
 
 ```bash
@@ -76,7 +74,7 @@ npm run build
 
 Copy secrets only if you are wiring a live database or OAuth. Without them, the catalog, scores, guides, and scan path still run (PGLite fallback).
 
-Do not commit `.env`. Camera needs a **secure context** (HTTPS or localhost) and a **top-level page**. An embedded preview cannot hold a live lens — Scan barcode opens `/lens` in a new tab, and the overlay stays open for photograph / type / sample packs. There is no fake barcode in the viewfinder.
+Do not commit `.env`. Camera needs a **secure context** (HTTPS or localhost) and a top-level page — an embedded preview often cannot hold a live lens. Photograph the pack and type-the-numbers are the honest fallback, not a fake camera.
 
 ## Architecture
 

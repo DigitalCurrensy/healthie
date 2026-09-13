@@ -1,5 +1,8 @@
-import { barcodeVariants, normalizeBarcode } from "@/lib/utils";
+import { barcodeVariants } from "@/lib/utils";
+import { validateScannedBarcode } from "./gtin";
+import { VIEWFINDER_CROP, VIEWFINDER_CROP_PADDED } from "./geometry";
 import type { ReadResult, ReaderOptions } from "zxing-wasm/reader";
+import type { WorkerDecodeRequest, WorkerDecodeResponse } from "./decode-worker";
 
 export type ScanCorner = { x: number; y: number };
 
@@ -30,7 +33,7 @@ type NativeDetector = {
   >;
 };
 
-const RETAIL_FORMATS: ReaderOptions["formats"] = ["AllRetail", "Code128", "QRCode", "ITF"];
+const RETAIL_FORMATS: ReaderOptions["formats"] = ["EAN-13", "EAN-8", "UPC-A", "UPC-E", "Code128"];
 
 const FAST: ReaderOptions = {
   formats: RETAIL_FORMATS,
@@ -85,8 +88,8 @@ export async function ensureScanEngine(): Promise<"zxing" | "native" | "none"> {
     nativeDetector = null;
     if (Ctor) {
       const attempts = [
-        ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "itf", "qr_code", "databar"],
-        ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"],
+        ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"],
+        ["ean_13", "ean_8", "upc_a", "upc_e"],
       ];
       for (const formats of attempts) {
         try {
@@ -206,10 +209,67 @@ function hitFromZxing(
 }
 
 function pickBarcode(text: string): string | null {
-  const variants = barcodeVariants(text);
-  const preferred = variants.find((v) => v.length === 13) ?? variants[0];
-  if (!preferred || preferred.length < 8) return null;
-  return normalizeBarcode(preferred);
+  const direct = validateScannedBarcode(text);
+  if (direct) return direct;
+  for (const v of barcodeVariants(text)) {
+    const ok = validateScannedBarcode(v);
+    if (ok) return ok;
+  }
+  return null;
+}
+
+let decodeWorker: Worker | null | undefined;
+let workerSeq = 0;
+const workerWaiters = new Map<number, (msg: WorkerDecodeResponse) => void>();
+
+function getDecodeWorker(): Worker | null {
+  if (typeof window === "undefined") return null;
+  if (decodeWorker !== undefined) return decodeWorker;
+  try {
+    decodeWorker = new Worker(new URL("./decode-worker.ts", import.meta.url), { type: "module" });
+    decodeWorker.onmessage = (event: MessageEvent<WorkerDecodeResponse>) => {
+      const waiter = workerWaiters.get(event.data.id);
+      if (waiter) {
+        workerWaiters.delete(event.data.id);
+        waiter(event.data);
+      }
+    };
+    decodeWorker.onerror = () => {
+      decodeWorker?.terminate();
+      decodeWorker = null;
+    };
+  } catch {
+    decodeWorker = null;
+  }
+  return decodeWorker;
+}
+
+function decodeWithWorker(
+  image: ImageData,
+  harder: boolean,
+): Promise<WorkerDecodeResponse | null> {
+  const worker = getDecodeWorker();
+  if (!worker) return Promise.resolve(null);
+  const id = (workerSeq += 1);
+  const buffer = image.data.slice().buffer;
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => {
+      workerWaiters.delete(id);
+      resolve(null);
+    }, 280);
+    workerWaiters.set(id, (msg) => {
+      window.clearTimeout(timer);
+      resolve(msg);
+    });
+    const payload: WorkerDecodeRequest = {
+      id,
+      width: image.width,
+      height: image.height,
+      buffer,
+      harder,
+    };
+    worker.postMessage(payload, [buffer]);
+  });
 }
 
 async function decodeWithZxing(
@@ -218,6 +278,28 @@ async function decodeWithZxing(
   video: HTMLVideoElement,
   options: ReaderOptions,
 ): Promise<ScanHit | null> {
+  const harder = Boolean(options.tryHarder);
+  const fromWorker = await decodeWithWorker(image, harder);
+  if (fromWorker?.text) {
+    const barcode = pickBarcode(fromWorker.text);
+    if (!barcode) return null;
+    const scaleX = crop.sw / Math.max(1, image.width);
+    const scaleY = crop.sh / Math.max(1, image.height);
+    const corners = (fromWorker.corners ?? []).map((pt) => ({
+      x: crop.sx + pt.x * scaleX,
+      y: crop.sy + pt.y * scaleY,
+    }));
+    const xs = corners.map((c) => c.x);
+    return {
+      barcode,
+      format: fromWorker.format ?? "zxing",
+      engine: "zxing",
+      corners,
+      videoSize: { w: video.videoWidth, h: video.videoHeight },
+      lineCount: fromWorker.lineCount || 1,
+      widthPx: xs.length ? Math.max(...xs) - Math.min(...xs) : 0,
+    };
+  }
   if (!zxing) return null;
   try {
     const results = await zxing.readBarcodes(image, options);
@@ -229,15 +311,55 @@ async function decodeWithZxing(
   }
 }
 
-async function decodeNative(video: HTMLVideoElement): Promise<ScanHit | null> {
+/**
+ * Crop to the viewfinder first (ROI), then a padded band. Full-frame is a last
+ * resort on the hard pass only — it was burning CPU and picking up poster QR.
+ */
+export async function decodeVideoFrame(
+  video: HTMLVideoElement,
+  pass: "fast" | "hard" = "fast",
+): Promise<ScanHit | null> {
+  const maxW = pass === "hard" ? 960 : 720;
+  const roi = grabFrame(video, VIEWFINDER_CROP, maxW);
+  if (roi) {
+    const nativeHit = await decodeNativeCanvas(roi, video);
+    if (nativeHit) return nativeHit;
+    const hit = await decodeWithZxing(roi.image, roi, video, pass === "hard" ? HARD : FAST);
+    if (hit) return hit;
+  }
+
+  if (pass === "hard") {
+    const band = grabFrame(video, VIEWFINDER_CROP_PADDED, 960);
+    if (band) {
+      const hit = await decodeWithZxing(band.image, band, video, HARD);
+      if (hit) return hit;
+      const boosted = stretchContrast(band.image);
+      const boostedHit = await decodeWithZxing(boosted, band, video, HARD);
+      if (boostedHit) return boostedHit;
+    }
+  }
+
+  return null;
+}
+
+async function decodeNativeCanvas(
+  crop: { image: ImageData; sx: number; sy: number; sw: number; sh: number },
+  video: HTMLVideoElement,
+): Promise<ScanHit | null> {
   if (!nativeDetector) return null;
   try {
-    const codes = await nativeDetector.detect(video);
+    const el = canvas("grab");
+    const codes = await nativeDetector.detect(el);
     const raw = codes[0];
     if (!raw?.rawValue) return null;
     const barcode = pickBarcode(raw.rawValue);
     if (!barcode) return null;
-    const corners = (raw.cornerPoints ?? []).map((p) => ({ x: p.x, y: p.y }));
+    const scaleX = crop.sw / Math.max(1, crop.image.width);
+    const scaleY = crop.sh / Math.max(1, crop.image.height);
+    const corners = (raw.cornerPoints ?? []).map((p) => ({
+      x: crop.sx + p.x * scaleX,
+      y: crop.sy + p.y * scaleY,
+    }));
     const xs = corners.map((c) => c.x);
     return {
       barcode,
@@ -246,51 +368,11 @@ async function decodeNative(video: HTMLVideoElement): Promise<ScanHit | null> {
       corners,
       videoSize: { w: video.videoWidth, h: video.videoHeight },
       lineCount: 3,
-      widthPx: xs.length ? Math.max(...xs) - Math.min(...xs) : video.videoWidth * 0.4,
+      widthPx: xs.length ? Math.max(...xs) - Math.min(...xs) : crop.sw * 0.8,
     };
   } catch {
     return null;
   }
-}
-
-/**
- * Full-frame first (the window is guidance, not a gate), then a sharper
- * centre pass, then a contrast-stretched pass. Native BarcodeDetector runs
- * against the live video element in parallel when the browser has it.
- */
-export async function decodeVideoFrame(
-  video: HTMLVideoElement,
-  pass: "fast" | "hard" = "fast",
-): Promise<ScanHit | null> {
-  const nativePromise = decodeNative(video);
-
-  const full = grabFrame(video, { x: 0, y: 0, w: 1, h: 1 }, pass === "hard" ? 1280 : 960);
-  if (full) {
-    const hit = await decodeWithZxing(full.image, full, video, pass === "hard" ? HARD : FAST);
-    if (hit) {
-      void nativePromise;
-      return hit;
-    }
-  }
-
-  if (pass === "hard") {
-    const band = grabFrame(video, { x: 0.04, y: 0.28, w: 0.92, h: 0.44 }, 1400);
-    if (band) {
-      const hit = await decodeWithZxing(band.image, band, video, HARD);
-      if (hit) {
-        void nativePromise;
-        return hit;
-      }
-      const boosted = stretchContrast(band.image);
-      const boostedHit = await decodeWithZxing(boosted, band, video, HARD);
-      if (boostedHit) {
-        void nativePromise;
-        return boostedHit;
-      }
-    }
-  }
-
-  return nativePromise;
 }
 
 export async function decodeBlob(blob: Blob): Promise<string | null> {
@@ -369,7 +451,14 @@ export function cameraIsEmbedded(): boolean {
 /** Native capture=environment only helps on a phone. Desktop treats it as an upload. */
 export function isPhoneCamera(): boolean {
   if (typeof navigator === "undefined") return false;
-  return /iPhone|iPad|iPod|Android.+Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (/iPhone|iPad|iPod|Android.+Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    return true;
+  }
+  try {
+    return navigator.maxTouchPoints > 1 && window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    return false;
+  }
 }
 
 export function cameraBlockReason(): string | null {
@@ -457,8 +546,15 @@ export function cameraLikelyBlocked(): boolean {
  * phones never open a lens. Denied/blocked stops the cascade immediately.
  */
 export function cameraConstraintCascade(): MediaStreamConstraints[] {
+  const lens: MediaTrackConstraints = {
+    facingMode: { ideal: "environment" },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    frameRate: { ideal: 24, max: 30 },
+  };
   return [
-    { audio: false, video: { facingMode: "environment" } },
+    { audio: false, video: lens },
+    { audio: false, video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } },
     { audio: false, video: { facingMode: { ideal: "environment" } } },
     { audio: false, video: true },
   ];
@@ -708,6 +804,7 @@ export async function applyScanTrackTweaks(stream: MediaStream): Promise<TrackTw
   };
   const advanced: Record<string, unknown>[] = [];
   if (caps.focusMode?.includes("continuous")) advanced.push({ focusMode: "continuous" });
+  else if (caps.focusMode?.includes("single-shot")) advanced.push({ focusMode: "single-shot" });
   if (caps.exposureMode?.includes("continuous")) advanced.push({ exposureMode: "continuous" });
   if (caps.whiteBalanceMode?.includes("continuous")) advanced.push({ whiteBalanceMode: "continuous" });
   if (advanced.length > 0) {

@@ -100,6 +100,7 @@ export type FoodScoreBreakdown = {
   letterCap: number;
   novaCap: number;
   riskCap: number;
+  trafficCap: number;
   cappedBy: string | null;
   headline: string;
   reasons: ScoreReason[];

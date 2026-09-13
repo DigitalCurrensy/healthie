@@ -2,7 +2,7 @@ import { parseIngredients } from "@/lib/catalog/match";
 import { evaluateDef, type EvaluatedProduct } from "@/lib/catalog/evaluate";
 import { matchCatalogName } from "@/lib/catalog/lookup";
 import type { ProductDef } from "@/lib/catalog/products";
-import { recordIsScorable } from "@/lib/catalog/quality";
+import { recordIsScorable, titleLooksLikeWater } from "@/lib/catalog/quality";
 import { categoryBucket, type Nutrition } from "@/lib/scoring";
 import { findByBarcode } from "./catalog";
 import { lookupOpenFacts, searchOpenWorld } from "./off";
@@ -134,7 +134,7 @@ export async function extractLabel(imageBase64: string, mimeType: string): Promi
   const ingredientsText = parsed.ingredientsText ?? "";
   const matched = parseIngredients(ingredientsText);
   const type = parsed.type === "cosmetic" ? "cosmetic" : parsed.type === "pet" ? "pet" : "food";
-  const isWater = Boolean(parsed.isWater) || (/\bwater\b/i.test(title) && !/flavour|flavor|juice|tea/i.test(title));
+  const isWater = Boolean(parsed.isWater) || titleLooksLikeWater(title);
   if (
     !recordIsScorable({
       title: title || brand,
@@ -163,7 +163,7 @@ export async function extractLabel(imageBase64: string, mimeType: string): Promi
         : categoryBucket(parsed.category || title || "staples"),
     isOrganic: Boolean(parsed.isOrganic),
     isBeverage: Boolean(parsed.isBeverage) || /\bwater\b|drink|soda|juice|tea/i.test(title),
-    isWater: Boolean(parsed.isWater) || (/\bwater\b/i.test(title) && !/flavour|flavor|juice|tea/i.test(title)),
+    isWater: Boolean(parsed.isWater) || titleLooksLikeWater(title),
     ingredientIds: matched.matched.map((m) => m.id),
     ingredientsText,
     nutrition: type === "cosmetic" ? undefined : parsed.nutrition ?? undefined,

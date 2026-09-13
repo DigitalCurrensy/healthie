@@ -19,6 +19,7 @@ export type MixCaps = {
   letterCap: number;
   novaCap: number;
   riskCap: number;
+  trafficCap: number;
   reasons: ScoreReason[];
 };
 
@@ -37,12 +38,17 @@ export function letterCap(letter: NutriLetter): number {
   }
 }
 
+/**
+ * Ultra-processed food cannot be rated Good (50+).
+ * A B nutrition box used to leave a 54 ceiling — Doritos landed in Good.
+ * That was a calibration failure, not a feature.
+ */
 export function novaCapFor(nova: 1 | 2 | 3 | 4, letter: NutriLetter): number {
   if (nova <= 2) return 100;
   if (nova === 3) return 86;
-  if (letter === "A" || letter === "B") return 54;
-  if (letter === "C") return 49;
-  return 39;
+  if (letter === "E") return 39;
+  if (letter === "D") return 44;
+  return 49;
 }
 
 export function riskCapFor(input: {
@@ -57,16 +63,25 @@ export function riskCapFor(input: {
   return 100;
 }
 
+/** Independent red lights: salt, sugars, sat fat. Total fat is not a second vote. */
+export function trafficCapFor(redDrivers: number): number {
+  if (redDrivers >= 3) return 39;
+  if (redDrivers >= 2) return 49;
+  return 100;
+}
+
 export function buildCaps(input: {
   letter: NutriLetter;
   nova: 1 | 2 | 3 | 4;
   highCount: number;
   moderateCount: number;
   sweetenerCount: number;
+  redTraffic?: number;
 }): MixCaps {
   const letter = letterCap(input.letter);
   const nova = novaCapFor(input.nova, input.letter);
   const risk = riskCapFor(input);
+  const traffic = trafficCapFor(input.redTraffic ?? 0);
   const reasons: ScoreReason[] = [];
   if (letter < 100) {
     reasons.push({
@@ -75,16 +90,18 @@ export function buildCaps(input: {
         input.letter === "E"
           ? "A weak nutrition box cannot be rated Good"
           : input.letter === "D"
-            ? "A D nutrition box cannot be rated Excellent"
+            ? "This nutrition box cannot be rated Excellent"
             : input.letter === "C"
               ? "Okay nutrition cannot be rated Excellent"
-              : "Nutrition sets a ceiling",
+              : "The nutrition box sets a limit",
       detail:
         input.letter === "E"
-          ? "Letter E means sugars, salt or saturated fat dominate. The ceiling is 39 — Poor at best."
+          ? "Sugars, salt or saturated fat dominate this box. Poor at best — a treat, not a habit."
           : input.letter === "D"
-            ? "Letter D is a treat pattern. The ceiling is 58 — it can be low Good only if the list is clean."
-            : `Nutrition letter ${input.letter} sets a ceiling of ${letter}.`,
+            ? "This is a treat pattern. It can only scrape into low Good if the list is clean and it is not ultra-processed."
+            : input.letter === "C"
+              ? "The box is middling. That is fine as a sometimes food. It is not everyday Excellent."
+              : "The nutrition box is decent, but it is not the whole story.",
     });
   }
   if (nova < 100) {
@@ -92,12 +109,12 @@ export function buildCaps(input: {
       kind: "cap",
       title:
         input.nova === 4
-          ? "Ultra-processed food cannot be an everyday Excellent"
+          ? "Ultra-processed food cannot be rated Good"
           : "Processing sets a ceiling",
       detail:
         input.nova === 4
-          ? `A factory recipe — flavours, colours, or many additives — is capped at ${nova}. It can be a rare treat, not a keep.`
-          : `Simply processed food is capped at ${nova}.`,
+          ? "A factory recipe — flavours, colours, or many additives — cannot be rated Good. A sometimes treat, not a daily habit."
+          : "This is simply processed food. Fine often. Not a keep unless the rest of the pack is honest.",
     });
   }
   if (risk < 100) {
@@ -111,11 +128,24 @@ export function buildCaps(input: {
             : "A cluster of extras blocks Excellent or Good",
       detail:
         risk <= 24
-          ? "Two high-concern extras cap the pack at 24 — Avoid."
-          : "The ceiling is 49. That is Poor: a sometimes product, not a habit.",
+          ? "Two high-concern extras mean Avoid. We would leave this on the shelf."
+          : "A cluster of extras keeps this at Poor: a sometimes product, not a habit.",
     });
   }
-  return { letterCap: letter, novaCap: nova, riskCap: risk, reasons };
+  if (traffic < 100) {
+    reasons.push({
+      kind: "cap",
+      title:
+        (input.redTraffic ?? 0) >= 3
+          ? "Three red lights cannot be rated Good"
+          : "Two red lights on the box cannot be rated Good",
+      detail:
+        traffic <= 39
+          ? "Salt, saturated fat or sugar are in the red three times. Poor at best."
+          : "Two red lights on salt, sugar or saturated fat keep this at Poor, not Good.",
+    });
+  }
+  return { letterCap: letter, novaCap: nova, riskCap: risk, trafficCap: traffic, reasons };
 }
 
 export function mixWeighted(input: {
@@ -140,12 +170,15 @@ export function applyCaps(
   mix: number,
   caps: MixCaps,
 ): { overall: number; cappedBy: string | null } {
-  const ceiling = Math.min(caps.letterCap, caps.novaCap, caps.riskCap);
+  const ceiling = Math.min(caps.letterCap, caps.novaCap, caps.riskCap, caps.trafficCap);
   if (mix <= ceiling) return { overall: mix, cappedBy: null };
-  if (ceiling === caps.riskCap && caps.riskCap <= caps.letterCap && caps.riskCap <= caps.novaCap) {
+  if (ceiling === caps.riskCap && caps.riskCap <= caps.letterCap && caps.riskCap <= caps.novaCap && caps.riskCap <= caps.trafficCap) {
     return { overall: ceiling, cappedBy: "ingredients" };
   }
-  if (ceiling === caps.letterCap) return { overall: ceiling, cappedBy: "nutrition" };
+  if (ceiling === caps.trafficCap && caps.trafficCap <= caps.letterCap && caps.trafficCap <= caps.novaCap) {
+    return { overall: ceiling, cappedBy: "nutrition" };
+  }
+  if (ceiling === caps.letterCap && caps.letterCap <= caps.novaCap) return { overall: ceiling, cappedBy: "nutrition" };
   if (ceiling === caps.novaCap) return { overall: ceiling, cappedBy: "processing" };
   return { overall: ceiling, cappedBy: "ingredients" };
 }

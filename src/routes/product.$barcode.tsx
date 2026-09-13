@@ -18,6 +18,7 @@ import { usePrefs } from "@/lib/prefs";
 import { useHistory } from "@/lib/history";
 import { productStory } from "@/lib/catalog/product-stories";
 import { personalAlerts, forYouScore } from "@/lib/catalog/personal";
+import { packWatchouts } from "@/lib/catalog/flags";
 import { aisleFor } from "@/lib/catalog/aisles";
 import { brandSlug } from "@/lib/catalog/brands";
 import { offProductUrl } from "@/lib/catalog/pack-image";
@@ -191,8 +192,8 @@ function NotFound({ barcode }: { barcode: string }) {
       {error ? <p className="mt-3 text-sm text-score-poor">{error}</p> : null}
 
       <div className="mt-8 max-w-md rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
-        <p className="font-semibold">Help the lab</p>
-        <p className="mt-1 text-sm text-muted">If you have the pack, type the name and the ingredient list. We score it the same way — no empty 87s.</p>
+        <p className="font-semibold">Add this pack</p>
+        <p className="mt-1 text-sm text-muted">If you have it, type the name and the ingredient list. We score it the same way — we won’t invent a number.</p>
         {crowdOpen ? (
           <form
             className="mt-3 grid gap-2"
@@ -258,6 +259,9 @@ function ProductView({
   const compared = prefs.compare.includes(product.barcode);
   const listed = prefs.list.some((i) => i.barcode === product.barcode);
   const alerts = personalAlerts(product, prefs);
+  const watchouts = packWatchouts(product.ingredients).filter(
+    (w) => !alerts.some((a) => a.title === w.title),
+  );
   const you = forYouScore(product, prefs);
   const aisle = aisleFor(product.categoryPath);
   const brand = brandSlug(product.brand);
@@ -329,12 +333,34 @@ function ProductView({
         <div className="flex shrink-0 flex-col items-center">
           <ScoreRing score={s.overall} size={88} />
           <ScoreMeta
-            letter={s.type !== "cosmetic" ? s.nutriLetter : null}
+            letter={s.type === "food" ? s.nutriLetter : null}
             nova={s.type !== "cosmetic" ? s.novaGroup : null}
-            per={s.type !== "cosmetic" ? (product.isBeverage ? "per 100 ml" : "per 100 g") : null}
+            per={s.type === "food" ? (product.isBeverage ? "per 100 ml" : "per 100 g") : null}
           />
         </div>
       </header>
+
+      <p className="mt-4 max-w-prose text-[15px] leading-relaxed">{s.headline}</p>
+
+      {watchouts.length > 0 ? (
+        <section className="mt-4">
+          <p className="kicker">Watch-outs</p>
+          <ul className="mt-2 space-y-2">
+            {watchouts.map((w) => (
+              <li
+                key={w.title}
+                className={cn(
+                  "rounded-lg px-4 py-3 shadow-[var(--shadow-border)]",
+                  w.kind === "high" ? "bg-score-bad text-accent-fg" : "bg-surface",
+                )}
+              >
+                <p className="font-medium">{w.title}</p>
+                <p className={cn("mt-0.5 text-sm", w.kind === "high" ? "text-accent-fg/80" : "text-muted")}>{w.detail}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {alerts.length > 0 ? (
         <ul className="mt-4 space-y-2">
@@ -563,7 +589,7 @@ function Glance({ product, howOften }: { product: EvaluatedProduct; howOften: st
         {s.type !== "cosmetic" ? (
           <Fact
             label="Nutrition box"
-            value={`${nutritionQualityLabel(s.nutriLetter)} · letter ${s.nutriLetter}`}
+            value={`${nutritionQualityLabel(s.nutriLetter)}`}
           />
         ) : (
           <Fact
@@ -581,13 +607,17 @@ function Glance({ product, howOften }: { product: EvaluatedProduct; howOften: st
         )}
         <Fact label="How processed" value={processingLabel(product.novaGroup)} />
         <Fact label="Extras" value={additiveCountLabel(product.additiveCount, product.type)} />
-        <Fact label="Planet" value={`${planetLabel(product.ecoScore)} · ${product.ecoScore}/100`} />
+        {s.type !== "cosmetic" ? (
+          <Fact label="Planet" value={`${planetLabel(product.ecoScore)} · ${product.ecoScore}/100`} />
+        ) : null}
         <Fact label="Organic" value={organicLabel(product.isOrganic)} />
       </dl>
       {s.type !== "cosmetic" ? (
         <p className="mt-3 text-sm leading-relaxed text-muted">{processingBlurb(product.novaGroup)}</p>
       ) : null}
-      <p className="mt-1 text-sm leading-relaxed text-muted">{planetBlurb(product.ecoScore)}</p>
+      {s.type !== "cosmetic" ? (
+        <p className="mt-1 text-sm leading-relaxed text-muted">{planetBlurb(product.ecoScore)}</p>
+      ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button asChild variant="secondary" size="sm">
           <a

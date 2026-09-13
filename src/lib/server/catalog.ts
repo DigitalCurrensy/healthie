@@ -8,11 +8,13 @@ import { matchCatalogName } from "@/lib/catalog/lookup";
 import { productAllergens, productConcerns } from "@/lib/catalog/flags";
 import { cosineSimilarity, scoreProduct } from "@/lib/scoring";
 import type { MatchedIngredient, Nutrition, ProductType } from "@/lib/scoring";
-import { recordIsScorable } from "@/lib/catalog/quality";
+import { recordIsScorable, titleLooksLikeWater } from "@/lib/catalog/quality";
 import { AISLES } from "@/lib/catalog/aisles";
+import { brandSlug } from "@/lib/catalog/brands";
+import { realPackUrl } from "@/lib/catalog/pack-image";
 import type { LabCard, LabReport } from "@/lib/catalog/lab-insights";
 
-const SEED_VERSION = 22;
+const SEED_VERSION = 25;
 
 const globalRef = globalThis as typeof globalThis & {
   __healthieSeed__?: Promise<void>;
@@ -228,7 +230,7 @@ async function hydrate(row: ProductRow): Promise<EvaluatedProduct> {
   const embedding = parseJson<number[]>(row.embedding) ?? row.embedding_vec ?? [];
   const flags = parseJson<string[]>(row.flags) ?? [];
   const isBeverage = row.category_path.includes("beverage") || /drink|soda|juice|tea|water/i.test(row.title);
-  const isWater = /\bwater\b/i.test(row.title) && !/flavour|flavor|juice|tea/i.test(row.title);
+  const isWater = titleLooksLikeWater(row.title);
   const score = scoreProduct({
     type: row.type,
     nutrition,
@@ -256,7 +258,7 @@ async function hydrate(row: ProductRow): Promise<EvaluatedProduct> {
     ingredients,
     unmatched: parseIngredients(row.ingredients_text || "").unmatched,
     nutrition,
-    imageUrl: row.image_url,
+    imageUrl: realPackUrl(row.image_url),
     novaGroup: score.type === "cosmetic" ? row.nova_group : score.novaGroup,
     source: row.source,
     score,
@@ -372,9 +374,10 @@ export async function recommendFor(product: EvaluatedProduct): Promise<Evaluated
        where type = $2
          and category_path = $3
          and gtin_barcode <> $4
+         and ($5::int >= 75 or overall_score >= 75)
        order by overall_score desc
        limit 8`,
-      [literal, product.type, product.categoryPath, product.barcode],
+      [literal, product.type, product.categoryPath, product.barcode, product.score.overall],
     );
     if (rows.length > 0) return rank(await Promise.all(rows.map(hydrate)));
   } catch {
@@ -384,7 +387,9 @@ export async function recommendFor(product: EvaluatedProduct): Promise<Evaluated
   const rows = await sql<ProductRow>`
     select * from products
     where type = ${product.type}
+      and category_path = ${product.categoryPath}
       and gtin_barcode <> ${product.barcode}
+      and (${product.score.overall} >= 75 or overall_score >= 75)
     order by overall_score desc
     limit 16`;
   return rank(await Promise.all(rows.map(hydrate)));
@@ -423,7 +428,7 @@ function toCard(r: CardRow): CatalogCard {
     categoryPath: r.category_path,
     isOrganic: Boolean(r.is_organic),
     overallScore: r.overall_score,
-    imageUrl: r.image_url,
+    imageUrl: realPackUrl(r.image_url),
     additiveCount: r.additive_count,
   };
 }
@@ -436,7 +441,7 @@ export async function listCards(): Promise<CatalogCard[]> {
   return rows.map(toCard);
 }
 
-export async function listCardsByAisle(path: string, limit = 60): Promise<CatalogCard[]> {
+export async function listCardsByAisle(path: string, limit = 200): Promise<CatalogCard[]> {
   const sql = await getSql();
   const rows = await sql<CardRow>`
     select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
@@ -454,7 +459,7 @@ export async function barcodesInAisle(path: string): Promise<Set<string>> {
   return new Set(rows.map((r) => r.gtin_barcode));
 }
 
-export async function listCardsForBrand(name: string, limit = 60): Promise<CatalogCard[]> {
+export async function listCardsForBrand(name: string, limit = 120): Promise<CatalogCard[]> {
   const sql = await getSql();
   const rows = await sql<CardRow>`
     select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
@@ -672,6 +677,19 @@ export async function shelfInsights(): Promise<LabReport> {
     where i.risk_class = 'high'`;
   const highRiskPct = n ? Math.round(((high[0]?.n ?? 0) / n) * 100) : 0;
 
+  const brandRows = await sql<{ brand: string; n: number; avg: number }>`
+    select brand, count(*)::int as n, coalesce(round(avg(overall_score))::int, 0) as avg
+    from products
+    group by brand
+    having count(*) >= 3
+    order by avg desc, n desc, brand`;
+  const houses = brandRows.map((b) => ({
+    slug: brandSlug(b.brand),
+    name: b.brand,
+    n: b.n,
+    avg: b.avg,
+  }));
+
   return {
     productCount: n,
     brandCount,
@@ -690,5 +708,7 @@ export async function shelfInsights(): Promise<LabReport> {
     foodAvg: typeMap.get("food")?.avg ?? null,
     cosmeticAvg: typeMap.get("cosmetic")?.avg ?? null,
     petAvg: typeMap.get("pet")?.avg ?? null,
+    brandsBest: houses.slice(0, 8),
+    brandsTreat: [...houses].reverse().slice(0, 8),
   };
 }

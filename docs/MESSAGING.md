@@ -20,10 +20,10 @@ Legal-adjacent, never hidden:
 
 | Band | Word on the ring | Sentence (food) |
 | --- | --- | --- |
-| 80–100 | Excellent | A keep. Short list, honest nutrition. |
-| 60–79 | Good | Fine sometimes. Not the best in the aisle. |
-| 40–59 | Poor | A treat at best. Look one shelf over for a better everyday pick. |
-| 0–39 | Avoid | Hard pass for a regular shop. Better swaps are close by. |
+| 75–100 | Excellent | A keep. Short list, honest nutrition. |
+| 50–74 | Good | Fine sometimes. Not the best in the aisle. |
+| 25–49 | Poor | A treat at best. Look one shelf over for a better everyday pick. |
+| 0–24 | Avoid | Hard pass for a regular shop. Better swaps are close by. |
 
 Beauty uses “calm formula / we’d leave on the shelf.” Pet uses “solid bowl / skip this bag.” Same bands. Different nouns.
 

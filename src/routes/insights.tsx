@@ -33,24 +33,19 @@ function InsightsPage() {
   return (
     <AppShell>
       <PageHeader
-        kicker="The lab letter"
+        kicker="The shop letter"
         title="Insights"
         body="What the shelves actually look like — scored from the live pantry, not a dummy cart. We stock the worst on purpose so a cola and a bottle of water don’t look the same."
       />
 
       <section className="mt-8 rounded-xl bg-accent px-5 py-6 text-accent-fg shadow-[var(--shadow-border)]">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-accent-fg/70">World index</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-accent-fg/70">World pantry</p>
         <p className="mt-2 font-display text-4xl font-bold tabular-nums tracking-tight">
           {formatWorldCount(world.foodCount + world.beautyCount + world.petCount)}
         </p>
         <p className="mt-2 max-w-prose text-sm leading-relaxed text-accent-fg/80">
-          Food, beauty, and pet barcodes from the nightly Open Food Facts dump. {lab.productCount.toLocaleString()} scored
-          on this shelf right now
-          {world.lastDumpIngested ? ` · ${world.lastDumpIngested} pulled in the last ingest` : ""}
-          {world.lastDumpAt
-            ? ` · pantry refresh ${new Date(world.lastDumpAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-            : ""}
-          . Scan a pack that isn’t here — live lookup still covers the long tail.
+          Food, beauty, and pet barcodes from the public pantry. {lab.productCount.toLocaleString()} scored on this
+          shelf right now. Scan a pack that isn’t here — live lookup still covers the long tail.
         </p>
       </section>
 
@@ -100,7 +95,7 @@ function InsightsPage() {
           [lab.productCount, "Packs scored"],
           [lab.brandCount, "Brands"],
           [lab.avgScore, "Shelf average"],
-          [`${lab.nova4Pct}%`, "Food that is NOVA 4"],
+          [`${lab.nova4Pct}%`, "Ultra-processed food"],
         ].map(([n, label]) => (
           <div key={String(label)} className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
             <p className="font-display text-2xl font-bold tabular-nums">{n}</p>
@@ -148,8 +143,59 @@ function InsightsPage() {
         ) : null}
         <p className="mt-2 text-sm text-muted">
           {lab.highRiskPct}% of packs carry at least one high-concern extra. Food {lab.foodAvg ?? "—"} · beauty{" "}
-          {lab.cosmeticAvg ?? "—"} · pet {lab.petAvg ?? "—"}.
+          {lab.cosmeticAvg ?? "—"} · pet {lab.petAvg ?? "—"}. The shelf average is {lab.avgScore} because we stock colas
+          and honest water in the same shop.
         </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-bold">Brand ranking</h2>
+        <p className="mt-1 text-sm text-muted">
+          Houses with 3 or more packs. The number is the house average. No brand pays for a better one.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="kicker">Cleaner houses</p>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {lab.brandsBest.map((b, i) => (
+                <li key={b.slug}>
+                  <Link
+                    to="/brand/$slug"
+                    params={{ slug: b.slug }}
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-xl bg-surface px-4 py-2.5 shadow-[var(--shadow-border)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="text-xs tabular-nums text-muted">{i + 1} · </span>
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="block text-xs text-muted">{b.n} packs</span>
+                    </span>
+                    <span className="shrink-0 text-sm font-bold tabular-nums">{b.avg}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="kicker">Treat houses</p>
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {lab.brandsTreat.map((b, i) => (
+                <li key={b.slug}>
+                  <Link
+                    to="/brand/$slug"
+                    params={{ slug: b.slug }}
+                    className="flex min-h-12 items-center justify-between gap-3 rounded-xl bg-surface px-4 py-2.5 shadow-[var(--shadow-border)]"
+                  >
+                    <span className="min-w-0">
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="block text-xs text-muted">{b.n} packs</span>
+                    </span>
+                    <span className="shrink-0 text-sm font-bold tabular-nums">{b.avg}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section className="mt-10">
@@ -189,7 +235,7 @@ function InsightsPage() {
               >
                 <span className="font-semibold">{e.name}</span>
                 <span className="text-sm tabular-nums text-muted">
-                  {e.n} packs · {e.riskClass}
+                  {e.n} packs · {e.riskClass === "high" ? "High concern" : e.riskClass === "moderate" ? "Worth watching" : "Low concern"}
                 </span>
               </Link>
             </li>

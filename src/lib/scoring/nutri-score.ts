@@ -15,8 +15,12 @@ const FOOD_SODIUM = [90, 180, 270, 360, 450, 540, 630, 720, 810, 900];
 const FOOD_FIBER = [0.9, 1.9, 2.8, 3.7, 4.7];
 const FOOD_PROTEIN = [1.6, 3.2, 4.8, 6.4, 8.0];
 
-const BEV_ENERGY = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270];
-const BEV_SUGARS = [0, 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12, 13.5];
+/** Nutri-Score 2023 beverages: non-linear energy and sugars, salt on a 0.2 g scale. */
+const BEV_ENERGY = [30, 90, 150, 210, 240, 270, 300, 330, 360, 390];
+const BEV_SUGARS = [0.5, 2, 3.5, 5, 6, 7, 8, 9, 10, 11];
+const BEV_SALT = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0];
+const BEV_PROTEIN = [1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0];
+const NNS_POINTS = 4;
 
 function fruitPointsFood(pct: number): number {
   if (pct > 80) return 5;
@@ -26,7 +30,7 @@ function fruitPointsFood(pct: number): number {
 }
 
 function fruitPointsBev(pct: number): number {
-  if (pct > 80) return 10;
+  if (pct > 80) return 6;
   if (pct > 60) return 4;
   if (pct > 40) return 2;
   return 0;
@@ -39,10 +43,15 @@ export function sodiumMg(n: Nutrition): number {
   return (n.salt || 0) * 400;
 }
 
-/** Nutri-Score 2023: cheeses always count protein; fats use sat-fat ratio; red meat caps protein. */
+export type NutriScoreOpts = {
+  hasNonNutritiveSweetener?: boolean;
+};
+
+/** Nutri-Score 2023: cheeses always count protein; fats use sat-fat ratio; red meat caps protein; drinks add a sweetener penalty. */
 export function computeNutriScore(
   nutrition: Nutrition,
   category: NutriCategory = "food",
+  opts?: NutriScoreOpts,
 ): { raw: number; nPoints: number; pPoints: number; letter: NutriLetter } {
   if (category === "water") {
     return { raw: -15, nPoints: 0, pPoints: 0, letter: "A" };
@@ -65,7 +74,8 @@ export function computeNutriScore(
       thresholdPoints(nutrition.energyKj, BEV_ENERGY) +
       thresholdPoints(nutrition.sugars, BEV_SUGARS) +
       thresholdPoints(nutrition.saturatedFat, FOOD_SAT) +
-      thresholdPoints(sodium, FOOD_SODIUM);
+      thresholdPoints(nutrition.salt || 0, BEV_SALT);
+    if (opts?.hasNonNutritiveSweetener) nPoints += NNS_POINTS;
   } else {
     nPoints =
       thresholdPoints(nutrition.energyKj, FOOD_ENERGY) +
@@ -76,24 +86,34 @@ export function computeNutriScore(
 
   const fruit = isBeverage ? fruitPointsBev(nutrition.fruitsVegetables) : fruitPointsFood(nutrition.fruitsVegetables);
   const fiber = thresholdPoints(nutrition.fiber, FOOD_FIBER);
-  let protein = thresholdPoints(nutrition.protein, FOOD_PROTEIN);
+  let protein = isBeverage
+    ? thresholdPoints(nutrition.protein, BEV_PROTEIN)
+    : thresholdPoints(nutrition.protein, FOOD_PROTEIN);
   if (category === "red-meat") protein = Math.min(protein, 2);
 
-  const proteinAlways = category === "cheese" || nPoints < 11 || fruit >= (isBeverage ? 10 : 5);
+  const proteinAlways = isBeverage || category === "cheese" || nPoints < 11 || fruit >= (isBeverage ? 6 : 5);
   const pPoints = fruit + fiber + (proteinAlways ? protein : 0);
   const raw = nPoints - pPoints;
 
-  return { raw, nPoints, pPoints, letter: nutriLetter(raw, isBeverage) };
+  return { raw, nPoints, pPoints, letter: nutriLetter(raw, isBeverage, category) };
 }
 
-export function nutriLetter(raw: number, isBeverage: boolean): NutriLetter {
-  if (isBeverage) {
-    if (raw <= 1) return "B";
-    if (raw <= 5) return "C";
+export function nutriLetter(raw: number, isBeverage: boolean, category: NutriCategory = "food"): NutriLetter {
+  if (category === "water") return "A";
+  if (isBeverage || category === "beverage") {
+    if (raw <= 2) return "B";
+    if (raw <= 6) return "C";
     if (raw <= 9) return "D";
     return "E";
   }
-  if (raw <= -1) return "A";
+  if (category === "fat") {
+    if (raw <= -6) return "A";
+    if (raw <= 2) return "B";
+    if (raw <= 10) return "C";
+    if (raw <= 18) return "D";
+    return "E";
+  }
+  if (raw <= 0) return "A";
   if (raw <= 2) return "B";
   if (raw <= 10) return "C";
   if (raw <= 18) return "D";
@@ -107,21 +127,21 @@ export function nutriLetter(raw: number, isBeverage: boolean): NutriLetter {
 export function nutriToQuality(raw: number, letter: NutriLetter, isBeverage = false): number {
   if (letter === "A") {
     if (isBeverage) return 100;
-    return clamp(Math.round(lerp(raw, -15, -1, 100, 88)), 88, 100);
+    return clamp(Math.round(lerp(raw, -15, 0, 100, 88)), 88, 100);
   }
   if (letter === "B") {
     return isBeverage
-      ? clamp(Math.round(lerp(raw, -2, 1, 84, 72)), 72, 84)
-      : clamp(Math.round(lerp(raw, 0, 2, 84, 72)), 72, 84);
+      ? clamp(Math.round(lerp(raw, -2, 2, 84, 72)), 72, 84)
+      : clamp(Math.round(lerp(raw, 1, 2, 84, 72)), 72, 84);
   }
   if (letter === "C") {
     return isBeverage
-      ? clamp(Math.round(lerp(raw, 2, 5, 68, 52)), 52, 68)
+      ? clamp(Math.round(lerp(raw, 3, 6, 68, 52)), 52, 68)
       : clamp(Math.round(lerp(raw, 3, 10, 68, 50)), 50, 68);
   }
   if (letter === "D") {
     return isBeverage
-      ? clamp(Math.round(lerp(raw, 6, 9, 46, 32)), 32, 46)
+      ? clamp(Math.round(lerp(raw, 7, 9, 46, 32)), 32, 46)
       : clamp(Math.round(lerp(raw, 11, 18, 46, 30)), 30, 46);
   }
   return isBeverage
@@ -144,8 +164,31 @@ export function inferNutriCategory(input: {
   if (input.isWater) return "water";
   const blob = `${input.categoryPath ?? ""} ${input.title ?? ""}`.toLowerCase();
   if (input.isBeverage || /beverage|soda|drink|juice|tea|coffee/.test(blob)) return "beverage";
-  if (/cheese|fromage|cheddar|parmesan|gouda/.test(blob)) return "cheese";
+  const snackish = /chip|crisp|nacho|snack|cracker|puff|flavour|flavor|sauce|dip|cookie|biscuit|popcorn/.test(blob);
+  const cheeseAisle = /dairy|cheese/.test(input.categoryPath ?? "");
+  if (!snackish && cheeseAisle && /cheese|fromage|cheddar|parmesan|gouda/.test(blob)) return "cheese";
   if (/\boil\b|butter|margarine|ghee/.test(blob) && /spread|staples|fat/.test(blob)) return "fat";
-  if (/ham|beef|steak|bacon|salami|sausage|charcuterie/.test(blob)) return "red-meat";
+  if (/ham|beef|steak|bacon|salami|sausage|charcuterie/.test(blob) && !/flavour|flavor|chip|crisp/.test(blob)) {
+    return "red-meat";
+  }
   return "food";
+}
+
+/**
+ * Energy-dense packs with a blank salt and sat-fat box used to mint a fake B
+ * (Doritos from a thin Open Food Facts row scored “Good nutrition”).
+ * We will not call that Good.
+ */
+export function nutritionBoxIsThin(n: Nutrition, category: NutriCategory): boolean {
+  if (category === "water") return false;
+  const energyDense = (n.energyKj || 0) >= 1200 || (n.fat ?? 0) >= 10;
+  const saltGone = (n.salt || 0) < 0.02 && (n.sodiumMg ?? 0) < 10;
+  const satGone = (n.saturatedFat || 0) < 0.08;
+  return energyDense && saltGone && satGone;
+}
+
+export function honestNutriLetter(letter: NutriLetter, thin: boolean): NutriLetter {
+  if (!thin) return letter;
+  if (letter === "A" || letter === "B") return "C";
+  return letter;
 }

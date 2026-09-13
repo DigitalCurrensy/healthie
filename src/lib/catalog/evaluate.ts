@@ -2,6 +2,7 @@ import { categoryBucket, embedProduct, scoreProduct } from "@/lib/scoring";
 import type { MatchedIngredient, ScoreBreakdown } from "@/lib/scoring";
 import { ingredientsByIds } from "./match";
 import { productAllergens, productConcerns } from "./flags";
+import { realPackUrl } from "./pack-image";
 import type { ProductDef } from "./products";
 import type { AllergenId } from "@/lib/scoring/types";
 
@@ -86,7 +87,7 @@ export function evaluateDef(
     ingredients,
     unmatched: extra?.unmatched ?? [],
     nutrition: def.nutrition ?? null,
-    imageUrl: def.imageUrl ?? null,
+    imageUrl: realPackUrl(def.imageUrl),
     novaGroup: score.type === "cosmetic" ? def.novaGroup ?? null : score.novaGroup,
     source: extra?.source ?? "catalog",
     score,

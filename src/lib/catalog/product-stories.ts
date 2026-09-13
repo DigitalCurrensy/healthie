@@ -1,5 +1,4 @@
 import type { EvaluatedProduct } from "./evaluate";
-import { bandSentence } from "@/lib/copy";
 
 export type HowOften = "everyday" | "sometimes" | "rarely" | "skip";
 
@@ -794,15 +793,23 @@ export const PRODUCT_STORIES: Record<string, ProductStory> = {
   },
 };
 
-export function productStory(product: Pick<EvaluatedProduct, "barcode" | "score" | "type">): ProductStory {
+export function productStory(product: EvaluatedProduct): ProductStory {
   const hit = PRODUCT_STORIES[product.barcode];
   if (hit) return hit;
+  const hurt = product.score.reasons.filter((r) => r.kind === "hurt" || r.kind === "cap").slice(0, 3);
   return {
-    verdict: bandSentence(product.score.overall, product.type),
-    story: "We scored this from the nutrition box and the ingredient list on the pack.",
-    howOften: product.score.overall >= 75 ? "everyday" : product.score.overall >= 50 ? "sometimes" : product.score.overall >= 25 ? "rarely" : "skip",
+    verdict: product.score.headline,
+    story: product.score.headline,
+    howOften:
+      product.score.overall >= 75
+        ? "everyday"
+        : product.score.overall >= 50
+          ? "sometimes"
+          : product.score.overall >= 25
+            ? "rarely"
+            : "skip",
     whoItsFor: "Anyone comparing similar products in this aisle.",
     skipIf: "It clashes with the notes you keep in your profile — allergens, diet, or extras you asked us to flag.",
-    highlights: [],
+    highlights: hurt.map((r) => r.title),
   };
 }

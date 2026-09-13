@@ -4,7 +4,13 @@ import { foodHeadline, foodPillars, sortReasons } from "./explain";
 import { scoreIntegrity } from "./integrity";
 import { applyCaps, buildCaps, FOOD_WEIGHTS } from "./mix";
 import { classifyNova, processingScore } from "./nova";
-import { computeNutriScore, inferNutriCategory, nutriToQuality } from "./nutri-score";
+import {
+  computeNutriScore,
+  honestNutriLetter,
+  inferNutriCategory,
+  nutritionBoxIsThin,
+  nutriToQuality,
+} from "./nutri-score";
 import { trafficLights } from "./traffic";
 import type { FoodScoreBreakdown, MatchedIngredient, Nutrition, RiskClass, ScoreReason } from "./types";
 
@@ -25,11 +31,17 @@ export function scoreFood(input: {
     categoryPath: input.categoryPath,
     title: input.title,
   });
-  const nutri = computeNutriScore(input.nutrition, category);
   const isBev = category === "beverage" || category === "water";
-  const nutritionScore = nutriToQuality(nutri.raw, nutri.letter, isBev);
-
   const integrity = scoreIntegrity(input.ingredients);
+  const nutri = computeNutriScore(input.nutrition, category, {
+    hasNonNutritiveSweetener: isBev && integrity.sweetenerCount > 0,
+  });
+  const thin = nutritionBoxIsThin(input.nutrition, category);
+  const letter = honestNutriLetter(nutri.letter, thin);
+  let nutritionScore = nutriToQuality(nutri.raw, nutri.letter, isBev);
+  if (thin && (nutri.letter === "A" || nutri.letter === "B")) {
+    nutritionScore = Math.min(nutritionScore, 68);
+  }
   const nova = classifyNova({
     ingredients: input.ingredients,
     ingredientsText: input.ingredientsText ?? "",
@@ -37,6 +49,8 @@ export function scoreFood(input: {
     explicit: input.novaGroup,
   });
   const proc = processingScore(nova);
+  const lights = trafficLights(input.nutrition, isBev);
+  const redTraffic = [lights.salt, lights.sugars, lights.saturatedFat].filter((l) => l === "red").length;
 
   const mixUncapped = runScoreGraph({
     nutritionQuality: nutritionScore,
@@ -54,11 +68,12 @@ export function scoreFood(input: {
   });
 
   const caps = buildCaps({
-    letter: nutri.letter,
+    letter,
     nova,
     highCount: integrity.highCount,
     moderateCount: integrity.moderateCount,
     sweetenerCount: integrity.sweetenerCount,
+    redTraffic,
   });
   const { overall: mixed, cappedBy: mixCap } = applyCaps(mixUncapped, caps);
   const emptyLabel =
@@ -79,10 +94,27 @@ export function scoreFood(input: {
 
   const reasons: ScoreReason[] = [];
   reasons.push({
-    kind: nutri.letter === "A" || nutri.letter === "B" ? "help" : "hurt",
-    title: `Nutrition box · ${nutri.letter}`,
-    detail: nutritionReason(nutri.letter, nutri.nPoints, nutri.pPoints, input.nutrition, isBev, category === "water"),
+    kind: letter === "A" || letter === "B" ? "help" : "hurt",
+    title:
+      letter === "A"
+        ? "A strong nutrition box"
+        : letter === "B"
+          ? "A decent nutrition box"
+          : letter === "C"
+            ? "An okay nutrition box"
+            : letter === "D"
+              ? "A weak-ish nutrition box"
+              : "A weak nutrition box",
+    detail: nutritionReason(letter, input.nutrition, isBev, category === "water"),
   });
+  if (thin) {
+    reasons.push({
+      kind: "cap",
+      title: "The nutrition box is incomplete",
+      detail:
+        "Energy is high but salt and saturated fat are missing. We will not call that Good nutrition — a thin label is not a clean pack.",
+    });
+  }
   reasons.push({
     kind: nova <= 2 ? "help" : nova === 3 ? "note" : "hurt",
     title: nova === 4 ? "Ultra-processed" : nova === 1 ? "Just food" : nova === 2 ? "Kitchen staple" : "Simply made",
@@ -108,7 +140,7 @@ export function scoreFood(input: {
 
   const headline = foodHeadline({
     overall,
-    letter: nutri.letter,
+    letter,
     nova,
     isWater: category === "water",
     isBeverage: isBev,
@@ -126,7 +158,7 @@ export function scoreFood(input: {
     processingScore: proc,
     organicBonus: input.isOrganic ? 5 : 0,
     nutriRaw: nutri.raw,
-    nutriLetter: nutri.letter,
+    nutriLetter: letter,
     nPoints: nutri.nPoints,
     pPoints: nutri.pPoints,
     additivePenalties: integrity.penalties,
@@ -139,11 +171,12 @@ export function scoreFood(input: {
       ingredients: input.ingredients,
       categoryPath: input.categoryPath ?? "",
     }),
-    trafficLights: trafficLights(input.nutrition, isBev),
+    trafficLights: lights,
     mixUncapped,
     letterCap: caps.letterCap,
     novaCap: caps.novaCap,
     riskCap: caps.riskCap,
+    trafficCap: caps.trafficCap,
     cappedBy,
     headline,
     reasons: sortReasons(reasons),
@@ -159,13 +192,11 @@ export function scoreFood(input: {
 
 function nutritionReason(
   letter: string,
-  nPoints: number,
-  pPoints: number,
   n: Nutrition,
   isBeverage: boolean,
   isWater: boolean,
 ): string {
-  if (isWater) return "Water has no sugars, no salt load, no extras. Nutrition letter A — the top of the scale.";
+  if (isWater) return "Water has no sugars, no salt load, no extras. This is the top of the scale.";
   const tsp = Math.round((n.sugars / 4) * 10) / 10;
   const sugarBit =
     n.sugars >= 5
@@ -176,12 +207,23 @@ function nutritionReason(
         ? "No meaningful sugar."
         : "Sugars are modest.";
   const saltBit = n.salt >= 1.5 ? " Salt is high." : n.salt >= 0.6 ? " Salt is moderate." : "";
+  const fatBit = (n.fat ?? 0) >= 17.5 ? " Fat is high." : "";
   const fibreBit = n.fiber >= 6 ? " Fibre is a genuine plus." : n.fiber >= 3 ? " Some fibre helps." : "";
   const drinkBit =
     isBeverage && n.sugars >= 5
       ? " Nothing in the bottle slows that sugar down — no fibre, no protein."
       : "";
-  return `${sugarBit}${drinkBit}${saltBit}${fibreBit} Energy, sugars, saturated fat and salt pulled ${nPoints} points off. Fibre, protein and fruit gave ${pPoints} back. Net ${nPoints - pPoints} — nutrition letter ${letter}.`;
+  const letterBit =
+    letter === "A"
+      ? " This is a strong everyday box."
+      : letter === "B"
+        ? " Decent, not a keep on its own."
+        : letter === "C"
+          ? " Middling — fine sometimes."
+          : letter === "D"
+            ? " A treat pattern."
+            : " Sugars, salt or saturated fat dominate.";
+  return `${sugarBit}${drinkBit}${saltBit}${fatBit}${fibreBit}${letterBit}`;
 }
 
 function processingReason(nova: 1 | 2 | 3 | 4): string {

@@ -15,7 +15,7 @@ export function classifyNova(input: {
   const additives = input.ingredients.filter((i) => i.isAdditive && i.riskClass !== "none");
   const text = input.ingredientsText.toLowerCase();
   const markers =
-    /glucose-fructose|high fructose|hydrogenated|flavouring|flavoring|emulsifier|colour|color \(e|maltodextrin|dextrose|invert sugar|modified starch/.test(
+    /glucose-fructose|high fructose|hydrogenated|flavouring|flavoring|emulsifier|colour|color \(e|maltodextrin|dextrose|invert sugar|modified starch|anti-caking|humectant|stabiliser|stabilizer|gelling agent|artificial flavour|artificial flavor/.test(
       text,
     );
   if (additives.length >= 2 || markers) return 4;

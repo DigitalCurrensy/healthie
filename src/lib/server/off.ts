@@ -137,8 +137,10 @@ function nutritionFromOff(n: Record<string, number | undefined> | undefined): Nu
     num(n?.["energy-kj_100g"]) ||
     num(n?.energy_100g) ||
     (num(n?.["energy-kcal_100g"]) || num(n?.["energy-kcal"])) * 4.184;
-  const salt = num(n?.salt_100g);
-  const sodiumMg = num(n?.sodium_100g) ? num(n?.sodium_100g) * 1000 : undefined;
+  const sodiumG = num(n?.sodium_100g);
+  const saltFromBox = num(n?.salt_100g);
+  const salt = saltFromBox || (sodiumG ? sodiumG * 2.5 : 0);
+  const sodiumMg = sodiumG ? sodiumG * 1000 : salt ? salt * 400 : undefined;
   return {
     energyKj,
     sugars: num(n?.sugars_100g),

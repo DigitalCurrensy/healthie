@@ -6,6 +6,7 @@ import { CART_PRODUCTS } from "./products-cart";
 import { AISLE_PRODUCTS } from "./products-aisles";
 import { EXTRA_PRODUCTS } from "./products-extra";
 import { PREMIUM_PRODUCTS } from "./products-premium";
+import { DENSE_PRODUCTS } from "./products-dense";
 import { isDemoBarcode, isDemoBrand } from "./quality";
 
 export type ProductDef = {
@@ -1190,7 +1191,7 @@ const CORE_PRODUCTS: ProductDef[] = [
   },
 ];
 
-const SEED = [...CORE_PRODUCTS, ...MORE_PRODUCTS, ...WORLD_PRODUCTS, ...SHELF_PRODUCTS, ...CART_PRODUCTS, ...AISLE_PRODUCTS, ...EXTRA_PRODUCTS, ...PREMIUM_PRODUCTS];
+const SEED = [...CORE_PRODUCTS, ...MORE_PRODUCTS, ...WORLD_PRODUCTS, ...SHELF_PRODUCTS, ...CART_PRODUCTS, ...AISLE_PRODUCTS, ...EXTRA_PRODUCTS, ...PREMIUM_PRODUCTS, ...DENSE_PRODUCTS];
 const seen = new Set<string>();
 export const PRODUCTS: ProductDef[] = SEED.filter((p) => {
   if (seen.has(p.barcode)) return false;
@@ -1199,3 +1200,11 @@ export const PRODUCTS: ProductDef[] = SEED.filter((p) => {
   return true;
 });
 export const PRODUCT_BY_BARCODE = new Map(PRODUCTS.map((p) => [p.barcode, p]));
+
+export function aisleShelfCounts(): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const p of PRODUCTS) {
+    map.set(p.categoryPath, (map.get(p.categoryPath) ?? 0) + 1);
+  }
+  return map;
+}

@@ -1,7 +1,9 @@
 import { clamp } from "../utils";
 import { ADDITIVE_PENALTY, type AdditivePenalty, type MatchedIngredient, type ScoreReason } from "./types";
 
-const SWEETENERS = new Set(["e950", "e951", "e952", "e954", "e955", "e960"]);
+const SWEETENERS = new Set(["e950", "e951", "e952", "e954", "e955", "e960", "e961", "e962"]);
+const FLAVOR_ENHANCERS = new Set(["e621", "e627", "e631", "e635"]);
+const AZO_DYES = new Set(["e102", "e104", "e110", "e122", "e124", "e129"]);
 
 export type IntegrityResult = {
   score: number;
@@ -42,9 +44,33 @@ export function scoreIntegrity(ingredients: MatchedIngredient[]): IntegrityResul
   }
 
   const riskAdds = ingredients.filter((i) => i.isAdditive && i.riskClass !== "none");
-  const highCount = ingredients.filter((i) => i.riskClass === "high").length;
-  const moderateCount = ingredients.filter((i) => i.riskClass === "moderate").length;
+  let highCount = ingredients.filter((i) => i.riskClass === "high").length;
+  let moderateCount = ingredients.filter((i) => i.riskClass === "moderate").length;
   const sweetenerCount = ingredients.filter((i) => SWEETENERS.has(i.id)).length;
+  const flavorIds = ingredients.filter((i) => FLAVOR_ENHANCERS.has(i.id)).map((i) => i.id);
+  const azoCount = ingredients.filter((i) => AZO_DYES.has(i.id)).length;
+
+  if (flavorIds.includes("e621") && flavorIds.length >= 2) {
+    score -= 12;
+    moderateCount += 1;
+    reasons.push({
+      kind: "hurt",
+      title: "Factory flavour system",
+      detail: "MSG stacked with inosinate or guanylate is a lab flavour, not a kitchen one. It is how a chip tastes like cheese without much cheese.",
+      points: -12,
+    });
+  }
+
+  if (azoCount >= 2) {
+    score -= 8;
+    moderateCount += 1;
+    reasons.push({
+      kind: "hurt",
+      title: "Azo dye mix",
+      detail: `${azoCount} synthetic colours (the Southampton six family) sit on this pack. Linked to hyperactivity in sensitive children.`,
+      points: -8,
+    });
+  }
 
   if (riskAdds.length >= 4) {
     score -= 8;

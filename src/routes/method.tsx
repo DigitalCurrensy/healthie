@@ -56,21 +56,104 @@ function MethodPage() {
           <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
             <p className="font-medium">Ingredients · 25%</p>
             <p className="mt-1 text-muted">
-              High-concern extras take 28 off. Moderate take 14. Low take 5. Palm oil takes 8. Four or more extras take
-              another 8. Two intense sweeteners take another 10. One high-concern extra, or two moderate ones, caps
-              the pack at Poor. Two high-concern extras cap it at Avoid.
+              High-concern extras (nitrites, some dyes in a child pack) knock the list hard. Moderate extras knock it
+              less. A quiet kitchen list holds it up. One high-concern extra, or a cluster of moderate ones, keeps the
+              pack at Poor. Two high-concern extras mean Avoid.
             </p>
           </li>
           <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
             <p className="font-medium">How processed · 20%</p>
             <p className="mt-1 text-muted">
               Just food, a kitchen staple, simply made, or ultra-processed. A factory recipe — flavours, colours, many
-              additives — cannot be an everyday Excellent. With a weak nutrition box it cannot be Good either.
+              additives — cannot be rated Good. With a weak nutrition box it is Poor.
             </p>
           </li>
           <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
             <p className="font-medium">Organic · 5%</p>
             <p className="mt-1 text-muted">A verified organic mark adds a small bonus. It cannot rescue a sugary drink or a nitrite ham.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-medium">How processed — four groups</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          This is the NOVA system, from public-health research. It asks how far a pack is from a kitchen, not how many
+          calories it has. Healthie uses it as a fifth of the food number, and as a hard limit: ultra-processed food
+          cannot be rated Good.
+        </p>
+        <ul className="mt-4 space-y-3 text-[15px] leading-relaxed">
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Just food</p>
+            <p className="mt-1 text-muted">
+              An apple, oats, a piece of fish, plain yogurt, frozen peas. One ingredient, or close. This is the baseline.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Kitchen staple</p>
+            <p className="mt-1 text-muted">
+              Oil, sugar, salt, flour, butter. You cook with these. They are not a meal.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Simply made</p>
+            <p className="mt-1 text-muted">
+              Bread, cheese, tinned tomatoes, smoked fish. A few extra steps. Still recognisable as food.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Ultra-processed</p>
+            <p className="mt-1 text-muted">
+              Flavours, colours, emulsifiers, a list you could not shop. Doritos, cola, most bars. One pack is not
+              poison. A diet of them crowds out real food — so we will not call them Good.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-display text-xl font-medium">How this compares</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          Other labels answer one question. Healthie answers three, then puts a lock on the door so a factory chip
+          cannot wear a green disc.
+        </p>
+        <ul className="mt-4 space-y-3 text-[15px] leading-relaxed">
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Nutri-Score (the EU nutrition letter)</p>
+            <p className="mt-1 text-muted">
+              Looks only at the nutrition box — energy, sugars, saturated fat, salt, fibre, protein, fruit. A pack of
+              chips can land a middling letter if salt is not terrible. It does not read additives. It does not know
+              ultra-processed. We use this as half the number, not the whole verdict.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">NOVA (how processed)</p>
+            <p className="mt-1 text-muted">
+              Looks only at the recipe. Unsweetened soy milk and a bag of Doritos can both be ultra-processed. Nutrition
+              is invisible. We use this as a fifth of the number, and as a lock: group 4 cannot be Good.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Yuka</p>
+            <p className="mt-1 text-muted">
+              Nutrition about 60%, additives 30%, organic 10%. No processing lock. That is why a flavoured chip can still
+              come out yellow. Healthie is stricter on factory recipes.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Health Star Rating</p>
+            <p className="mt-1 text-muted">
+              A 0.5–5 star mark used in Australia and New Zealand. Industry-influenced, and it can reward low-fat
+              reformulations that still carry a long additive list. We do not use it.
+            </p>
+          </li>
+          <li className="rounded-lg bg-surface p-4 shadow-[var(--shadow-border)]">
+            <p className="font-medium">Healthie</p>
+            <p className="mt-1 text-muted">
+              Nutrition half, extras a quarter, processing a fifth, organic a little. Then locks: a weak box cannot be
+              Good; ultra-processed cannot be Good; one high-concern extra cannot hide. Same 0–100 for food, beauty,
+              and pet.
+            </p>
           </li>
         </ul>
       </section>

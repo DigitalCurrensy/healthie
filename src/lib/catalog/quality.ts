@@ -45,3 +45,19 @@ export function isDemoBarcode(barcode: string): boolean {
 export function isDemoBrand(brand: string): boolean {
   return /grove atelier|healthie pantry|maison bloom/i.test(brand);
 }
+
+export function titleLooksLikeWater(title: string): boolean {
+  const t = title.toLowerCase();
+  if (!/\bwater\b/.test(t)) return false;
+  if (
+    /flavour|flavor|juice|tea|coffee|coconut|rose|cracker|toner|micellar|soda|cola|tonic|energy drink|vitamin water/.test(
+      t,
+    )
+  ) {
+    return false;
+  }
+  return (
+    /(mineral|spring|sparkling|still|purified|distilled|natural)\s+water/.test(t) ||
+    /^(evian|s\.?pellegrino|perrier|fiji|volvic)\b/.test(t)
+  );
+}

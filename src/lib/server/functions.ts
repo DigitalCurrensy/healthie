@@ -19,6 +19,7 @@ import {
   type CatalogCard,
 } from "./catalog";
 import { brandBySlug } from "@/lib/catalog/brands";
+import { brandPlace, metricsFromCards, rankedHouses, shopAverage } from "@/lib/catalog/brand-metrics";
 import { lookupOpenFacts, searchOpenWorld, browseOpenWorld, evaluatedToCard } from "./off";
 import { extractLabel } from "./ocr";
 import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
@@ -129,6 +130,11 @@ export const listFeatured = createServerFn({ method: "GET" }).handler(async () =
   return listFeaturedCards();
 });
 
+export const listShelves = createServerFn({ method: "GET" }).handler(async () => {
+  await ensureCatalog();
+  return listCards();
+});
+
 export const loadWorldIndex = createServerFn({ method: "GET" }).handler(async (): Promise<WorldIndex> => {
   await ensureCatalog();
   const { readWorldIndex } = await import("./world-meta");
@@ -175,7 +181,7 @@ export const loadAisle = createServerFn({ method: "GET" })
   .validator((input: unknown) => z.object({ path: z.string().max(40) }).parse(input))
   .handler(async ({ data }) => {
     await ensureCatalog();
-    const local = await listCardsByAisle(data.path, 60);
+    const local = await listCardsByAisle(data.path, 200);
     return { local, extra: [] as CatalogCard[] };
   });
 
@@ -198,9 +204,29 @@ export const loadBrand = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     await ensureCatalog();
     const brand = brandBySlug(data.slug);
-    if (!brand) return { brand: null, local: [] as CatalogCard[], extra: [] as CatalogCard[] };
-    const local = await listCardsForBrand(brand.name, 60);
-    return { brand, local, extra: [] as CatalogCard[] };
+    if (!brand) {
+      return {
+        brand: null,
+        local: [] as CatalogCard[],
+        extra: [] as CatalogCard[],
+        shopAvg: 0,
+        rank: null as { place: number; of: number } | null,
+        metrics: null as ReturnType<typeof metricsFromCards>[number] | null,
+      };
+    }
+    const local = await listCardsForBrand(brand.name, 120);
+    const all = await listCards();
+    const houses = metricsFromCards(all);
+    const ranked = rankedHouses(houses, 3);
+    const metrics = houses.find((h) => h.slug === brand.slug) ?? metricsFromCards(local)[0] ?? null;
+    return {
+      brand,
+      local,
+      extra: [] as CatalogCard[],
+      shopAvg: shopAverage(all),
+      rank: metrics ? brandPlace(ranked, metrics.slug) : null,
+      metrics,
+    };
   });
 
 export const loadBrandWorld = createServerFn({ method: "GET" })

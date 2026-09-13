@@ -110,3 +110,80 @@ export function productConcerns(ingredients: MatchedIngredient[]): {
     child: ingredients.filter((i) => i.childAvoid).map((i) => i.name),
   };
 }
+
+export const DYE_IDS = new Set([
+  "e102",
+  "e104",
+  "e110",
+  "e122",
+  "e123",
+  "e124",
+  "e129",
+  "e131",
+  "e132",
+  "e133",
+  "e142",
+  "e151",
+  "ci19140",
+]);
+
+export type PackWatchout = {
+  title: string;
+  detail: string;
+  kind: "high" | "care";
+};
+
+export function packWatchouts(ingredients: MatchedIngredient[]): PackWatchout[] {
+  const out: PackWatchout[] = [];
+  const named = (list: MatchedIngredient[]) =>
+    [...new Set(list.map((i) => i.name))].slice(0, 6).join(", ");
+
+  const high = ingredients.filter((i) => i.riskClass === "high" || i.hazard === "red");
+  if (high.length > 0) {
+    out.push({
+      kind: "high",
+      title: high.length === 1 ? "High-concern extra" : `${high.length} high-concern extras`,
+      detail: named(high),
+    });
+  }
+
+  const hormones = ingredients.filter((i) => i.endocrine);
+  if (hormones.length > 0) {
+    out.push({
+      kind: "care",
+      title: "May affect hormones",
+      detail: named(hormones),
+    });
+  }
+
+  const pregnancy = ingredients.filter((i) => i.pregnancyAvoid);
+  if (pregnancy.length > 0) {
+    out.push({
+      kind: "care",
+      title: "Extra care in pregnancy",
+      detail: named(pregnancy),
+    });
+  }
+
+  const dyes = ingredients.filter((i) => DYE_IDS.has(i.id));
+  if (dyes.length > 0) {
+    out.push({
+      kind: "care",
+      title: dyes.length === 1 ? "Artificial colour" : "Artificial colours",
+      detail: named(dyes),
+    });
+  }
+
+  const childOnly = ingredients.filter(
+    (i) => i.childAvoid && !i.endocrine && !i.pregnancyAvoid && !DYE_IDS.has(i.id) && i.riskClass !== "high" && i.hazard !== "red",
+  );
+  if (childOnly.length > 0) {
+    out.push({
+      kind: "care",
+      title: "Extra care for children",
+      detail: named(childOnly),
+    });
+  }
+
+  return out;
+}

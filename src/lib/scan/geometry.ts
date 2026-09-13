@@ -1,4 +1,7 @@
-/** Map a point in video-pixel space onto an object-fit:cover overlay. */
+/** Match `.scan-window` in styles.css — overlay percentages mapped onto the video. */
+export const VIEWFINDER_CROP = { x: 0.08, y: 0.3, w: 0.84, h: 0.32 } as const;
+
+export const VIEWFINDER_CROP_PADDED = { x: 0.04, y: 0.24, w: 0.92, h: 0.44 } as const;
 
 export type CoverMap = {
   scale: number;

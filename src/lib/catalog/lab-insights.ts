@@ -3,6 +3,7 @@ import { evaluateDef } from "./evaluate";
 import { AISLES } from "./aisles";
 import { INGREDIENTS } from "./ingredients";
 import { scoreBand } from "@/lib/utils";
+import { brandSlug } from "./brands";
 
 export type LabCard = {
   barcode: string;
@@ -37,6 +38,13 @@ export type LabSwap = {
   lift: number;
 };
 
+export type LabBrandRow = {
+  slug: string;
+  name: string;
+  n: number;
+  avg: number;
+};
+
 export type LabReport = {
   productCount: number;
   brandCount: number;
@@ -54,6 +62,8 @@ export type LabReport = {
   foodAvg: number | null;
   cosmeticAvg: number | null;
   petAvg: number | null;
+  brandsBest: LabBrandRow[];
+  brandsTreat: LabBrandRow[];
 };
 
 function card(p: ReturnType<typeof evaluateDef>): LabCard {
@@ -139,6 +149,23 @@ export function labReport(): LabReport {
 
   const typeMean = (t: LabCard["type"]) => mean(rows.filter((p) => p.type === t));
 
+  const houseMap = new Map<string, { name: string; scores: number[] }>();
+  for (const p of rows) {
+    const slug = brandSlug(p.brand);
+    const cur = houseMap.get(slug);
+    if (!cur) houseMap.set(slug, { name: p.brand, scores: [p.score.overall] });
+    else cur.scores.push(p.score.overall);
+  }
+  const houses: LabBrandRow[] = [...houseMap.entries()]
+    .map(([slug, v]) => ({
+      slug,
+      name: v.name,
+      n: v.scores.length,
+      avg: Math.round(v.scores.reduce((a, b) => a + b, 0) / v.scores.length),
+    }))
+    .filter((h) => h.n >= 3)
+    .sort((a, b) => b.avg - a.avg || b.n - a.n);
+
   cached = {
     productCount: rows.length,
     brandCount: new Set(rows.map((p) => p.brand)).size,
@@ -157,6 +184,8 @@ export function labReport(): LabReport {
     foodAvg: typeMean("food"),
     cosmeticAvg: typeMean("cosmetic"),
     petAvg: typeMean("pet"),
+    brandsBest: houses.slice(0, 8),
+    brandsTreat: [...houses].reverse().slice(0, 8),
   };
   return cached;
 }

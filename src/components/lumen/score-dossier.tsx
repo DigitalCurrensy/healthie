@@ -2,6 +2,7 @@ import { bandLabel, cn, scoreBand } from "@/lib/utils";
 import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
 import type { ScoreReason } from "@/lib/scoring/types";
 import { nutritionQualityLabel } from "@/lib/copy";
+import { Link } from "@tanstack/react-router";
 
 export function ScoreDossier({ product }: { product: EvaluatedProduct }) {
   const s = product.score;
@@ -13,23 +14,15 @@ export function ScoreDossier({ product }: { product: EvaluatedProduct }) {
       <p className="mt-2 text-[15px] leading-relaxed">{s.headline}</p>
       <p className="mt-1 text-sm text-muted">
         {bandLabel(band)} · {s.overall}/100
-        {s.type !== "cosmetic" ? ` · nutrition ${nutritionQualityLabel(s.nutriLetter)}` : null}
+        {s.type !== "cosmetic" ? ` · nutrition ${nutritionQualityLabel(s.nutriLetter).toLowerCase()}` : null}
       </p>
 
       <ul className="mt-4 space-y-3">
         {s.pillars.map((p) => (
           <li key={p.id}>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
-              <span className="min-w-0">
-                {p.label}{" "}
-                <span className="text-muted">
-                  · {p.weightPct}% of the mix
-                </span>
-              </span>
-              <span className="shrink-0 tabular-nums text-muted">
-                {p.score}
-                {p.weightPct < 100 ? ` → ${p.contribution}` : ""}
-              </span>
+              <span className="min-w-0">{p.label}</span>
+              <span className="shrink-0 tabular-nums text-muted">{p.score}/100</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
               <div
@@ -43,18 +36,17 @@ export function ScoreDossier({ product }: { product: EvaluatedProduct }) {
 
       {s.type !== "cosmetic" && s.cappedBy ? (
         <p className="mt-4 rounded-lg bg-surface px-4 py-3 text-sm leading-relaxed shadow-[var(--shadow-border)]">
-          The mix came to {s.mixUncapped}, then a ceiling applied
           {s.cappedBy === "nutrition"
-            ? ` — a ${nutritionQualityLabel(s.nutriLetter).toLowerCase()} nutrition box (letter ${s.nutriLetter}) cannot outrun its letter (max ${s.letterCap}).`
+            ? "The nutrition box is the limit. A kinder ingredient list cannot talk this pack into Good."
             : s.cappedBy === "processing"
-              ? ` — ultra-processed food is capped at ${s.novaCap}.`
-              : ` — extras on the list cap this pack at ${s.riskCap}.`}
+              ? "Ultra-processed food cannot be rated Good. A factory recipe is a treat, not a habit."
+              : "The extras on the list set the limit. A high-concern ingredient, or a cluster of them, blocks a better rating."}
         </p>
       ) : null}
 
       {s.type === "cosmetic" && s.capped ? (
         <p className="mt-4 rounded-lg bg-surface px-4 py-3 text-sm leading-relaxed shadow-[var(--shadow-border)]">
-          The toughest extra sets a ceiling of {s.cap}. A calm rest of the list cannot lift that.
+          The toughest extra on the list is the limit. A calm rest of the formula cannot lift that.
         </p>
       ) : null}
 
@@ -67,12 +59,15 @@ export function ScoreDossier({ product }: { product: EvaluatedProduct }) {
         </p>
       ) : s.type === "cosmetic" ? (
         <p className="mt-4 text-sm leading-relaxed text-muted">
-          For creams and washes, every flagged extra knocks the formula. The lowest-rated ingredient is the ceiling.
+          For creams and washes, every flagged extra knocks the formula. The lowest-rated ingredient is the limit.
         </p>
       ) : (
         <p className="mt-4 text-sm leading-relaxed text-muted">
           Nutrition is half the number. Ingredients a quarter. How processed a fifth. Organic is a small bonus — it
-          cannot rescue a sugary drink or a nitrite ham.
+          cannot rescue a sugary drink or a nitrite ham.{" "}
+          <Link to="/method" className="font-medium text-accent underline-offset-4 hover:underline">
+            How this compares to Nutri-Score
+          </Link>
         </p>
       )}
     </section>

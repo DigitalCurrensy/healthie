@@ -5,7 +5,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { packInitial, packToneClass, packCandidates } from "@/lib/catalog/pack-image";
+import { packInitial, packFaceStyle, packCandidates } from "@/lib/catalog/pack-image";
 
 export function ProductCard({
   barcode,
@@ -109,13 +109,14 @@ export function ProductThumb({
     );
   }
   const initial = packInitial(title);
+  const face = packFaceStyle(barcode);
   return (
     <div
       className={cn(
         "flex size-14 shrink-0 items-center justify-center rounded-md font-display text-sm font-bold tracking-tight",
-        packToneClass(categoryPath, type),
         className,
       )}
+      style={face}
       aria-hidden="true"
     >
       {initial}
@@ -128,11 +129,13 @@ export function AisleCard({
   title,
   kicker,
   image,
+  count,
 }: {
   slug: string;
   title: string;
   kicker: string;
   image: string;
+  count?: number;
 }) {
   return (
     <Link
@@ -150,7 +153,9 @@ export function AisleCard({
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-fg/55 via-fg/0 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-3 text-accent-fg">
           <p className="font-semibold leading-tight drop-shadow-sm">{title}</p>
-          <p className="mt-0.5 line-clamp-1 text-xs text-accent-fg/80">{kicker}</p>
+          <p className="mt-0.5 line-clamp-1 text-xs text-accent-fg/80">
+            {count ? `${count} on the shelves` : kicker}
+          </p>
         </div>
       </div>
     </Link>

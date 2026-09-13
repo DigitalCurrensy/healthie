@@ -1,4 +1,5 @@
 import { bandLabel, cn, scoreBand } from "@/lib/utils";
+import { nutritionQualityLabel, processingLabel } from "@/lib/copy";
 
 const BAND_COLOR: Record<ReturnType<typeof scoreBand>, string> = {
   excellent: "var(--color-score-excellent)",
@@ -46,8 +47,8 @@ export function ScoreMeta({
   per?: string | null;
 }) {
   const bits = [
-    letter ? `Nutri-Score ${letter}` : null,
-    nova ? `NOVA ${nova}` : null,
+    letter ? `${nutritionQualityLabel(letter)} nutrition` : null,
+    nova ? processingLabel(nova) : null,
     per,
   ].filter(Boolean);
   if (bits.length === 0) return null;

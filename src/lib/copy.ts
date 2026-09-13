@@ -117,7 +117,7 @@ export function processingBlurb(n: 1 | 2 | 3 | 4 | number | null | undefined): s
   if (n === 1) return "Close to how you’d find it in a kitchen — short list, no factory extras.";
   if (n === 2) return "A pantry building block: oil, sugar, salt, flour. Fine when you cook with it.";
   if (n === 3) return "Made with a few extra steps. Still recognisable as food.";
-  if (n === 4) return "Built in a factory with additives, flavours, or refined extras. Better as a rare treat.";
+  if (n === 4) return "Built in a factory with additives, flavours, or refined extras. Cannot be rated Good — a rare treat, not a habit.";
   return "We don’t have enough of the recipe to say how processed this is.";
 }
 
@@ -206,10 +206,20 @@ export function planetBlurb(score: number): string {
   return "Palm oil, heavy processing, or farming choices that cost more than they give back.";
 }
 
-export function comparePrompt(count: number): string {
-  if (count === 0) return "Add two products to see them side by side.";
-  if (count === 1) return "Add one more to compare.";
-  return "Ready to compare.";
+export function brandVerdict(avg: number, count: number): string {
+  const band = scoreBand(avg);
+  const pack = count === 1 ? "1 pack" : `${count} packs`;
+  if (band === "excellent") return `${pack} on our shelves. Average ${avg} — Excellent. This house mostly earns a daily pick.`;
+  if (band === "good") return `${pack} on our shelves. Average ${avg} — Good. Fine sometimes; there is usually a cleaner neighbour.`;
+  if (band === "poor") return `${pack} on our shelves. Average ${avg} — Poor. Most of this house is a treat, not a habit.`;
+  return `${pack} on our shelves. Average ${avg} — Avoid. We’d leave most of this house on the shelf.`;
+}
+
+export function brandVsShop(avg: number, shopAvg: number): string {
+  const delta = avg - shopAvg;
+  if (delta === 0) return `In line with the shop average of ${shopAvg}.`;
+  if (delta > 0) return `${delta} above the shop average of ${shopAvg}.`;
+  return `${Math.abs(delta)} below the shop average of ${shopAvg}.`;
 }
 
 export const VOICE = {

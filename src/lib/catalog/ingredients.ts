@@ -19,7 +19,7 @@ export const BASE_INGREDIENTS: IngredientDef[] = [
   {
     id: "e102",
     name: "Tartrazine",
-    aliases: ["e102", "fd&c yellow 5", "yellow 5", "ci 19140"],
+    aliases: ["e102", "fd&c yellow 5", "yellow 5", "yellow 5 lake", "ci 19140", "fd and c yellow 5"],
     eNumber: "E102",
     hazard: "orange",
     riskClass: "moderate",
@@ -41,7 +41,7 @@ export const BASE_INGREDIENTS: IngredientDef[] = [
   {
     id: "e110",
     name: "Sunset yellow FCF",
-    aliases: ["e110", "yellow 6", "fd&c yellow 6"],
+    aliases: ["e110", "yellow 6", "fd&c yellow 6", "yellow 6 lake", "fd and c yellow 6"],
     eNumber: "E110",
     hazard: "orange",
     riskClass: "moderate",
@@ -74,7 +74,7 @@ export const BASE_INGREDIENTS: IngredientDef[] = [
   {
     id: "e129",
     name: "Allura red AC",
-    aliases: ["e129", "red 40", "fd&c red 40"],
+    aliases: ["e129", "red 40", "fd&c red 40", "red 40 lake", "fd and c red 40"],
     eNumber: "E129",
     hazard: "orange",
     riskClass: "moderate",

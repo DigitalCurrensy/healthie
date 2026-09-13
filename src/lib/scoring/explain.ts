@@ -36,7 +36,7 @@ export function foodHeadline(input: {
       : "The nutrition box is the problem — sugars, salt or saturated fat dominate.";
   }
   if (input.nova === 4 && (band === "poor" || band === "bad")) {
-    return "Ultra-processed — built with extras a kitchen wouldn’t use. Better as a rare treat.";
+    return "Ultra-processed — built with extras a kitchen wouldn’t use. Better as a rare treat, not a Good rating.";
   }
   if (input.cappedBy === "ingredients") {
     return "The extras on the list set a ceiling. A high-concern ingredient, or a cluster of them, blocks a better rating.";

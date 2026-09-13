@@ -308,4 +308,42 @@ describe("end-to-end product scores", () => {
     });
     assert.ok(s.overall >= 75, `alkaline water overall ${s.overall}`);
   });
+
+  it("does not rate Doritos Nacho Cheese as Good", () => {
+    const s = scoreProduct({
+      type: "food",
+      nutrition: n(2260, 2.5, 3.5, 1.6, 3.6, 7, 0, 28),
+      ingredients: ingredientsByIds(["corn", "palm-oil", "salt", "e621", "e631", "e102", "e110", "e129"]),
+      ingredientsText:
+        "Corn, vegetable oil, maltodextrin, salt, cheddar, whey, MSG, yellow 6, yellow 5, red 40, disodium inosinate.",
+      isOrganic: false,
+      title: "Doritos Nacho Cheese",
+      categoryPath: "snacks",
+      novaGroup: 4,
+    });
+    assert.equal(s.type, "food");
+    if (s.type !== "food") return;
+    assert.ok(s.overall < 50, `Doritos must not be Good, got ${s.overall} ${s.headline}`);
+    assert.ok(s.novaGroup === 4);
+    assert.ok(s.novaCap <= 49, `UPF cap ${s.novaCap}`);
+    assert.ok(s.nutriLetter !== "A" && s.nutriLetter !== "B", `chips must not mint a B, got ${s.nutriLetter}`);
+    assert.ok(s.additiveScore < 90, `ingredients pillar still too kind: ${s.additiveScore}`);
+  });
+
+  it("does not let a thin Open Food Facts box turn chips into Good nutrition", () => {
+    const s = scoreProduct({
+      type: "food",
+      nutrition: n(2260, 2.5, 0, 0, 0, 7, 0, 28),
+      ingredients: ingredientsByIds(["e621", "e631"]),
+      ingredientsText: "Corn, oil, maltodextrin, salt, MSG, disodium inosinate.",
+      isOrganic: false,
+      title: "Doritos Nacho Cheese",
+      categoryPath: "snacks",
+      novaGroup: 4,
+    });
+    assert.equal(s.type, "food");
+    if (s.type !== "food") return;
+    assert.ok(s.overall < 50, `thin-label UPF must not be Good, got ${s.overall}`);
+    assert.ok(s.nutriLetter !== "A" && s.nutriLetter !== "B", `thin box letter ${s.nutriLetter}`);
+  });
 });

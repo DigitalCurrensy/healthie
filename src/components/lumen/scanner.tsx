@@ -34,9 +34,12 @@ import {
 import { videoToJpegFile } from "@/lib/scan/image";
 import { rememberPack } from "@/lib/scan/session";
 import { SAMPLE_PACKS } from "@/lib/scan/samples";
+import { playScanBeep } from "@/lib/scan/beep";
 
 const LOCK_NEEDED = 2;
 const TRACE_HOLD = 10;
+const DECODE_MS = 120;
+const KEYPAD_AFTER_MS = 5000;
 
 export type ScanMode = "barcode" | "photo";
 
@@ -54,11 +57,10 @@ export function beginLiveScan(mode: ScanMode, apply: (session: CameraSession) =>
   apply({
     mode,
     stream: null,
-    error: cameraIsEmbedded() ? "blocked" : null,
+    error: null,
     demo: false,
   });
   if (cameraIsEmbedded()) {
-    // Defer so React can paint the overlay before the popup steals the frame.
     window.setTimeout(() => {
       try {
         const url = new URL(lensHref(mode), window.location.origin);
@@ -161,6 +163,7 @@ export function ScannerSheet({
   const [landscape, setLandscape] = useState(false);
   const [embedded, setEmbedded] = useState(() => (typeof window !== "undefined" ? cameraIsEmbedded() : false));
   const [phone, setPhone] = useState(() => (typeof window !== "undefined" ? isPhoneCamera() : false));
+  const [needKeypad, setNeedKeypad] = useState(false);
 
   useEffect(() => {
     setEmbedded(cameraIsEmbedded());
@@ -224,16 +227,27 @@ export function ScannerSheet({
     let drawn: { x: number; y: number }[] = [];
     let startedAt = 0;
     let lastStill = 0;
+    let inFlight = false;
+    let slow = false;
+    setNeedKeypad(false);
+    const keypadTimer = window.setTimeout(() => {
+      if (!cancelled && !locked) {
+        slow = true;
+        setNeedKeypad(true);
+        setStatus("No code yet — type the numbers on the pack");
+      }
+    }, KEYPAD_AFTER_MS);
 
     async function seal(code: string) {
       locked = true;
       setLockedCode(code);
       setStatus("Got it");
       try {
-        navigator.vibrate?.(15);
+        navigator.vibrate?.(25);
       } catch {
         /* no haptics */
       }
+      playScanBeep();
       try {
         const video = videoRef.current;
         if (video) {
@@ -295,20 +309,27 @@ export function ScannerSheet({
         if (cancelled) return;
         setEngine(kind);
         setReady(true);
-        setStatus(demo ? "Live demo in the window — same lookup as a real pack" : "Point at any barcode — you don’t have to line it up");
+        setStatus(demo ? "Live demo in the window — same lookup as a real pack" : "Hold the barcode in the window");
         startedAt = performance.now();
 
         const loop = async () => {
           if (cancelled || locked || !videoRef.current) return;
+          if (inFlight) {
+            timer = window.setTimeout(() => {
+              void loop();
+            }, DECODE_MS);
+            return;
+          }
           tickN += 1;
           const videoEl = videoRef.current;
           if (!videoEl.videoWidth) {
             timer = window.setTimeout(() => {
               void loop();
-            }, 80);
+            }, DECODE_MS);
             return;
           }
           const pass = tickN % 4 === 0 ? "hard" : "fast";
+          inFlight = true;
           try {
             const decoded = await decodeVideoFrame(videoEl, pass);
             if (cancelled || locked) return;
@@ -353,7 +374,7 @@ export function ScannerSheet({
               } else if (lastHit && lastHit.videoSize.w > 0) {
                 const frac = lastHit.widthPx / lastHit.videoSize.w;
                 if (frac < 0.22) setStatus("Move a little closer");
-                else setStatus("Point at any barcode — you don’t have to line it up");
+                else if (!slow) setStatus("Hold the barcode in the window");
               } else if (now - startedAt > 2500 && now - lastStill > 2200) {
                 lastStill = now;
                 const still = await grabStill(streamRef.current);
@@ -371,12 +392,14 @@ export function ScannerSheet({
                     }
                   }
                 }
-              } else if (!demo) {
-                setStatus("Point at any barcode — you don’t have to line it up");
+              } else if (!demo && !slow) {
+                setStatus("Hold the barcode in the window");
               }
             }
           } catch {
             /* frame skipped */
+          } finally {
+            inFlight = false;
           }
           if (lastHit?.corners.length === 4) {
             const stage = stageRef.current;
@@ -397,11 +420,11 @@ export function ScannerSheet({
           paintTrace(canvasRef.current, stageRef.current, videoRef.current, lastHit, streak > 0, drawn);
           timer = window.setTimeout(() => {
             void loop();
-          }, 70);
+          }, DECODE_MS);
         };
         timer = window.setTimeout(() => {
           void loop();
-        }, 120);
+        }, DECODE_MS);
       } catch (err) {
         const copy = cameraErrorCopy(cameraErrorCode(err));
         setError(copy);
@@ -413,6 +436,7 @@ export function ScannerSheet({
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      window.clearTimeout(keypadTimer);
       const video = videoRef.current;
       if (video) video.srcObject = null;
       streamRef.current = null;
@@ -561,7 +585,7 @@ export function ScannerSheet({
             ) : null}
             <p className="max-w-sm text-center text-sm leading-relaxed text-accent-fg/75">
               {embedded
-                ? "This preview window cannot hold a camera. The new tab can — allow the lens, then point at a barcode."
+                ? "This window can’t use your camera. Tap Open live camera, allow the lens, then point at the barcode."
                 : (error ?? "Allow the camera, photograph the pack, or type the numbers.")}
             </p>
             {onLabel ? (
@@ -591,8 +615,8 @@ export function ScannerSheet({
           </div>
         )}
         {demo && ready ? (
-          <p className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full bg-fg/70 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-accent-fg">
-            Live demo · camera not in this view
+          <p className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full bg-fg/70 px-3 py-1 text-[11px] font-medium text-accent-fg">
+            Sample view — use Open live camera for the real lens
           </p>
         ) : null}
         {zoom.ok && ready && !shortScreen && !landscape ? (
@@ -629,19 +653,6 @@ export function ScannerSheet({
           </p>
         ) : null}
         <p className="text-center text-sm text-accent-fg/80">{error ?? status}</p>
-        <p className="mt-1 text-center text-[11px] uppercase tracking-[0.14em] text-accent-fg/45">
-          {ready
-            ? demo
-              ? "Demo reader · same lookup"
-              : engine === "zxing"
-                ? "ZXing-C++ reader · live trace"
-                : engine === "native"
-                  ? "Device reader · live trace"
-                  : engine === "none"
-                    ? "Type the numbers"
-                    : "Loading reader"
-            : "Photo · type · sample packs"}
-        </p>
         <form onSubmit={onManual} className="mx-auto mt-3 flex w-full max-w-md gap-2">
           <Input
             value={manual}
@@ -652,9 +663,13 @@ export function ScannerSheet({
             autoCapitalize="none"
             spellCheck={false}
             enterKeyHint="go"
-            placeholder="Or type the numbers"
+            autoFocus={needKeypad}
+            placeholder={needKeypad ? "Type the barcode on the pack" : "Or type the numbers"}
             aria-label="Enter barcode"
-            className="border-0 bg-accent-fg/10 text-base text-accent-fg placeholder:text-accent-fg/50"
+            className={cn(
+              "border-0 bg-accent-fg/10 text-base text-accent-fg placeholder:text-accent-fg/50",
+              needKeypad && "ring-2 ring-accent-fg/40",
+            )}
           />
           <Button type="submit" variant="secondary" className="h-12 shrink-0">
             Look up

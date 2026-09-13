@@ -53,6 +53,7 @@ export function matchToken(token: string): IngredientDef | undefined {
     if (alias.length < 4) continue;
     if (folded === alias) return ing;
     if (folded.includes(alias) && alias.length / folded.length > 0.55) return ing;
+    if (alias.length >= 5 && /\d/.test(alias) && folded.includes(alias)) return ing;
   }
   const e = [...token.matchAll(E_NUM)][0];
   if (e) {
