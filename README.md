@@ -1,59 +1,103 @@
-# Healthie
+<p align="center">
+  <img src="docs/media/logo.png" alt="Healthie" width="280" />
+</p>
 
-Scan a pack. Know immediately.
+<h1 align="center">Healthie</h1>
 
-Healthie is an independent score for **food**, **body & beauty**, and **pet food**. Point at a barcode or photograph the front. You get a 0–100 number, a plain-English reason, and a better neighbour in the same aisle.
+<p align="center">
+  <strong>Scan a pack. Know immediately.</strong><br />
+  Independent 0–100 scores for food, body & beauty, and pet food.<br />
+  No brand pays for a better number.
+</p>
 
-No brand pays for a better score. Healthie is a reading aid, not a diagnosis. If you have an allergy, always check the pack.
+<p align="center">
+  <img src="docs/media/share-card.jpg" alt="Healthie share card — scan a pack, see the score" width="640" />
+</p>
 
-Private house. Digital Currensy Inc. Not EventFix. Not AutoShield. Houses do not merge.
+Healthie is a reading aid you can use at the shelf. Point at a barcode or photograph the front. You get a number you can say out loud, the teaspoons of sugar, the extras worth watching, and a better neighbour in the same aisle.
 
-## What you get in one look
+Not a diagnosis. Not Yuka with a new coat. Not Open Food Facts dumped on a phone. Private house — Digital Currensy Inc.
 
-| Number | Word | Meaning |
+---
+
+## The shop
+
+<p align="center">
+  <img src="docs/media/home.jpg" alt="Healthie home — scan it, know immediately" width="280" />
+  <img src="docs/media/aisles.jpg" alt="Aisles — drinks, breakfast, dairy, bakery" width="280" />
+  <img src="docs/media/scan.jpg" alt="Scan desk — live lens, photo, type the numbers" width="280" />
+</p>
+
+<p align="center">
+  <img src="docs/media/coke.jpg" alt="Coca-Cola Classic — 35 Poor" width="280" />
+  <img src="docs/media/evian.jpg" alt="Evian — 95 Excellent" width="280" />
+  <img src="docs/media/insights.jpg" alt="Insights — the shop letter" width="280" />
+</p>
+
+Desktop walk:
+
+<p align="center">
+  <img src="docs/media/home-desktop.jpg" alt="Healthie on a wide screen" width="720" />
+</p>
+
+Try without a camera: Coca-Cola `5449000000996`, Evian `3274080005003`, Nutella `3017620422003`.
+
+---
+
+## The number
+
+| Score | Word | Meaning |
 | --- | --- | --- |
 | 75–100 | Excellent | A keep. Short list, honest recipe. |
 | 50–74 | Good | Fine sometimes. Not the best in the aisle. |
 | 25–49 | Poor | A treat at best. Look one shelf over. |
 | 0–24 | Avoid | Hard pass for a regular shop. |
 
-Sugars in teaspoons. Salt in a day’s worth. Additives by name, not E-code soup. Beauty and pet food use the same voice — calm, not lab-coat.
+Sugars in teaspoons. Salt in a day’s worth. Additives by name. Beauty and pet use the same ring.
+
+**Honesty lock:** ultra-processed cannot be Good. A missing salt line is not zero. The Nutri-Score letter is not the headline — the 0–100 disc is.
+
+---
 
 ## What’s live
 
-| Desk | What it does |
-| --- | --- |
-| **Scan** `/` `/scan` | Barcode lens, take a photo of the pack, camera roll, or type the numbers |
-| **Product** `/product/:barcode` | 0–100 score, why in plain words, ingredients, prices, swaps |
-| **Aisles** `/aisles` | Food, body & beauty, pet — walk the store |
-| **Catalog** `/catalog` | Search by name or barcode |
-| **Guides** `/guides` | How to read a score, sugar, palm, fragrance, pet bowls, pregnancy, sun |
-| **Ingredients** `/ingredients` | One page per additive / allergen — worth watching, not a scare poster |
-| **Compare** `/compare` | Two packs, side by side |
-| **Insights** `/insights` | Your aisle over time (signed-in) |
-| **You** `/you` | Lists, saved, history, sign-in |
+| Desk | Path | What it does |
+| --- | --- | --- |
+| Home | `/` | Scan, search, shelves |
+| Scan | `/scan` | Live lens, photograph, type, samples |
+| Product | `/product/:barcode` | Score, why, extras, swaps, share |
+| Aisles | `/catalog` | Food, body & beauty, pet |
+| Guides | `/guides` | Sugar, NOVA, sun, pregnancy, pet bowl |
+| Insights | `/insights` | The shop letter |
+| You | `/you` | Lists, saved, history, sign-in |
 
-Try without a camera: Coca-Cola `5449000000996`, Nutella `3017620422003`.
+---
 
 ## How this is different
 
-Yuka, EWG, Fooducate, and Open Food Facts exist. Healthie is not a clone of any of them.
+1. **Independent** — no brand pays for a better number.
+2. **Digestible** — a sentence at the shelf, not a lab dump.
+3. **Three aisles, one voice** — cola, cream, and kibble share the disc.
+4. **Scan that finishes** — live lens on a real phone; photograph / type when a preview cannot hold a camera.
+5. **A reading aid** — never a medical claim.
 
-1. **Independent** — no brand pays for a better number. Say it on every product page.
-2. **Digestible** — teaspoons of sugar, not 37 g/100 ml. “Ultra-processed,” not “NOVA 4” as the headline.
-3. **Three aisles, one voice** — food, lotion, and kibble share the same score ring.
-4. **Scan that finishes** — live lens on a real phone; photograph / type / sample packs when a preview or desktop has no camera.
-5. **A reading aid** — never a diagnosis, never a medical claim.
+---
 
 ## Docs
 
 | File | What’s in it |
 | --- | --- |
-| [DESCRIPTION.md](DESCRIPTION.md) | One-pager for stores, press, and the GitHub about |
-| [ROADMAP.md](ROADMAP.md) | Now / next / later — nothing shipped as a dead button |
-| [docs/MESSAGING.md](docs/MESSAGING.md) | Voice, lines you can say out loud, words we refuse |
-| [docs/BRAND.md](docs/BRAND.md) | Lockup, cream paper, independence line |
+| [DESCRIPTION.md](DESCRIPTION.md) | Store / press / GitHub about |
+| [ROADMAP.md](ROADMAP.md) | Now / next / later |
+| [docs/MESSAGING.md](docs/MESSAGING.md) | Voice, words we refuse |
+| [docs/BRAND.md](docs/BRAND.md) | Lockup, cream paper |
+| [docs/CAMERA.md](docs/CAMERA.md) | Lens permissions, iframe lock |
+| [docs/OG.md](docs/OG.md) | Open Graph, iMessage, validators |
+| [docs/LOOPS.md](docs/LOOPS.md) | E2E loops this build earned |
+| [docs/GTM.md](docs/GTM.md) | Live demo on a phone |
 | [BUILT-VS-NOT.md](BUILT-VS-NOT.md) | Honest inventory |
+
+---
 
 ## Run it
 
@@ -62,28 +106,30 @@ npm install
 npm run dev
 ```
 
-Then open the app in a browser. Type a barcode or tap a sample pack.
+Open the app, type a barcode, or tap a sample pack.
 
 ```bash
-npm run typecheck
 npm test
+npm run og:check
+npm run typecheck
 npm run build
 ```
 
-### Environment
+Camera needs a **secure context** (HTTPS or localhost) and a **top-level** page. An embedded preview often cannot hold a live lens. Photograph the pack and type-the-numbers are the product there — not a fake camera.
 
-Copy secrets only if you are wiring a live database or OAuth. Without them, the catalog, scores, guides, and scan path still run (PGLite fallback).
-
-Do not commit `.env`. Camera needs a **secure context** (HTTPS or localhost) and a top-level page — an embedded preview often cannot hold a live lens. Photograph the pack and type-the-numbers are the honest fallback, not a fake camera.
+---
 
 ## Architecture
 
 - TanStack Start, React 19, Vite, TypeScript, Tailwind v4
-- Scores in `src/lib/scoring` — 0–100, bands, Nutri-Score / NOVA translated in `src/lib/copy.ts`
-- Scan in `src/lib/scan` — ZXing-WASM + `BarcodeDetector`, pack-photo OCR / barcode from a still
-- Catalog in `src/lib/catalog` — food, beauty, pet; Open Food Facts dump + live fallback
-- Auth (optional) — Better Auth; notes stay on-device until you sign in
-- Deploy target: Vercel (`npm run build`)
+- Scores — `src/lib/scoring` (0–100, Nutri-Score 2023 tables, NOVA cap)
+- Scan — `src/lib/scan` (ZXing-WASM, `BarcodeDetector`, GS1 check digit + Digital Link)
+- Catalog — Open Food Facts / Open Beauty Facts / Open Pet Food Facts + local shelves
+- Share — `src/lib/og/site.json` + injector in `scripts/grok-pwa-shared.mjs`
+- Auth — Better Auth, optional
+- PWA — `public/manifest.webmanifest`
+
+---
 
 ## License
 

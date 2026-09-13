@@ -1,0 +1,50 @@
+[
+  {
+    "name": "home",
+    "status": 200,
+    "file": "/workspace/docs/media/home.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "home-desktop",
+    "status": 200,
+    "file": "/workspace/docs/media/home-desktop.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "scan",
+    "status": 200,
+    "file": "/workspace/docs/media/scan.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "aisles",
+    "status": 200,
+    "file": "/workspace/docs/media/aisles.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "coke",
+    "status": 200,
+    "file": "/workspace/docs/media/coke.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "evian",
+    "status": 200,
+    "file": "/workspace/docs/media/evian.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "insights",
+    "status": 200,
+    "file": "/workspace/docs/media/insights.jpg",
+    "title": "Healthie"
+  },
+  {
+    "name": "guides",
+    "status": 200,
+    "file": "/workspace/docs/media/guides.jpg",
+    "title": "Healthie"
+  }
+]
