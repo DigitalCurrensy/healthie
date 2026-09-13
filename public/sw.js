@@ -6,6 +6,8 @@ const SHELL = [
   "/history",
   "/guides",
   "/method",
+  "/install",
+  "/recalls",
   "/manifest.webmanifest",
   "/favicon.svg",
   "/icon-192.png",

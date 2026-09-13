@@ -17,7 +17,7 @@ const NAV = [
   { to: "/you", label: "You", icon: UserRound, exact: false },
 ] as const;
 
-const YOU_PATHS = ["/history", "/method", "/compare", "/saved", "/ingredients", "/ingredient", "/lists", "/brand"];
+const YOU_PATHS = ["/history", "/method", "/compare", "/saved", "/ingredients", "/ingredient", "/lists", "/brand", "/install", "/recalls"];
 
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });

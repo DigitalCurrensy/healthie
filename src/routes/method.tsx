@@ -122,6 +122,17 @@ function MethodPage() {
           On every pack we also say where it sits in its aisle, and — for a drink or a chip — what a real serving is,
           not just per 100 g. A can of cola is a dessert. Per 100 ml pretends it isn’t.
         </p>
+        <p className="mt-4 text-[15px] leading-relaxed text-muted">
+          The live camera lives on the{" "}
+          <Link to="/install" className="tap-link font-medium text-accent">
+            home screen
+          </Link>
+          . Ongoing pulls are on{" "}
+          <Link to="/recalls" className="tap-link font-medium text-accent">
+            Recalls
+          </Link>
+          .
+        </p>
       </section>
 
       <section className="mt-8">

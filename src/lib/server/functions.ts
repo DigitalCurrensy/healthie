@@ -26,6 +26,7 @@ import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
 import { lookupPrices } from "./prices";
 import type { PriceBoard } from "@/lib/world";
 import type { WorldIndex } from "@/lib/world";
+import { loadFdaFeed, matchFdaRecall, type FdaRecall } from "./fda";
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([
@@ -34,6 +35,15 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
       setTimeout(() => resolve(null), ms);
     }),
   ]);
+}
+
+async function matchProductRecall(product: {
+  barcode: string;
+  title: string;
+  brand: string;
+}): Promise<FdaRecall | null> {
+  const feed = await loadFdaFeed();
+  return matchFdaRecall(product, feed);
 }
 
 export type LookupResult =
@@ -75,13 +85,15 @@ export const getProduct = createServerFn({ method: "GET" })
         await upsertEvaluated(remote, { protectCatalog: true });
         const alternatives = await recommendFor(remote);
         const prices = await withTimeout(lookupPrices(remote.barcode), 1800);
-        return { status: "found" as const, product: remote, alternatives, prices };
+        const recall = await withTimeout(matchProductRecall(remote), 2500);
+        return { status: "found" as const, product: remote, alternatives, prices, recall };
       }
       return { status: "not_found" as const, barcode };
     }
     const alternatives = await recommendFor(product);
     const prices = await withTimeout(lookupPrices(product.barcode), 1800);
-    return { status: "found" as const, product, alternatives, prices };
+    const recall = await withTimeout(matchProductRecall(product), 2500);
+    return { status: "found" as const, product, alternatives, prices, recall };
   });
 
 export const getProductsByCodes = createServerFn({ method: "POST" })
@@ -295,3 +307,8 @@ export const submitCrowdLabel = createServerFn({ method: "POST" })
     await upsertEvaluated(product, { protectCatalog: true });
     return { ok: true as const, barcode: product.barcode };
   });
+
+export const listRecalls = createServerFn({ method: "GET" }).handler(async () => {
+  const feed = await loadFdaFeed();
+  return feed.slice(0, 40);
+});

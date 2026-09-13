@@ -35,20 +35,6 @@ const GENERIC_STILLS = [
 ];
 
 /** Pack shots we ship so the demo doesn’t wait on Open Food Facts CDN. */
-const LOCAL_PACKS = new Set([
-  "5449000000996",
-  "012000001258",
-  "3017620422003",
-  "3274080005003",
-  "099482513931",
-  "786162003016",
-  "0810589032602",
-  "009800830039",
-  "8002270014901",
-  "028400064057",
-  "036632014016",
-]);
-
 export function isGenericStill(url?: string | null): boolean {
   if (!url) return true;
   if (url.startsWith("/images/")) return true;
@@ -63,8 +49,8 @@ export function realPackUrl(url?: string | null): string | null {
 export function localPackUrl(barcode?: string | null): string | null {
   if (!barcode) return null;
   const d = normalizeBarcode(barcode);
-  if (LOCAL_PACKS.has(d) || LOCAL_PACKS.has(barcode)) return `/packs/${LOCAL_PACKS.has(d) ? d : barcode}.jpg`;
-  return null;
+  if (isDemoBarcode(d) || d.length < 8 || d.length > 14) return null;
+  return `/packs/${d}.jpg`;
 }
 
 const TONE: Record<string, string> = {

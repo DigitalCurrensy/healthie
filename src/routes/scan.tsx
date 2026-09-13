@@ -85,6 +85,11 @@ function ScanPage() {
       {busy ? <ReadingOverlay title={busy} /> : null}
 
       <PageHeader kicker="The lens" title="Scan" body={VOICE.scanHint} />
+      <img
+        src="/images/install.jpg"
+        alt="Healthie on a kitchen counter"
+        className="mt-5 aspect-[4/3] w-full rounded-xl object-cover shadow-[var(--shadow-border)]"
+      />
       <InstallCard />
 
       <section className="mt-6 space-y-3">

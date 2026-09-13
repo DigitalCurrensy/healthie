@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
 type BeforeInstall = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
@@ -47,7 +48,11 @@ export function InstallCard() {
         <Button className="mt-3" onClick={() => void install()}>
           Add to home screen
         </Button>
-      ) : null}
+      ) : (
+        <Button className="mt-3" variant="secondary" asChild>
+          <Link to="/install">How to install</Link>
+        </Button>
+      )}
     </section>
   );
 }

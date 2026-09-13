@@ -16,10 +16,12 @@ import { Route as GuidesRouteImport } from './routes/guides'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IngredientsRouteImport } from './routes/ingredients'
 import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as InstallRouteImport } from './routes/install'
 import { Route as LensRouteImport } from './routes/lens'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MethodRouteImport } from './routes/method'
+import { Route as RecallsRouteImport } from './routes/recalls'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as YouRouteImport } from './routes/you'
@@ -67,6 +69,11 @@ const InsightsRoute = InsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InstallRoute = InstallRouteImport.update({
+  id: '/install',
+  path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LensRoute = LensRouteImport.update({
   id: '/lens',
   path: '/lens',
@@ -85,6 +92,11 @@ const LoginRoute = LoginRouteImport.update({
 const MethodRoute = MethodRouteImport.update({
   id: '/method',
   path: '/method',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecallsRoute = RecallsRouteImport.update({
+  id: '/recalls',
+  path: '/recalls',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SavedRoute = SavedRouteImport.update({
@@ -151,10 +163,12 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
   '/insights': typeof InsightsRoute
+  '/install': typeof InstallRoute
   '/lens': typeof LensRoute
   '/lists': typeof ListsRoute
   '/login': typeof LoginRoute
   '/method': typeof MethodRoute
+  '/recalls': typeof RecallsRoute
   '/saved': typeof SavedRoute
   '/scan': typeof ScanRoute
   '/you': typeof YouRoute
@@ -174,10 +188,12 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
   '/insights': typeof InsightsRoute
+  '/install': typeof InstallRoute
   '/lens': typeof LensRoute
   '/lists': typeof ListsRoute
   '/login': typeof LoginRoute
   '/method': typeof MethodRoute
+  '/recalls': typeof RecallsRoute
   '/saved': typeof SavedRoute
   '/scan': typeof ScanRoute
   '/you': typeof YouRoute
@@ -199,10 +215,12 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
   '/insights': typeof InsightsRoute
+  '/install': typeof InstallRoute
   '/lens': typeof LensRoute
   '/lists': typeof ListsRoute
   '/login': typeof LoginRoute
   '/method': typeof MethodRoute
+  '/recalls': typeof RecallsRoute
   '/saved': typeof SavedRoute
   '/scan': typeof ScanRoute
   '/you': typeof YouRoute
@@ -225,10 +243,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/ingredients'
     | '/insights'
+    | '/install'
     | '/lens'
     | '/lists'
     | '/login'
     | '/method'
+    | '/recalls'
     | '/saved'
     | '/scan'
     | '/you'
@@ -248,10 +268,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/ingredients'
     | '/insights'
+    | '/install'
     | '/lens'
     | '/lists'
     | '/login'
     | '/method'
+    | '/recalls'
     | '/saved'
     | '/scan'
     | '/you'
@@ -272,10 +294,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/ingredients'
     | '/insights'
+    | '/install'
     | '/lens'
     | '/lists'
     | '/login'
     | '/method'
+    | '/recalls'
     | '/saved'
     | '/scan'
     | '/you'
@@ -297,10 +321,12 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   IngredientsRoute: typeof IngredientsRoute
   InsightsRoute: typeof InsightsRoute
+  InstallRoute: typeof InstallRoute
   LensRoute: typeof LensRoute
   ListsRoute: typeof ListsRoute
   LoginRoute: typeof LoginRoute
   MethodRoute: typeof MethodRoute
+  RecallsRoute: typeof RecallsRoute
   SavedRoute: typeof SavedRoute
   ScanRoute: typeof ScanRoute
   YouRoute: typeof YouRoute
@@ -363,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/install': {
+      id: '/install'
+      path: '/install'
+      fullPath: '/install'
+      preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lens': {
       id: '/lens'
       path: '/lens'
@@ -389,6 +422,13 @@ declare module '@tanstack/react-router' {
       path: '/method'
       fullPath: '/method'
       preLoaderRoute: typeof MethodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recalls': {
+      id: '/recalls'
+      path: '/recalls'
+      fullPath: '/recalls'
+      preLoaderRoute: typeof RecallsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/saved': {
@@ -492,10 +532,12 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   IngredientsRoute: IngredientsRoute,
   InsightsRoute: InsightsRoute,
+  InstallRoute: InstallRoute,
   LensRoute: LensRoute,
   ListsRoute: ListsRoute,
   LoginRoute: LoginRoute,
   MethodRoute: MethodRoute,
+  RecallsRoute: RecallsRoute,
   SavedRoute: SavedRoute,
   ScanRoute: ScanRoute,
   YouRoute: YouRoute,

@@ -46,6 +46,7 @@ import {
 import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
 import type { PriceBoard } from "@/lib/world";
 import { cn } from "@/lib/utils";
+import { fdaToHit, type FdaRecall } from "@/lib/server/fda";
 
 export const Route = createFileRoute("/product/$barcode")({
   loader: ({ params }) => getProduct({ data: { barcode: params.barcode } }),
@@ -70,7 +71,7 @@ function ProductPage() {
   if (data.status === "not_found") {
     return <NotFound barcode={data.barcode} />;
   }
-  return <ProductView product={data.product} alternatives={data.alternatives} prices={data.prices} />;
+  return <ProductView product={data.product} alternatives={data.alternatives} prices={data.prices} recall={data.recall} />;
 }
 
 function NotFound({ barcode }: { barcode: string }) {
@@ -250,10 +251,12 @@ function ProductView({
   product,
   alternatives,
   prices,
+  recall,
 }: {
   product: EvaluatedProduct;
   alternatives: EvaluatedProduct[];
   prices?: PriceBoard | null;
+  recall?: FdaRecall | null;
 }) {
   const s = product.score;
   const story = productStory(product);
@@ -274,7 +277,10 @@ function ProductView({
   const council = councilNote(product, standing);
   const serving = servingHonesty(product);
   const gs1 = peekLastGs1(product.barcode);
-  const safety = scanSafety({ gtin: product.barcode, lot: gs1?.lot, expiry: gs1?.expiry });
+  const safety = [
+    ...scanSafety({ gtin: product.barcode, lot: gs1?.lot, expiry: gs1?.expiry }),
+    ...(recall ? [fdaToHit(recall)] : []),
+  ];
 
   const [copied, setCopied] = useState(false);
   const [priceBoard, setPriceBoard] = useState(prices);
