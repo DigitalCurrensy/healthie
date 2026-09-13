@@ -366,6 +366,12 @@ export function cameraIsEmbedded(): boolean {
   }
 }
 
+/** Native capture=environment only helps on a phone. Desktop treats it as an upload. */
+export function isPhoneCamera(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPad|iPod|Android.+Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export function cameraBlockReason(): string | null {
   if (typeof window === "undefined") return "unsupported";
   if (!window.isSecureContext) return "insecure";

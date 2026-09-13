@@ -14,6 +14,7 @@ import {
   decodeVideoFrame,
   ensureScanEngine,
   grabStill,
+  isPhoneCamera,
   lensHref,
   sampleFrameQuality,
   setFocusPoint,
@@ -57,12 +58,15 @@ export function beginLiveScan(mode: ScanMode, apply: (session: CameraSession) =>
     demo: false,
   });
   if (cameraIsEmbedded()) {
-    try {
-      const url = new URL(lensHref(mode), window.location.origin);
-      window.open(url.toString(), "healthie-lens");
-    } catch {
-      /* popup blocked — overlay still opens */
-    }
+    // Defer so React can paint the overlay before the popup steals the frame.
+    window.setTimeout(() => {
+      try {
+        const url = new URL(lensHref(mode), window.location.origin);
+        window.open(url.toString(), "healthie-lens");
+      } catch {
+        /* popup blocked — overlay still opens */
+      }
+    }, 0);
   }
   return pending.then((result) => {
     apply({ mode, stream: result.stream, error: result.error, demo: result.demo });
@@ -155,10 +159,12 @@ export function ScannerSheet({
   const [kb, setKb] = useState(0);
   const [shortScreen, setShortScreen] = useState(false);
   const [landscape, setLandscape] = useState(false);
-  const [embedded, setEmbedded] = useState(false);
+  const [embedded, setEmbedded] = useState(() => (typeof window !== "undefined" ? cameraIsEmbedded() : false));
+  const [phone, setPhone] = useState(() => (typeof window !== "undefined" ? isPhoneCamera() : false));
 
   useEffect(() => {
     setEmbedded(cameraIsEmbedded());
+    setPhone(isPhoneCamera());
   }, []);
 
   useEffect(() => {
@@ -473,7 +479,12 @@ export function ScannerSheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden overscroll-none bg-fg text-accent-fg">
+    <div
+      className="fixed inset-0 z-50 flex flex-col overflow-hidden overscroll-none bg-fg text-accent-fg"
+      role="dialog"
+      aria-modal="true"
+      aria-label={mode === "photo" ? "Take a photo of the pack" : "Scan barcode"}
+    >
       <div className="flex items-center justify-between gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <p className="min-w-0 flex-1 px-1 font-display text-lg leading-tight">
           {mode === "photo"
@@ -555,17 +566,21 @@ export function ScannerSheet({
             </p>
             {onLabel ? (
               <FileHitArea
-                capture
+                capture={phone}
                 onFile={onPackFile}
-                label="Photograph the pack with your camera"
+                label={phone ? "Photograph the pack with your camera" : "Choose a pack photo from your camera roll"}
                 className="flex w-full max-w-sm flex-col items-center justify-center gap-3 rounded-2xl bg-accent px-6 py-8 text-accent-fg"
               >
                 <span className="flex size-[4.75rem] items-center justify-center rounded-full border-[3px] border-accent-fg">
                   <span className="size-[3.6rem] rounded-full bg-accent-fg" />
                 </span>
-                <span className="font-display text-2xl font-bold tracking-[-0.04em]">Photograph the pack</span>
+                <span className="font-display text-2xl font-bold tracking-[-0.04em]">
+                  {phone ? "Photograph the pack" : "Pick a pack photo"}
+                </span>
                 <span className="max-w-xs text-center text-sm leading-relaxed text-accent-fg/80">
-                  Opens the phone camera. We’ll read the barcode or the front.
+                  {phone
+                    ? "Opens the phone camera. We’ll read the barcode or the front."
+                    : "Use a shot of the barcode or the front. On a phone this opens the camera."}
                 </span>
               </FileHitArea>
             ) : (
@@ -687,20 +702,22 @@ export function ScannerSheet({
               </p>
             )}
             <div className="grid grid-cols-2 gap-2">
-              <FileHitArea
-                capture
-                onFile={onPackFile}
-                label="Photograph the pack with your camera"
-                className="h-12 items-center justify-center gap-2 rounded-lg bg-accent px-3 text-[15px] font-medium text-accent-fg"
-              >
-                <Camera className="size-4" />
-                Phone camera
-              </FileHitArea>
+              {phone ? (
+                <FileHitArea
+                  capture
+                  onFile={onPackFile}
+                  label="Photograph the pack with your camera"
+                  className="h-12 items-center justify-center gap-2 rounded-lg bg-accent px-3 text-[15px] font-medium text-accent-fg"
+                >
+                  <Camera className="size-4" />
+                  Phone camera
+                </FileHitArea>
+              ) : null}
               {onRetry ? (
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-12 text-accent-fg hover:bg-accent-fg/10"
+                  className={cn("h-12 text-accent-fg hover:bg-accent-fg/10", !phone && "col-span-2")}
                   onClick={() => onRetry()}
                 >
                   Try live lens
@@ -711,7 +728,7 @@ export function ScannerSheet({
                 label="Choose a pack photo from your camera roll"
                 className={cn(
                   "h-12 items-center justify-center gap-2 rounded-lg bg-accent-fg/10 px-3 text-[15px] font-medium text-accent-fg hover:bg-accent-fg/16",
-                  onRetry ? "col-span-2" : "col-span-2",
+                  "col-span-2",
                 )}
               >
                 <Images className="size-4" />
