@@ -307,3 +307,22 @@
     opacity: 0.2;
   }
 }
+
+.scan-listen {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 1px solid color-mix(in oklab, var(--color-accent-fg) 55%, transparent);
+  animation: scan-listen 1200ms ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes scan-listen {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}

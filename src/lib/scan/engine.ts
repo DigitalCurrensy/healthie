@@ -49,7 +49,7 @@ const FAST: ReaderOptions = {
 };
 
 const HARD: ReaderOptions = {
-  formats: [...RETAIL_FORMATS, "QRCode"],
+  formats: RETAIL_FORMATS,
   tryHarder: true,
   tryRotate: true,
   tryInvert: true,
@@ -90,7 +90,6 @@ export async function ensureScanEngine(): Promise<"zxing" | "native" | "none"> {
     nativeDetector = null;
     if (Ctor) {
       const attempts = [
-        ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"],
         ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"],
         ["ean_13", "ean_8", "upc_a", "upc_e"],
       ];

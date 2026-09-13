@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as GuidesRouteImport } from './routes/guides'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IngredientsRouteImport } from './routes/ingredients'
@@ -47,6 +48,11 @@ const CatalogRoute = CatalogRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuidesRoute = GuidesRouteImport.update({
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
   '/compare': typeof CompareRoute
+  '/demo': typeof DemoRoute
   '/guides': typeof GuidesRouteWithChildren
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
   '/compare': typeof CompareRoute
+  '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
   '/insights': typeof InsightsRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
   '/compare': typeof CompareRoute
+  '/demo': typeof DemoRoute
   '/guides': typeof GuidesRouteWithChildren
   '/history': typeof HistoryRoute
   '/ingredients': typeof IngredientsRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalog'
     | '/compare'
+    | '/demo'
     | '/guides'
     | '/history'
     | '/ingredients'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalog'
     | '/compare'
+    | '/demo'
     | '/history'
     | '/ingredients'
     | '/insights'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/'
     | '/catalog'
     | '/compare'
+    | '/demo'
     | '/guides'
     | '/history'
     | '/ingredients'
@@ -317,6 +329,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogRoute: typeof CatalogRoute
   CompareRoute: typeof CompareRoute
+  DemoRoute: typeof DemoRoute
   GuidesRoute: typeof GuidesRouteWithChildren
   HistoryRoute: typeof HistoryRoute
   IngredientsRoute: typeof IngredientsRoute
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guides': {
@@ -528,6 +548,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogRoute: CatalogRoute,
   CompareRoute: CompareRoute,
+  DemoRoute: DemoRoute,
   GuidesRoute: GuidesRouteWithChildren,
   HistoryRoute: HistoryRoute,
   IngredientsRoute: IngredientsRoute,

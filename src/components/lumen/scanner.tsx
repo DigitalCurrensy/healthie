@@ -243,7 +243,7 @@ export function ScannerSheet({
       setLockedCode(code);
       setStatus("Got it");
       try {
-        navigator.vibrate?.(25);
+        navigator.vibrate?.(100);
       } catch {
         /* no haptics */
       }
@@ -256,6 +256,11 @@ export function ScannerSheet({
         }
       } catch {
         /* still look the code up */
+      }
+      try {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+      } catch {
+        /* already stopped */
       }
       if (lastHit && lastHit.barcode === code) {
         rememberGs1({ gtin: code, lot: lastHit.lot, expiry: lastHit.expiry });
@@ -841,6 +846,7 @@ function Viewfinder({
         <span className={cn("scan-corner scan-bl", (locking || locked) && "scan-lock")} />
         <span className={cn("scan-corner scan-br", (locking || locked) && "scan-lock")} />
         {ready && !tracing && !locked ? <span className="scan-laser" /> : null}
+        {ready && !locked ? <span className="scan-listen" aria-hidden /> : null}
       </div>
       {hit && !close && !locked ? (
         <p className="absolute inset-x-0 top-[22%] text-center text-sm text-accent-fg/80">Move closer</p>

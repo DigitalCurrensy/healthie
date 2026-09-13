@@ -1,0 +1,6 @@
+/*
+  Permissions-Policy: camera=(self), microphone=()
+  Feature-Policy: camera 'self'
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff

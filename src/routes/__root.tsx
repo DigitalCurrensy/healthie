@@ -18,6 +18,7 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { "http-equiv": "Permissions-Policy", content: "camera=(self), microphone=()" },
       {
         name: "description",
         content:
