@@ -23,8 +23,24 @@ import { SAMPLE_PACKS } from "@/lib/scan/samples";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [featured, world] = await Promise.all([listFeatured(), loadWorldIndex()]);
-    return { featured, world };
+    try {
+      const [featured, world] = await Promise.all([listFeatured(), loadWorldIndex()]);
+      return { featured, world };
+    } catch {
+      return {
+        featured: [] as CatalogCard[],
+        world: {
+          foodCount: 4_707_634,
+          beautyCount: 73_850,
+          petCount: 15_067,
+          localCount: 0,
+          lastDumpAt: null,
+          lastDumpIngested: 0,
+          lastDumpFile: null,
+          source: "openfoodfacts + openbeautyfacts + openpetfoodfacts",
+        },
+      };
+    }
   },
   component: Home,
 });

@@ -1,4 +1,4 @@
-import { getSql } from "@/lib/db";
+import { trySql } from "@/lib/db";
 import type { WorldIndex } from "@/lib/world";
 
 const FALLBACK = {
@@ -7,8 +7,22 @@ const FALLBACK = {
   petCount: 15_067,
 };
 
+export function fallbackWorldIndex(localCount = 0): WorldIndex {
+  return {
+    foodCount: FALLBACK.foodCount,
+    beautyCount: FALLBACK.beautyCount,
+    petCount: FALLBACK.petCount,
+    localCount,
+    lastDumpAt: null,
+    lastDumpIngested: 0,
+    lastDumpFile: null,
+    source: "openfoodfacts + openbeautyfacts + openpetfoodfacts",
+  };
+}
+
 export async function setWorldMeta(key: string, value: string) {
-  const sql = await getSql();
+  const sql = await trySql();
+  if (!sql) return;
   await sql.query(
     `insert into world_meta (key, value, updated_at) values ($1,$2,now())
      on conflict (key) do update set value = excluded.value, updated_at = now()`,
@@ -17,13 +31,15 @@ export async function setWorldMeta(key: string, value: string) {
 }
 
 export async function getWorldMeta(key: string): Promise<string | null> {
-  const sql = await getSql();
+  const sql = await trySql();
+  if (!sql) return null;
   const rows = await sql<{ value: string }>`select value from world_meta where key = ${key} limit 1`;
   return rows[0]?.value ?? null;
 }
 
 export async function readWorldIndex(): Promise<WorldIndex> {
-  const sql = await getSql();
+  const sql = await trySql();
+  if (!sql) return fallbackWorldIndex();
   let n = 0;
   try {
     const rows = await sql<{ n: number }>`select count(*)::int as n from products`;

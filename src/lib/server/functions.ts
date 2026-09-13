@@ -148,9 +148,14 @@ export const listShelves = createServerFn({ method: "GET" }).handler(async () =>
 });
 
 export const loadWorldIndex = createServerFn({ method: "GET" }).handler(async (): Promise<WorldIndex> => {
-  await ensureCatalog();
-  const { readWorldIndex } = await import("./world-meta");
-  return readWorldIndex();
+  try {
+    await ensureCatalog();
+    const { readWorldIndex } = await import("./world-meta");
+    return await readWorldIndex();
+  } catch {
+    const { fallbackWorldIndex } = await import("./world-meta");
+    return fallbackWorldIndex();
+  }
 });
 
 export const loadPrices = createServerFn({ method: "GET" })
@@ -258,8 +263,12 @@ export const loadBrandWorld = createServerFn({ method: "GET" })
 
 export const loadLabInsights = createServerFn({ method: "GET" }).handler(async () => {
   await ensureCatalog();
-  const { readWorldIndex } = await import("./world-meta");
-  const [lab, world] = await Promise.all([shelfInsights(), readWorldIndex()]);
+  const { readWorldIndex, fallbackWorldIndex } = await import("./world-meta");
+  const { labReport } = await import("@/lib/catalog/lab-insights");
+  const [lab, world] = await Promise.all([
+    shelfInsights().catch(() => labReport()),
+    readWorldIndex().catch(() => fallbackWorldIndex()),
+  ]);
   return { lab, world };
 });
 

@@ -13,6 +13,7 @@ import { AISLES } from "@/lib/catalog/aisles";
 import { brandSlug } from "@/lib/catalog/brands";
 import { realPackUrl } from "@/lib/catalog/pack-image";
 import type { LabCard, LabReport } from "@/lib/catalog/lab-insights";
+import { labReport } from "@/lib/catalog/lab-insights";
 
 const SEED_VERSION = 25;
 
@@ -118,7 +119,12 @@ export async function upsertEvaluated(
   ev: EvaluatedProduct,
   opts?: { protectCatalog?: boolean },
 ): Promise<void> {
-  const sql = await getSql();
+  let sql: Awaited<ReturnType<typeof getSql>>;
+  try {
+    sql = await getSql();
+  } catch {
+    return;
+  }
   if (opts?.protectCatalog) {
     const existing = await sql<{ source: string }>`
       select source from products where gtin_barcode = ${ev.barcode} limit 1`;
@@ -330,8 +336,22 @@ export async function findByBarcodes(barcodes: string[]): Promise<EvaluatedProdu
 }
 
 export async function searchProducts(query: string): Promise<EvaluatedProduct[]> {
-  const sql = await getSql();
   const needle = query.trim().toLowerCase();
+  const fromMemory = () =>
+    PRODUCTS.filter((p) => {
+      const title = p.title.toLowerCase();
+      const brand = p.brand.toLowerCase();
+      return title.includes(needle) || brand.includes(needle) || p.barcode.includes(needle);
+    })
+      .map((d) => evaluateDef(d))
+      .slice(0, 24);
+
+  let sql: Awaited<ReturnType<typeof getSql>>;
+  try {
+    sql = await getSql();
+  } catch {
+    return fromMemory();
+  }
   const q = `%${needle}%`;
   const rows = await sql<ProductRow>`
     select * from products
@@ -353,13 +373,18 @@ export async function searchProducts(query: string): Promise<EvaluatedProduct[]>
 export async function listCatalog(filter?: {
   type?: ProductType;
 }): Promise<EvaluatedProduct[]> {
-  const sql = await getSql();
-  const rows = filter?.type
-    ? await sql<ProductRow>`
+  try {
+    const sql = await getSql();
+    const rows = filter?.type
+      ? await sql<ProductRow>`
         select * from products where type = ${filter.type}
         order by overall_score desc`
-    : await sql<ProductRow>`select * from products order by overall_score desc`;
-  return Promise.all(rows.map(hydrate));
+      : await sql<ProductRow>`select * from products order by overall_score desc`;
+    if (rows.length) return Promise.all(rows.map(hydrate));
+  } catch {
+    /* edge */
+  }
+  return PRODUCTS.filter((p) => !filter?.type || p.type === filter.type).map((d) => evaluateDef(d));
 }
 
 export async function recommendFor(product: EvaluatedProduct): Promise<EvaluatedProduct[]> {
@@ -508,35 +533,65 @@ export async function listCardsByAisle(path: string, limit = 200): Promise<Catal
 }
 
 export async function barcodesInAisle(path: string): Promise<Set<string>> {
-  const sql = await getSql();
-  const rows = await sql<{ gtin_barcode: string }>`
+  try {
+    const sql = await getSql();
+    const rows = await sql<{ gtin_barcode: string }>`
     select gtin_barcode from products where category_path = ${path}`;
-  return new Set(rows.map((r) => r.gtin_barcode));
+    if (rows.length) return new Set(rows.map((r) => r.gtin_barcode));
+  } catch {
+    /* edge */
+  }
+  return new Set(memoryCards().filter((c) => c.categoryPath === path).map((c) => c.barcode));
 }
 
 export async function listCardsForBrand(name: string, limit = 120): Promise<CatalogCard[]> {
-  const sql = await getSql();
-  const rows = await sql<CardRow>`
+  try {
+    const sql = await getSql();
+    const rows = await sql<CardRow>`
     select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
     from products
     where lower(brand) = ${name.toLowerCase()}
     order by overall_score desc
     limit ${limit}`;
-  return rows.map(toCard);
+    if (rows.length) return rows.map(toCard);
+  } catch {
+    /* edge */
+  }
+  return memoryCards()
+    .filter((c) => c.brand.toLowerCase() === name.toLowerCase())
+    .sort((a, b) => b.overallScore - a.overallScore)
+    .slice(0, limit);
 }
 
 export async function getIngredient(id: string) {
   const ing = INGREDIENTS.find((i) => i.id === id);
   if (!ing) return null;
-  const sql = await getSql();
-  const rows = await sql<{ gtin_barcode: string; title: string; overall_score: number; type: ProductType }>`
+  try {
+    const sql = await getSql();
+    const rows = await sql<{ gtin_barcode: string; title: string; overall_score: number; type: ProductType }>`
     select p.gtin_barcode, p.title, p.overall_score, p.type
     from products p
     join product_ingredients pi on pi.product_id = p.id
     where pi.ingredient_id = ${id}
     order by p.overall_score asc
     limit 12`;
-  return { ingredient: ing, products: rows };
+    if (rows.length) return { ingredient: ing, products: rows };
+  } catch {
+    /* edge */
+  }
+  const products = PRODUCTS.filter((p) => p.ingredientIds.includes(id))
+    .map((p) => {
+      const scored = evaluateDef(p);
+      return {
+        gtin_barcode: p.barcode,
+        title: p.title,
+        overall_score: scored.score.overall,
+        type: p.type,
+      };
+    })
+    .sort((a, b) => a.overall_score - b.overall_score)
+    .slice(0, 12);
+  return { ingredient: ing, products };
 }
 
 const FEATURED_CODES = [
@@ -551,49 +606,45 @@ const FEATURED_CODES = [
 ];
 
 export async function listFeaturedCards(): Promise<CatalogCard[]> {
-  const sql = await getSql();
-  const rows = await sql<{
-    gtin_barcode: string;
-    title: string;
-    brand: string;
-    type: ProductType;
-    category_path: string;
-    is_organic: boolean;
-    overall_score: number;
-    image_url: string | null;
-    additive_count: number;
-  }>`select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
+  const wanted = new Set(FEATURED_CODES);
+  const pickFrom = (rows: CatalogCard[]) => {
+    const picked: CatalogCard[] = [];
+    const seen = new Set<string>();
+    for (const r of rows) {
+      if (wanted.has(r.barcode) && !seen.has(r.barcode)) {
+        picked.push(r);
+        seen.add(r.barcode);
+      }
+    }
+    for (const r of rows) {
+      if (picked.length >= 18) break;
+      if (seen.has(r.barcode)) continue;
+      seen.add(r.barcode);
+      picked.push(r);
+    }
+    return picked;
+  };
+  try {
+    const sql = await getSql();
+    const rows = await sql<CardRow>`select gtin_barcode, title, brand, type, category_path, is_organic, overall_score, image_url, additive_count
      from products
      order by overall_score desc`;
-  const wanted = new Set(FEATURED_CODES);
-  const picked: typeof rows = [];
-  const seen = new Set<string>();
-  for (const r of rows) {
-    if (wanted.has(r.gtin_barcode) && !seen.has(r.gtin_barcode)) {
-      picked.push(r);
-      seen.add(r.gtin_barcode);
-    }
+    if (rows.length) return pickFrom(rows.map(toCard));
+  } catch {
+    /* edge — score the in-memory shelves */
   }
-  for (const r of rows) {
-    if (picked.length >= 18) break;
-    if (seen.has(r.gtin_barcode)) continue;
-    seen.add(r.gtin_barcode);
-    picked.push(r);
-  }
-  return picked.map((r) => ({
-    barcode: r.gtin_barcode,
-    title: r.title,
-    brand: r.brand,
-    type: r.type,
-    categoryPath: r.category_path,
-    isOrganic: Boolean(r.is_organic),
-    overallScore: r.overall_score,
-    imageUrl: r.image_url,
-    additiveCount: r.additive_count,
-  }));
+  return pickFrom(memoryCards());
 }
 
 export async function shelfInsights(): Promise<LabReport> {
+  try {
+    return await computeShelfInsights();
+  } catch {
+    return labReport();
+  }
+}
+
+async function computeShelfInsights(): Promise<LabReport> {
   const sql = await getSql();
   const totals = await sql<{ n: number; brands: number; avg: number }>`
     select count(*)::int as n,

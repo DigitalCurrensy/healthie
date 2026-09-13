@@ -179,6 +179,14 @@ async function createSql(): Promise<Sql> {
   return dbSource === "neon" ? createNeonSql() : createPgliteSql();
 }
 
+export function isEdgeRuntime(): boolean {
+  try {
+    return typeof navigator !== "undefined" && /Cloudflare-Workers/i.test(String(navigator.userAgent ?? ""));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Get the shared, **server-only** SQL client. Neon when `DATABASE_URL` is set,
  * otherwise the local PGLite fallback. Memoized — safe to call per request.
@@ -187,7 +195,7 @@ async function createSql(): Promise<Sql> {
  * both backends — define tables there, never inline in server functions.
  */
 export function getSql(): Promise<Sql> {
-  if (typeof navigator !== "undefined" && /Cloudflare-Workers/i.test(navigator.userAgent ?? "")) {
+  if (isEdgeRuntime()) {
     return Promise.reject(new Error("no-sql-on-edge"));
   }
   sqlPromise ??= createSql().catch((err) => {
@@ -195,6 +203,15 @@ export function getSql(): Promise<Sql> {
     throw err;
   });
   return sqlPromise;
+}
+
+/** SQL client or `null` when this isolate has no database (Cloudflare Worker). */
+export async function trySql(): Promise<Sql | null> {
+  try {
+    return await getSql();
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -223,16 +240,17 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  * module kick it off immediately (see bottom of file).
  */
 export function ensureDbReady(): Promise<void> {
-  if (dbSource !== "pglite") return Promise.resolve();
+  if (dbSource !== "pglite" || isEdgeRuntime()) return Promise.resolve();
   return getSql().then(() => undefined);
 }
 
 // Server-only eager start: kick PGLite bootstrap as soon as this module loads in
 // Node. Client bundles never hit this path (`getSql` throws in the browser).
+// Cloudflare Workers cannot boot PGLite — skip so homepage loaders stay alive.
 const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
 };
-if (typeof window === "undefined" && dbSource === "pglite") {
+if (typeof window === "undefined" && dbSource === "pglite" && !isEdgeRuntime()) {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
     console.error("[db] PGLite bootstrap failed:", err);

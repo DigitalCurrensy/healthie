@@ -1,6 +1,21 @@
 /*
-  Permissions-Policy: camera=(self), microphone=()
-  Feature-Policy: camera 'self'
+  Permissions-Policy: camera=*, microphone=()
+  Feature-Policy: camera *
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Referrer-Policy: strict-origin-when-cross-origin
   X-Content-Type-Options: nosniff
+
+/og.jpg
+  Cache-Control: public, max-age=86400
+
+/brand/*
+  Cache-Control: public, max-age=86400
+
+/icon-*.png
+  Cache-Control: public, max-age=86400
+
+/apple-touch.png
+  Cache-Control: public, max-age=86400
+
+/favicon.svg
+  Cache-Control: public, max-age=86400

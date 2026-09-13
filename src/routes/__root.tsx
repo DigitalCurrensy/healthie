@@ -6,6 +6,22 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Healthie";
+const APP_DESCRIPTION =
+  "Independent scores for food, body & beauty, and pet food. Scan a barcode. Read what’s in it. See the better neighbour.";
+const OG_IMAGE = "/og.jpg";
+const OG_LOGO = "/brand/og-logo.png";
+const JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: APP_NAME,
+  applicationCategory: "HealthApplication",
+  operatingSystem: "Web",
+  description: APP_DESCRIPTION,
+  image: OG_IMAGE,
+  logo: OG_LOGO,
+  brand: { "@type": "Brand", name: APP_NAME, logo: OG_LOGO },
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+});
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,18 +34,22 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: APP_NAME },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "msapplication-TileImage", content: "/apple-touch.png" },
+      { name: "msapplication-TileColor", content: "#F1F0EB" },
       { "http-equiv": "Permissions-Policy", content: "camera=(self), microphone=()" },
-      {
-        name: "description",
-        content:
-          "Independent scores for food, body & beauty, and pet food. Scan a barcode. Read what’s in it. See the better neighbour.",
-      },
+      { name: "description", content: APP_DESCRIPTION },
+      { name: "application-name", content: APP_NAME },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16.png" },
-      { rel: "apple-touch-icon", href: "/apple-touch.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch.png" },
+      { rel: "apple-touch-icon-precomposed", href: "/apple-touch.png" },
+      { rel: "image_src", href: OG_IMAGE },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -44,6 +64,7 @@ export const Route = createRootRoute({
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var f=window.frameElement;if(!f||f.tagName!=="IFRAME")return;var a=f.getAttribute("allow")||"";if(/camera/i.test(a))return;f.setAttribute("allow",(a?a+"; ":"")+"camera; fullscreen");f.setAttribute("allowfullscreen","true");try{if(!sessionStorage.getItem("healthie-camera-unlock")){sessionStorage.setItem("healthie-camera-unlock","1");location.replace(location.href);}}catch(e){}}catch(e){}try{window.parent.postMessage({channel:"grok-preview-bridge",version:1,type:"permissions",features:["camera"]},"*");}catch(e){}})();`,

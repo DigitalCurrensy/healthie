@@ -16,13 +16,20 @@ const SHARE_META_KEYS = new Set([
   "og:image",
   "og:image:width",
   "og:image:height",
+  "og:image:alt",
+  "og:image:type",
+  "og:image:secure_url",
+  "og:logo",
   "og:type",
   "og:url",
   "og:site_name",
   "twitter:card",
   "twitter:title",
   "twitter:image",
+  "twitter:image:alt",
   "twitter:description",
+  "twitter:site",
+  "twitter:creator",
   "x:game:image",
   "x:game:image:width",
   "x:game:image:height",
@@ -47,7 +54,6 @@ function unescapeHtml(value) {
     .replaceAll("&amp;", "&");
 }
 
-/** 6-digit hex for the og.grok.me placeholder, or "" if site.color is missing/invalid. */
 function placeholderCardColor(site = {}) {
   const raw = String(site.color ?? "").trim();
   const hex = raw.startsWith("#") ? raw.slice(1) : raw;
@@ -333,6 +339,93 @@ function applyCustomCardFromFs(site, cwd) {
   return { ...site, card: "custom", image: disk };
 }
 
+export function resolveOgLogoAsset(site = {}, cwd = process.cwd()) {
+  const fromSite = String(site.logo ?? "").trim();
+  if (fromSite) return fromSite.startsWith("/") ? fromSite : `/${fromSite}`;
+  if (existsSync(join(cwd, "public/icon-512.png"))) return "/icon-512.png";
+  if (existsSync(join(cwd, "public/apple-touch.png"))) return "/apple-touch.png";
+  return "";
+}
+
+function absoluteAssetUrl(publicHost, asset) {
+  const path = String(asset ?? "").trim();
+  if (!path) return "";
+  const rel = path.startsWith("/") ? path : `/${path}`;
+  return publicHost ? `https://${publicHost}${rel}` : rel;
+}
+
+function clipMeta(value, max) {
+  const text = String(value ?? "").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, Math.max(0, max - 1)).trimEnd()}…`;
+}
+
+function twitterHandle(site = {}) {
+  const raw = String(site.twitterSite ?? site.twitter ?? "").trim();
+  if (!raw) return "";
+  const handle = raw.startsWith("@") ? raw : `@${raw.replace(/^https?:\/\/(x|twitter)\.com\//i, "")}`;
+  return /^@[A-Za-z0-9_]{1,15}$/.test(handle) ? handle : "";
+}
+
+export function isShareCrawler(userAgent = "") {
+  return /facebookexternalhit|facebot|twitterbot|applebot|slackbot|whatsapp|linkedinbot|discordbot|telegrambot|pinterest|iframely|embedly|redditbot|skypeuripreview|googlebot|bingbot|duckduckbot|applenews|semrushbot|ahrefsbot|preview/i.test(
+    String(userAgent ?? ""),
+  );
+}
+
+export function renderCrawlerShareHtml({ host = "", site = {} } = {}) {
+  const publicHost = resolvePublicHost(host) || String(host ?? "").split(",")[0].trim().split(":")[0];
+  const rawTitle = resolveOgTitle(site, DEFAULT_APP_NAME, host);
+  const rawDescription = String(site.description ?? "").trim() || "Scan a pack. See the score.";
+  const title = escapeHtml(rawTitle);
+  const description = escapeHtml(rawDescription);
+  const twitterTitle = escapeHtml(clipMeta(rawTitle, 70));
+  const twitterDescription = escapeHtml(clipMeta(rawDescription, 200));
+  const origin = publicHost ? `https://${publicHost}` : "";
+  const image = `${origin}/og.jpg`;
+  const logoPath = String(site.logo ?? "/brand/og-logo.png").trim() || "/brand/og-logo.png";
+  const logo = `${origin}${logoPath.startsWith("/") ? logoPath : `/${logoPath}`}`;
+  const alt = escapeHtml(String(site.imageAlt ?? "").trim() || `${rawTitle} logo`);
+  const handle = twitterHandle(site);
+  const twitterSiteTags = handle
+    ? `<meta name="twitter:site" content="${escapeHtml(handle)}">
+<meta name="twitter:creator" content="${escapeHtml(handle)}">`
+    : "";
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${origin}/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${title}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${origin}/">
+<meta property="og:image" content="${image}">
+<meta property="og:image:secure_url" content="${image}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${alt}">
+<meta property="og:logo" content="${logo}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${twitterTitle}">
+<meta name="twitter:description" content="${twitterDescription}">
+<meta name="twitter:image" content="${image}">
+<meta name="twitter:image:alt" content="${alt}">
+${twitterSiteTags}
+<link rel="image_src" href="${image}">
+<link rel="apple-touch-icon" href="${origin}/apple-touch.png">
+<link rel="icon" type="image/png" href="${origin}/icon-512.png">
+</head>
+<body>
+<img src="${image}" alt="${alt}" width="1200" height="630">
+</body>
+</html>`;
+}
+
 export function grokOgHeadTags({
   host = "",
   appName = DEFAULT_APP_NAME,
@@ -342,18 +435,35 @@ export function grokOgHeadTags({
 } = {}) {
   const title = resolveOgTitle(site, appName, host, documentTitle);
   const publicHost = resolvePublicHost(host);
+  const siteName = String(site.title ?? "").trim() || title;
   const tags = [
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta property="og:title" content="${escapeHtml(title)}">`,
+    `<meta name="twitter:title" content="${escapeHtml(clipMeta(title, 70))}">`,
+    `<meta property="og:site_name" content="${escapeHtml(siteName)}">`,
   ];
   const description = String(site.description ?? "").trim();
   if (description) {
     tags.push(`<meta property="og:description" content="${escapeHtml(description)}">`);
+    tags.push(`<meta name="twitter:description" content="${escapeHtml(clipMeta(description, 200))}">`);
   }
   if (String(site.type ?? "").toLowerCase() === "x:game") {
     tags.push(`<meta property="og:type" content="x:game">`);
+  } else {
+    tags.push(`<meta property="og:type" content="website">`);
+  }
+  const handle = twitterHandle(site);
+  if (handle) {
+    tags.push(`<meta name="twitter:site" content="${escapeHtml(handle)}">`);
+    tags.push(`<meta name="twitter:creator" content="${escapeHtml(handle)}">`);
+  }
+  const logo = resolveOgLogoAsset(site, cwd);
+  const imageAlt = String(site.imageAlt ?? "").trim() || `${siteName} logo`;
+  if (logo) {
+    tags.push(`<meta property="og:logo" content="${escapeHtml(absoluteAssetUrl(publicHost, logo))}">`);
   }
   if (publicHost) {
+    tags.push(`<meta property="og:url" content="https://${publicHost}/">`);
     const asset = resolveOgCardAsset(site, cwd);
     const custom = Boolean(asset);
     let image = custom
@@ -361,9 +471,15 @@ export function grokOgHeadTags({
       : `${ogServiceUrl()}/v1/card.png?host=${encodeURIComponent(publicHost)}&title=${encodeURIComponent(title)}`;
     const color = !custom ? placeholderCardColor(site) : "";
     if (color) image += `&color=${encodeURIComponent(color)}`;
+    const imageType = custom && /\.png$/i.test(String(asset)) ? "image/png" : "image/jpeg";
     tags.push(`<meta property="og:image" content="${escapeHtml(image)}">`);
+    tags.push(`<meta property="og:image:secure_url" content="${escapeHtml(image)}">`);
     tags.push(`<meta property="og:image:width" content="1200">`);
     tags.push(`<meta property="og:image:height" content="630">`);
+    tags.push(`<meta property="og:image:type" content="${imageType}">`);
+    tags.push(`<meta property="og:image:alt" content="${escapeHtml(imageAlt)}">`);
+    tags.push(`<meta name="twitter:image" content="${escapeHtml(image)}">`);
+    tags.push(`<meta name="twitter:image:alt" content="${escapeHtml(imageAlt)}">`);
     const banner = String(site.banner ?? "").trim();
     if (banner) {
       const bannerUrl = `https://${publicHost}${banner.startsWith("/") ? banner : `/${banner}`}`;

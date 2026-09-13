@@ -1,4 +1,4 @@
-const CACHE = "healthie-shell-v3";
+const CACHE = "healthie-shell-v4";
 const SHELL = [
   "/",
   "/catalog",
@@ -12,6 +12,12 @@ const SHELL = [
   "/favicon.svg",
   "/icon-192.png",
   "/icon-512.png",
+  "/icon-maskable-512.png",
+  "/apple-touch.png",
+  "/og.jpg",
+  "/brand/og-logo.png",
+  "/brand/healthie-logo.png",
+  "/brand/healthie-mark.png",
 ];
 
 self.addEventListener("install", (event) => {

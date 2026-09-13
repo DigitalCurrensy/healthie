@@ -45,6 +45,7 @@ import {
 } from "@/lib/copy";
 import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
 import type { PriceBoard } from "@/lib/world";
+import { SHARE, packShareText, shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
 import { fdaToHit, type FdaRecall } from "@/lib/server/fda";
 
@@ -307,20 +308,17 @@ function ProductView({
   }, [product.barcode, priceBoard?.quotes.length]);
 
   async function share() {
-    const text = `${product.title} · ${s.overall}/100 on Healthie. ${s.headline}`;
+    const text = packShareText({ title: product.title, score: s.overall, headline: s.headline });
     try {
-      if (navigator.share) {
-        await navigator.share({ title: product.title, text });
-        return;
+      const result = await shareOrCopy({
+        title: `${product.title} · ${SHARE.siteName}`,
+        text,
+      });
+      if (result === "copied") {
+        setCopied(true);
+        toast.success("Copied");
+        window.setTimeout(() => setCopied(false), 2000);
       }
-    } catch {
-      /* cancelled */
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      toast.success("Copied");
-      window.setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.message("Couldn’t copy — select the score instead.");
     }

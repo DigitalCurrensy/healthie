@@ -21,6 +21,8 @@ import {
   createHeadInjector,
   isDocumentPath,
   isInstallQuery,
+  isShareCrawler,
+  renderCrawlerShareHtml,
   renderInstallPageHtml,
   renderWebManifest,
 } from "../../scripts/grok-pwa-shared.mjs";
@@ -69,6 +71,16 @@ export default async function grokPwaMiddleware(
 
   const path = event.url.pathname;
   const urlWithQuery = path + event.url.search;
+  const host = requestHost(event);
+
+  if (isShareCrawler(event.req.headers.get("user-agent") ?? "") && isDocumentPath(path)) {
+    return new Response(renderCrawlerShareHtml({ host, site: grokOgIdentity.site }), {
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=300",
+      },
+    });
+  }
 
   if (path === "/__grok/manifest.webmanifest" || path === "/__grok/manifest.json") {
     return new Response(renderWebManifest(requestHost(event)), {

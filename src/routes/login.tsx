@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { GROK_PROVIDERS, authClient, authEnabled, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { HealthieLockup, HealthieWordmark } from "@/components/lumen/logo";
@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/login")({ component: Login });
+
+function socialOnThisHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return !host.endsWith(".workers.dev") && !host.endsWith(".pages.dev");
+}
 
 function Login() {
   const { user, isPending } = useCurrentUserState();
@@ -17,6 +23,11 @@ function Login() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showSocial, setShowSocial] = useState(false);
+
+  useEffect(() => {
+    setShowSocial(socialOnThisHost());
+  }, []);
 
   if (!isPending && user) {
     return <Navigate to="/you" />;
@@ -71,23 +82,29 @@ function Login() {
         ) : (
           <>
             <div className="mt-8 space-y-2">
-              {GROK_PROVIDERS.map((p) => (
-                <Button
-                  key={p.providerId}
-                  type="button"
-                  className="h-12 w-full"
-                  onClick={() => signIn(p.providerId, { callbackURL: "/you" })}
-                >
-                  Continue with {p.label}
-                </Button>
-              ))}
+              {showSocial
+                ? GROK_PROVIDERS.map((p) => (
+                    <Button
+                      key={p.providerId}
+                      type="button"
+                      className="h-12 w-full"
+                      onClick={() => signIn(p.providerId, { callbackURL: "/you" })}
+                    >
+                      Continue with {p.label}
+                    </Button>
+                  ))
+                : null}
             </div>
 
+            {showSocial ? (
             <div className="my-8 flex items-center gap-3">
               <span className="h-px flex-1 bg-border" />
               <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-subtle">or email</span>
               <span className="h-px flex-1 bg-border" />
             </div>
+            ) : (
+              <p className="mt-8 text-sm text-muted">Email and a password. Same notes on the next phone.</p>
+            )}
 
             <form onSubmit={(e) => void onEmail(e)} className="space-y-2">
               {mode === "up" ? (

@@ -6,6 +6,8 @@ declare module "virtual:grok-og-identity" {
       type?: string;
       card?: string;
       image?: string;
+      logo?: string;
+      imageAlt?: string;
       banner?: string;
       color?: string;
     };

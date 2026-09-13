@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSql } from "@/lib/db";
+import { trySql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import type { HistoryItem } from "@/lib/history";
 import type { Diet, LifeStage, ListItem } from "@/lib/prefs";
@@ -66,7 +66,10 @@ export type AccountSnapshot = {
 export const pullAccount = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }): Promise<AccountSnapshot> => {
-    const sql = await getSql();
+    const sql = await trySql();
+    if (!sql) {
+      return { scans: [], saved: [], list: [], prefs: null };
+    }
     const uid = context.userId;
     const scans = await sql<{
       barcode: string;
@@ -127,7 +130,8 @@ export const pushAccount = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: unknown) => snapshotSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const sql = await getSql();
+    const sql = await trySql();
+    if (!sql) return { ok: true as const };
     const uid = context.userId;
     for (const s of data.scans) {
       const at = new Date(s.scannedAt ?? Date.now()).toISOString();
@@ -174,7 +178,8 @@ export const pushScan = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: unknown) => scanSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const sql = await getSql();
+    const sql = await trySql();
+    if (!sql) return { ok: true as const };
     const at = new Date(data.scannedAt ?? Date.now()).toISOString();
     await sql.query(
       `insert into user_scans (user_id, barcode, title, brand, type, score, scanned_at)

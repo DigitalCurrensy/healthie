@@ -16,3 +16,8 @@ attachments/
 .node_modules.lock
 coverage/
 .cache/
+
+# sandbox
+AGENTS.md
+AGENTS.project.md
+startup.sh

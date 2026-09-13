@@ -1,5 +1,10 @@
 {
   "title": "Healthie",
+  "description": "Independent scores for food, body & beauty, and pet food. Scan a barcode. Read what’s in it. See the better neighbour.",
   "card": "custom",
-  "color": "102E28"
+  "color": "102E28",
+  "image": "/og.jpg",
+  "logo": "/brand/og-logo.png",
+  "imageAlt": "Healthie logo — scan a pack, see the score",
+  "twitterSite": "@IAmAdrianSwish"
 }

@@ -29,4 +29,9 @@ export const GROK_ISSUER_DEFAULT = "https://auth.grok.me";
  * this list (wildcard-matched), so the OAuth `redirect_uri` becomes the concrete
  * `https://<preview-host>/api/auth/oauth2/callback/...` the broker allows.
  */
-export const PREVIEW_ALLOWED_HOSTS = ["*.grok-sandbox.com"] as const;
+export const PREVIEW_ALLOWED_HOSTS = [
+  "*.grok-sandbox.com",
+  "*.workers.dev",
+  "*.pages.dev",
+  "healthie.boiled-emoji.workers.dev",
+] as const;
