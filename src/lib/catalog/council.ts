@@ -117,7 +117,8 @@ export function servingHonesty(product: EvaluatedProduct): string | null {
   if (product.isBeverage && n.sugars >= 5) {
     const grams = Math.round(n.sugars * 3.3);
     const tsp = Math.round(grams / 4);
-    return `A 330 ml can is about ${grams} g of sugar — roughly ${tsp} teaspoons. Per 100 ml hides that.`;
+    const weekTsp = tsp * 7;
+    return `A 330 ml can is about ${grams} g of sugar — roughly ${tsp} teaspoons. A can a day this week is about ${weekTsp} teaspoons. Per 100 ml hides that.`;
   }
   const snack = /snack|chip|crisp|nacho|cracker/i.test(product.categoryPath + product.title);
   if (snack) {

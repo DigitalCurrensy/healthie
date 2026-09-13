@@ -13,6 +13,7 @@ describe("council + aisle standing", () => {
     assert.ok(product.score.overall < 50);
     const serving = servingHonesty(product);
     assert.ok(serving && /330 ml can/i.test(serving));
+    assert.ok(/this week/i.test(serving!));
     const note = councilNote(product, aisleStanding(product));
     assert.ok(/treat|habit|sugar|ultra/i.test(note.body));
   });

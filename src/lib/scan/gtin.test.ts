@@ -3,8 +3,10 @@ import { describe, it } from "node:test";
 import {
   detectRetailFormat,
   expandUpce,
+  formatGs1Expiry,
   gtinCheckDigit,
   hasValidGtinCheck,
+  inspectScannedBarcode,
   validateScannedBarcode,
 } from "./gtin.ts";
 
@@ -71,5 +73,23 @@ describe("GS1 check digit — 11 retail cases", () => {
     assert.equal(validateScannedBarcode("(01)05449000000996"), "5449000000996");
     assert.equal(validateScannedBarcode("0105449000000996"), "5449000000996");
     assert.equal(validateScannedBarcode("]C10105449000000996"), "5449000000996");
+  });
+
+  it("13 unlocks a GS1 Digital Link QR that is a GTIN, not a URL trap", () => {
+    assert.equal(validateScannedBarcode("https://id.gs1.org/01/05449000000996"), "5449000000996");
+    assert.equal(
+      validateScannedBarcode("https://brand.example/01/05449000000996/10/LOT42/17/271231"),
+      "5449000000996",
+    );
+    const scan = inspectScannedBarcode("https://id.gs1.org/01/05449000000996/10/ABC/17/271231?21=XYZ");
+    assert.equal(scan?.gtin, "5449000000996");
+    assert.equal(scan?.lot, "ABC");
+    assert.equal(scan?.expiry, "271231");
+    assert.equal(formatGs1Expiry("271231"), "31 Dec 2027");
+  });
+
+  it("14 rejects a marketing QR with no GTIN", () => {
+    assert.equal(validateScannedBarcode("https://instagram.com/cocacola"), null);
+    assert.equal(validateScannedBarcode("https://coca-cola.com/en/brands"), null);
   });
 });

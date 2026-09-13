@@ -14,6 +14,9 @@ export type Nutrition = {
   protein: number;
   fruitsVegetables: number;
   fat?: number;
+  /** False when Open Food Facts omitted the salt/sodium key. Zero is not missing. */
+  saltKnown?: boolean;
+  satKnown?: boolean;
 };
 
 export type AllergenId =

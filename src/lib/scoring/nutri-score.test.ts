@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { computeNutriScore, nutriLetter, nutriToQuality } from "./nutri-score.ts";
+import { computeNutriScore, nutriLetter, nutritionBoxIsThin, nutriToQuality } from "./nutri-score.ts";
 import type { Nutrition } from "./types.ts";
 
 function n(
@@ -59,5 +59,12 @@ describe("Nutri-Score 2023", () => {
   it("does not let protein rescue a high-N factory food (cap at N≥7)", () => {
     const upf = computeNutriScore(n(2200, 20, 8, 1.8, 1, 12, 0, 30), "food");
     assert.ok(upf.letter === "D" || upf.letter === "E", `high N food was ${upf.letter} raw ${upf.raw}`);
+  });
+
+  it("treats missing salt on an energy-dense pack as a thin box, not zero salt", () => {
+    const missing = { ...n(2260, 2.5, 3.5, 0, 3, 7, 0, 28), saltKnown: false as const };
+    assert.equal(nutritionBoxIsThin(missing, "food"), true);
+    const zeroOnCola = { ...n(180, 10.6, 0, 0, 0, 0, 0, 0), saltKnown: true as const };
+    assert.equal(nutritionBoxIsThin(zeroOnCola, "beverage"), false);
   });
 });

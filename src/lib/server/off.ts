@@ -23,6 +23,8 @@ type OffProduct = {
   nutriments?: Record<string, number | undefined>;
   labels_tags?: string[];
   categories_tags?: string[];
+  misc_tags?: string[];
+  codes_tags?: string[];
   nova_group?: number;
 };
 
@@ -132,13 +134,20 @@ function num(v: number | undefined): number {
   return typeof v === "number" && Number.isFinite(v) ? v : 0;
 }
 
-function nutritionFromOff(n: Record<string, number | undefined> | undefined): Nutrition {
+function hasKey(n: Record<string, number | undefined> | undefined, keys: string[]): boolean {
+  if (!n) return false;
+  return keys.some((k) => Object.prototype.hasOwnProperty.call(n, k) && n[k] != null && Number.isFinite(n[k]));
+}
+
+export function nutritionFromOff(n: Record<string, number | undefined> | undefined): Nutrition {
   const energyKj =
     num(n?.["energy-kj_100g"]) ||
     num(n?.energy_100g) ||
     (num(n?.["energy-kcal_100g"]) || num(n?.["energy-kcal"])) * 4.184;
   const sodiumG = num(n?.sodium_100g);
   const saltFromBox = num(n?.salt_100g);
+  const saltKnown = hasKey(n, ["salt_100g", "sodium_100g", "salt", "sodium"]);
+  const satKnown = hasKey(n, ["saturated-fat_100g", "saturated-fat"]);
   const salt = saltFromBox || (sodiumG ? sodiumG * 2.5 : 0);
   const sodiumMg = sodiumG ? sodiumG * 1000 : salt ? salt * 400 : undefined;
   return {
@@ -153,6 +162,8 @@ function nutritionFromOff(n: Record<string, number | undefined> | undefined): Nu
       num(n?.["fruits-vegetables-nuts-estimate-from-ingredients_100g"]) ||
       num(n?.["fruits-vegetables-legumes-estimate-from-ingredients_100g"]),
     fat: num(n?.fat_100g),
+    saltKnown,
+    satKnown,
   };
 }
 
@@ -241,9 +252,19 @@ export function offProductToEvaluated(
 }
 
 async function fetchHostProduct(host: OffHost, barcode: string): Promise<EvaluatedProduct | null> {
-  const data = await fetchJson(`${origin(host)}/api/v2/product/${barcode}.json`);
+  const fields =
+    "code,product_name,product_name_en,generic_name,brands,ingredients_text,ingredients_text_en," +
+    "image_url,image_front_url,nutriments,labels_tags,categories_tags,misc_tags,codes_tags,nova_group";
+  const data = await fetchJson(`${origin(host)}/api/v2/product/${barcode}.json?fields=${fields}`);
   if (data?.status !== 1 || !data.product) return null;
-  return offProductToEvaluated(data.product, sourceOf(host), barcode);
+  const product = data.product;
+  if (product.misc_tags?.some((t) => /nutriscore-missing-nutrition-data-sodium/i.test(t))) {
+    product.nutriments = { ...product.nutriments };
+    if (product.nutriments.salt_100g == null && product.nutriments.sodium_100g == null) {
+      /* keep missing — nutritionFromOff will mark saltKnown false */
+    }
+  }
+  return offProductToEvaluated(product, sourceOf(host), barcode);
 }
 
 /** Live long-tail lookup. Sequential so one scan cannot 429 the world API. Food first. */

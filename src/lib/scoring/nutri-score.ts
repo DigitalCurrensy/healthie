@@ -184,8 +184,10 @@ export function inferNutriCategory(input: {
 export function nutritionBoxIsThin(n: Nutrition, category: NutriCategory): boolean {
   if (category === "water") return false;
   const energyDense = (n.energyKj || 0) >= 1200 || (n.fat ?? 0) >= 10;
-  const saltGone = (n.salt || 0) < 0.02 && (n.sodiumMg ?? 0) < 10;
-  const satGone = (n.saturatedFat || 0) < 0.08;
+  const saltUnknown = n.saltKnown === false;
+  const saltGone = saltUnknown || ((n.salt || 0) < 0.02 && (n.sodiumMg ?? 0) < 10);
+  const satGone = n.satKnown === false || (n.saturatedFat || 0) < 0.08;
+  if (energyDense && saltUnknown) return true;
   return energyDense && saltGone && satGone;
 }
 
