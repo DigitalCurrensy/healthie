@@ -1,9 +1,13 @@
 {
+  "id": "/",
   "name": "Healthie",
   "short_name": "Healthie",
-  "description": "Independent scores for food, beauty, and pet food. Scan a barcode. Read what’s in it.",
+  "description": "Independent scores for food, beauty, and pet. Scan a pack. Read what’s in it.",
   "start_url": "/scan",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#F1F0EB",
   "theme_color": "#102E28",
   "icons": [

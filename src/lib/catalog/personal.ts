@@ -58,15 +58,15 @@ export function personalAlerts(product: EvaluatedProduct, prefs: PrefsSlice): Pe
   }
   if (prefs.lifeStage === "pregnancy" && product.concerns.pregnancy.length > 0) {
     out.push({
-      kind: "care",
-      title: "Extra care in pregnancy",
+      kind: "stop",
+      title: "Not for pregnancy",
       detail: product.concerns.pregnancy.slice(0, 6).join(", "),
     });
   }
   if (prefs.lifeStage === "child" && product.concerns.child.length > 0) {
     out.push({
-      kind: "care",
-      title: "Extra care for children",
+      kind: "stop",
+      title: "Not for a child",
       detail: product.concerns.child.slice(0, 6).join(", "),
     });
   }

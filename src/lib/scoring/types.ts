@@ -148,4 +148,4 @@ export const ADDITIVE_PENALTY: Record<RiskClass, number> = {
   none: 0,
 };
 
-export type NutriCategory = "food" | "beverage" | "cheese" | "fat" | "red-meat" | "water";
+export type NutriCategory = "food" | "beverage" | "cheese" | "fat" | "nuts" | "red-meat" | "water";

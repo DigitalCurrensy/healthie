@@ -1,5 +1,5 @@
 import { barcodeVariants } from "@/lib/utils";
-import { validateScannedBarcode } from "./gtin";
+import { inspectScannedBarcode } from "./gtin";
 import { VIEWFINDER_CROP, VIEWFINDER_CROP_PADDED } from "./geometry";
 import type { ReadResult, ReaderOptions } from "zxing-wasm/reader";
 import type { WorkerDecodeRequest, WorkerDecodeResponse } from "./decode-worker";
@@ -8,6 +8,8 @@ export type ScanCorner = { x: number; y: number };
 
 export type ScanHit = {
   barcode: string;
+  lot?: string;
+  expiry?: string;
   format: string;
   engine: "zxing" | "native";
   corners: ScanCorner[];
@@ -199,7 +201,9 @@ function hitFromZxing(
     : [];
   const xs = corners.map((c) => c.x);
   return {
-    barcode,
+    barcode: barcode.gtin,
+    lot: barcode.lot,
+    expiry: barcode.expiry,
     format: result.format,
     engine: "zxing",
     corners,
@@ -209,12 +213,12 @@ function hitFromZxing(
   };
 }
 
-function pickBarcode(text: string): string | null {
-  const direct = validateScannedBarcode(text);
-  if (direct) return direct;
+function pickBarcode(text: string): { gtin: string; lot?: string; expiry?: string } | null {
+  const direct = inspectScannedBarcode(text);
+  if (direct) return { gtin: direct.gtin, lot: direct.lot, expiry: direct.expiry };
   for (const v of barcodeVariants(text)) {
-    const ok = validateScannedBarcode(v);
-    if (ok) return ok;
+    const ok = inspectScannedBarcode(v);
+    if (ok) return { gtin: ok.gtin, lot: ok.lot, expiry: ok.expiry };
   }
   return null;
 }
@@ -292,7 +296,9 @@ async function decodeWithZxing(
     }));
     const xs = corners.map((c) => c.x);
     return {
-      barcode,
+      barcode: barcode.gtin,
+      lot: barcode.lot,
+      expiry: barcode.expiry,
       format: fromWorker.format ?? "zxing",
       engine: "zxing",
       corners,
@@ -363,7 +369,9 @@ async function decodeNativeCanvas(
     }));
     const xs = corners.map((c) => c.x);
     return {
-      barcode,
+      barcode: barcode.gtin,
+      lot: barcode.lot,
+      expiry: barcode.expiry,
       format: raw.format ?? "native",
       engine: "native",
       corners,
@@ -406,7 +414,7 @@ export async function decodeBlob(blob: Blob): Promise<string | null> {
       try {
         const codes = await nativeDetector.detect(el);
         const raw = codes[0]?.rawValue;
-        if (raw) return pickBarcode(raw);
+        if (raw) return pickBarcode(raw)?.gtin ?? null;
       } catch {
         /* native skipped */
       }

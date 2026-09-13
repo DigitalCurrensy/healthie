@@ -255,16 +255,14 @@ async function fetchHostProduct(host: OffHost, barcode: string): Promise<Evaluat
   const fields =
     "code,product_name,product_name_en,generic_name,brands,ingredients_text,ingredients_text_en," +
     "image_url,image_front_url,nutriments,labels_tags,categories_tags,misc_tags,codes_tags,nova_group";
+  const v3 = await fetchJson(`${origin(host)}/api/v3/product/${barcode}?fields=${fields}`);
+  const v3Product = v3?.product as OffProduct | undefined;
+  if (v3Product && (v3Product.code || v3Product.product_name || v3Product.nutriments)) {
+    return offProductToEvaluated(v3Product, sourceOf(host), barcode);
+  }
   const data = await fetchJson(`${origin(host)}/api/v2/product/${barcode}.json?fields=${fields}`);
   if (data?.status !== 1 || !data.product) return null;
-  const product = data.product;
-  if (product.misc_tags?.some((t) => /nutriscore-missing-nutrition-data-sodium/i.test(t))) {
-    product.nutriments = { ...product.nutriments };
-    if (product.nutriments.salt_100g == null && product.nutriments.sodium_100g == null) {
-      /* keep missing — nutritionFromOff will mark saltKnown false */
-    }
-  }
-  return offProductToEvaluated(product, sourceOf(host), barcode);
+  return offProductToEvaluated(data.product, sourceOf(host), barcode);
 }
 
 /** Live long-tail lookup. Sequential so one scan cannot 429 the world API. Food first. */

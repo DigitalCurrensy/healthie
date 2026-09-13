@@ -7,6 +7,7 @@ import { AccountChip } from "./account-chip";
 import { AccountSync } from "./account-sync";
 import { cn } from "@/lib/utils";
 import { usePrefs } from "@/lib/prefs";
+import { shoppingModeLabel } from "@/lib/catalog/mode";
 
 const NAV = [
   { to: "/scan", label: "Scan", icon: ScanLine, exact: true },
@@ -21,6 +22,8 @@ const YOU_PATHS = ["/history", "/method", "/compare", "/saved", "/ingredients", 
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const compareCount = usePrefs((s) => s.compare.length);
+  const lifeStage = usePrefs((s) => s.lifeStage);
+  const modeLabel = shoppingModeLabel(lifeStage);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -78,7 +81,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
           </ul>
         </nav>
         <p className="mt-auto text-[11px] leading-relaxed text-subtle">
-          Independent scores. No brand pays for a better number.
+          {modeLabel ? `${modeLabel}. ` : ""}Independent scores. No brand pays for a better number.
         </p>
         <div className="mt-4">
           <AccountChip />

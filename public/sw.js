@@ -1,4 +1,4 @@
-const CACHE = "healthie-shell-v2";
+const CACHE = "healthie-shell-v3";
 const SHELL = [
   "/",
   "/catalog",

@@ -61,7 +61,7 @@ export function computeNutriScore(
   const isBeverage = category === "beverage";
 
   let nPoints: number;
-  if (category === "fat") {
+  if (category === "fat" || category === "nuts") {
     const ratio = nutrition.fat && nutrition.fat > 0 ? (nutrition.saturatedFat / nutrition.fat) * 100 : 100;
     const satRatioCuts = [10, 16, 22, 28, 34, 40, 46, 52, 58, 64];
     nPoints =
@@ -93,7 +93,7 @@ export function computeNutriScore(
 
   const fruitMaxed = fruit >= (isBeverage ? 6 : 5);
   const proteinAlways =
-    isBeverage || category === "cheese" || category === "fat" || nPoints < 7 || fruitMaxed;
+    isBeverage || category === "cheese" || category === "fat" || category === "nuts" || nPoints < 7 || fruitMaxed;
   const pPoints = fruit + fiber + (proteinAlways ? protein : 0);
   const raw = nPoints - pPoints;
 
@@ -108,7 +108,7 @@ export function nutriLetter(raw: number, isBeverage: boolean, category: NutriCat
     if (raw <= 9) return "D";
     return "E";
   }
-  if (category === "fat") {
+  if (category === "fat" || category === "nuts") {
     if (raw <= -6) return "A";
     if (raw <= 2) return "B";
     if (raw <= 10) return "C";
@@ -166,10 +166,17 @@ export function inferNutriCategory(input: {
   if (input.isWater) return "water";
   const blob = `${input.categoryPath ?? ""} ${input.title ?? ""}`.toLowerCase();
   if (input.isBeverage || /beverage|soda|drink|juice|tea|coffee/.test(blob)) return "beverage";
-  const snackish = /chip|crisp|nacho|snack|cracker|puff|flavour|flavor|sauce|dip|cookie|biscuit|popcorn/.test(blob);
+  const snackish = /chip|crisp|nacho|cracker|puff|flavour|flavor|sauce|dip|cookie|biscuit|popcorn/.test(blob);
   const cheeseAisle = /dairy|cheese/.test(input.categoryPath ?? "");
   if (!snackish && cheeseAisle && /cheese|fromage|cheddar|parmesan|gouda/.test(blob)) return "cheese";
   if (/\boil\b|butter|margarine|ghee/.test(blob) && /spread|staples|fat/.test(blob)) return "fat";
+  if (
+    !snackish &&
+    /\b(almonds?|walnuts?|cashews?|pistachios?|hazelnuts?|pecans?|peanuts?|tahini|seeds?)\b/.test(blob) &&
+    !/chocolate|bar|candy|flavour|flavor|chip|nutella/.test(blob)
+  ) {
+    return "nuts";
+  }
   if (/ham|beef|steak|bacon|salami|sausage|charcuterie/.test(blob) && !/flavour|flavor|chip|crisp/.test(blob)) {
     return "red-meat";
   }

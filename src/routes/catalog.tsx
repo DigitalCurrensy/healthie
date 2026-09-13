@@ -13,6 +13,8 @@ import { bandLabel, typeLabel } from "@/lib/copy";
 import { scoreBand, type ScoreBand } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import type { CatalogCard } from "@/lib/server/catalog";
+import { usePrefs } from "@/lib/prefs";
+import { cardFlaggedForMode, shoppingModeLabel } from "@/lib/catalog/mode";
 
 type CatalogSearch = { q?: string };
 type Kind = "all" | ProductType;
@@ -33,6 +35,9 @@ function CatalogPage() {
   const [kind, setKind] = useState<Kind>("all");
   const [band, setBand] = useState<BandFilter>("all");
   const [shown, setShown] = useState(60);
+  const [hideFlagged, setHideFlagged] = useState(true);
+  const lifeStage = usePrefs((s) => s.lifeStage);
+  const modeLabel = shoppingModeLabel(lifeStage);
   const [remote, setRemote] = useState<CatalogCard[] | null>(null);
   const [searching, setSearching] = useState(false);
   const houses = useMemo(() => metricsFromCards(seeded), [seeded]);
@@ -68,6 +73,7 @@ function CatalogPage() {
     return base.filter((p) => {
       if (kind !== "all" && p.type !== kind) return false;
       if (band !== "all" && scoreBand(p.overallScore) !== band) return false;
+      if (lifeStage !== "none" && hideFlagged && cardFlaggedForMode(p.barcode, lifeStage)) return false;
       if (remote) return true;
       const needle = query.trim().toLowerCase();
       if (!needle) return true;
@@ -78,7 +84,7 @@ function CatalogPage() {
         p.categoryPath.includes(needle)
       );
     });
-  }, [seeded, query, kind, band, remote]);
+  }, [seeded, query, kind, band, remote, lifeStage, hideFlagged]);
 
   const visible = filtered.slice(0, shown);
 
@@ -89,6 +95,18 @@ function CatalogPage() {
         title="Aisles"
         body="Twenty-seven aisles. Hundreds of packs — food, beauty, pet, household. We stock the worst on purpose so the mixer is honest. Search the world pantry when our shelves aren’t enough."
       />
+
+      {modeLabel ? (
+        <div className="mt-4 rounded-lg bg-surface px-4 py-3 shadow-[var(--shadow-border)]">
+          <p className="font-medium">{modeLabel}</p>
+          <p className="mt-1 text-sm text-muted">
+            Packs with extras we’d skip in this mode are hidden. The independent number does not move.
+          </p>
+          <Button className="mt-2" size="sm" variant="secondary" onClick={() => setHideFlagged((v) => !v)}>
+            {hideFlagged ? "Show flagged packs" : "Hide flagged packs"}
+          </Button>
+        </div>
+      ) : null}
 
       <section className="mt-8">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

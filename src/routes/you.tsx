@@ -105,8 +105,11 @@ function YouPage() {
       ) : null}
 
       <section className="mt-8">
-        <h2 className="font-display text-xl font-medium">Life stage</h2>
-        <p className="mt-1 text-sm text-muted">We’ll be extra careful with leave-on beauty extras and a few food additives.</p>
+        <h2 className="font-display text-xl font-medium">Who you’re shopping for</h2>
+        <p className="mt-1 text-sm text-muted">
+          Pregnancy or a child is a mode, not a note. Watch-outs become stops. Aisles hide those packs. The disc on the
+          pack does not move.
+        </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {(["none", "pregnancy", "child"] as const).map((d) => (
             <Button
@@ -115,7 +118,7 @@ function YouPage() {
               variant={prefs.lifeStage === d ? "default" : "secondary"}
               onClick={() => prefs.setLifeStage(d)}
             >
-              {d === "none" ? "No extra filter" : d === "pregnancy" ? "Pregnancy" : "Child"}
+              {d === "none" ? "Everyone" : d === "pregnancy" ? "Pregnancy" : "A child"}
             </Button>
           ))}
         </div>

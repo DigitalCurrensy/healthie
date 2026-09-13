@@ -101,7 +101,11 @@ export function packFaceStyle(barcode?: string | null): { background: string; co
   const d = (barcode || "0").replace(/\D/g, "") || "0";
   let h = 0;
   for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
-  return { background: `hsl(${h} 32% 88%)`, color: `hsl(${h} 28% 22%)` };
+  const h2 = (h + 48 + (Number(d.slice(-2)) || 0) * 3) % 360;
+  return {
+    background: `linear-gradient(145deg, hsl(${h} 38% 86%), hsl(${h2} 34% 78%))`,
+    color: `hsl(${h} 32% 22%)`,
+  };
 }
 
 export function packToneClass(categoryPath?: string, type?: ProductType): string {

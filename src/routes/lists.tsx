@@ -3,10 +3,12 @@ import { X } from "lucide-react";
 import { AppShell } from "@/components/lumen/shell";
 import { PageHeader, EmptyState } from "@/components/lumen/empty";
 import { Button } from "@/components/ui/button";
-import { ScoreChip } from "@/components/lumen/score-ring";
+import { ScoreChip, ScoreRing } from "@/components/lumen/score-ring";
 import { usePrefs } from "@/lib/prefs";
 import { useHistory } from "@/lib/history";
 import { cn } from "@/lib/utils";
+import { scoreCart } from "@/lib/catalog/cart";
+import { bandLabel } from "@/lib/copy";
 
 export const Route = createFileRoute("/lists")({
   component: ListsPage,
@@ -19,13 +21,14 @@ function ListsPage() {
   const clear = usePrefs((s) => s.clearList);
   const history = useHistory((s) => s.items);
   const swapHint = history.filter((i) => i.score < 50).slice(0, 3);
+  const week = scoreCart(list);
 
   return (
     <AppShell>
       <PageHeader
-        kicker="Bring this to the shop"
+        kicker="The week, not the pack"
         title="List"
-        body="Add a product from its page. Tick it off as you walk the aisle."
+        body="Add a product from its page. The number above the list is the week — two Poor everyday packs cannot make a Good week."
         action={
           list.length > 0 ? (
             <Button variant="ghost" size="sm" onClick={clear}>
@@ -35,6 +38,16 @@ function ListsPage() {
         }
       />
 
+      {week ? (
+        <section className="mt-6 flex items-start gap-4 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+          <ScoreRing score={week.overall} size={72} />
+          <div className="min-w-0">
+            <p className="kicker">{bandLabel(week.band)} week · {week.of} packs</p>
+            <p className="mt-1 text-[15px] leading-relaxed">{week.headline}</p>
+            {week.sugarLine ? <p className="mt-2 text-sm leading-relaxed text-muted">{week.sugarLine}</p> : null}
+          </div>
+        </section>
+      ) : null}
       {list.length === 0 ? (
         <EmptyState
           title="Your list is empty"

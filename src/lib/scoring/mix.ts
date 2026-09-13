@@ -1,6 +1,10 @@
 import { clamp } from "../utils";
 import type { NutriLetter, ScoreReason } from "./types";
 
+/** Frozen mixer. Journalists cite this stamp. Print How scoring works to PDF. */
+export const MIXER_VERSION = "2026.09.13";
+export const MIXER_NAME = "Healthie mixer";
+
 export const FOOD_WEIGHTS = {
   nutrition: 0.5,
   integrity: 0.25,

@@ -13,6 +13,7 @@ import { ensureScanEngine } from "@/lib/scan/engine";
 import { normalizeBarcode } from "@/lib/utils";
 import { VOICE } from "@/lib/copy";
 import { useHistory } from "@/lib/history";
+import { InstallCard } from "@/components/lumen/install";
 
 export const Route = createFileRoute("/scan")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -84,6 +85,7 @@ function ScanPage() {
       {busy ? <ReadingOverlay title={busy} /> : null}
 
       <PageHeader kicker="The lens" title="Scan" body={VOICE.scanHint} />
+      <InstallCard />
 
       <section className="mt-6 space-y-3">
         <ScanActions

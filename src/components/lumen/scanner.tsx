@@ -32,7 +32,7 @@ import {
   videoToOverlay,
 } from "@/lib/scan/geometry";
 import { videoToJpegFile } from "@/lib/scan/image";
-import { rememberPack } from "@/lib/scan/session";
+import { rememberPack, rememberGs1 } from "@/lib/scan/session";
 import { SAMPLE_PACKS } from "@/lib/scan/samples";
 import { playScanBeep } from "@/lib/scan/beep";
 
@@ -256,6 +256,11 @@ export function ScannerSheet({
         }
       } catch {
         /* still look the code up */
+      }
+      if (lastHit && lastHit.barcode === code) {
+        rememberGs1({ gtin: code, lot: lastHit.lot, expiry: lastHit.expiry });
+      } else {
+        rememberGs1({ gtin: code });
       }
       if (!cancelled) onDetectRef.current(code);
     }

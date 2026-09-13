@@ -24,6 +24,9 @@ import { brandSlug } from "@/lib/catalog/brands";
 import { offProductUrl } from "@/lib/catalog/pack-image";
 import { aisleStanding } from "@/lib/catalog/standing";
 import { councilNote, servingHonesty } from "@/lib/catalog/council";
+import { scanSafety } from "@/lib/catalog/recalls";
+import { peekLastGs1 } from "@/lib/scan/session";
+import { formatGs1Expiry } from "@/lib/scan/gtin";
 import { toast } from "sonner";
 import {
   additiveCountLabel,
@@ -270,6 +273,8 @@ function ProductView({
   const standing = aisleStanding(product);
   const council = councilNote(product, standing);
   const serving = servingHonesty(product);
+  const gs1 = peekLastGs1(product.barcode);
+  const safety = scanSafety({ gtin: product.barcode, lot: gs1?.lot, expiry: gs1?.expiry });
 
   const [copied, setCopied] = useState(false);
   const [priceBoard, setPriceBoard] = useState(prices);
@@ -348,6 +353,24 @@ function ProductView({
       <p className="mt-4 max-w-prose text-[15px] leading-relaxed">{s.headline}</p>
       {standing ? <p className="mt-2 text-sm leading-relaxed text-muted">{standing.line}</p> : null}
       {serving ? <p className="mt-2 text-sm leading-relaxed text-muted">{serving}</p> : null}
+      {gs1?.lot || gs1?.expiry ? (
+        <p className="mt-2 text-sm text-muted">
+          {gs1.lot ? `Lot ${gs1.lot}` : ""}
+          {gs1.lot && gs1.expiry ? " · " : ""}
+          {gs1.expiry ? `Best before ${formatGs1Expiry(gs1.expiry) ?? gs1.expiry}` : ""}
+        </p>
+      ) : null}
+
+      {safety.length > 0 ? (
+        <ul className="mt-4 space-y-2">
+          {safety.map((h) => (
+            <li key={h.title} className="rounded-lg bg-score-bad px-4 py-3 text-accent-fg shadow-[var(--shadow-border)]">
+              <p className="font-medium">{h.title}</p>
+              <p className="mt-0.5 text-sm text-accent-fg/80">{h.detail}</p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <section className="mt-4 rounded-lg bg-surface px-4 py-3 shadow-[var(--shadow-border)]">
         <p className="kicker">{council.kicker}</p>

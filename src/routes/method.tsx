@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/lumen/shell";
 import { PageHeader } from "@/components/lumen/empty";
+import { Button } from "@/components/ui/button";
+import { MIXER_VERSION } from "@/lib/scoring/mix";
 
 export const Route = createFileRoute("/method")({
   component: MethodPage,
@@ -10,9 +12,21 @@ function MethodPage() {
   return (
     <AppShell>
       <PageHeader
-        kicker="The rules"
+        kicker={`Mixer ${MIXER_VERSION}`}
         title="How scoring works"
-        body="A number from 0 to 100, the same for food, beauty, and pet. No brand pays for a better score. We read the pack — nutrition and the ingredient list — and we keep the language human."
+        body="A number from 0 to 100, the same for food, beauty, and pet. No brand pays for a better score. We read the pack — nutrition and the ingredient list — and we keep the language human. This page is the frozen method. Print it. Cite it. The disc does not move because a brand called."
+        action={
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" onClick={() => window.print()}>
+              Print / save PDF
+            </Button>
+            <Button variant="secondary" size="sm" asChild>
+              <a href="/method.txt" download>
+                Download
+              </a>
+            </Button>
+          </div>
+        }
       />
 
       <section className="mt-8">
