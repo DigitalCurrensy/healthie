@@ -178,8 +178,8 @@ export const AISLES: Aisle[] = [
     title: "Makeup",
     kicker: "What stays on the face",
     blurb: "Colour is the job. Fragrance, formaldehyde-releasers, and cheap preservatives are not.",
-    howToShop: "Leave-on colour with a perfume is a all-day extra. Mineral tints and short INCI lists are the keep.",
     image: "/images/makeup.jpg",
+    howToShop: "Leave-on colour with a perfume is a all-day extra. Mineral tints and short INCI lists are the keep.",
     kind: "cosmetic",
   },
   {
@@ -287,20 +287,22 @@ export const AISLES: Aisle[] = [
 export const AISLE_BY_PATH = new Map(AISLES.map((a) => [a.path, a]));
 export const AISLE_BY_SLUG = new Map(AISLES.map((a) => [a.slug, a]));
 
+const TYPE_WORDS = new Set(["food", "cosmetic", "pet", "all"]);
+
 export function aisleFor(categoryPath: string): Aisle | undefined {
-  const direct = AISLE_BY_PATH.get(categoryPath);
+  const key = (categoryPath || "").trim().toLowerCase();
+  if (!key || TYPE_WORDS.has(key)) return undefined;
+  const direct = AISLE_BY_PATH.get(key) ?? AISLE_BY_SLUG.get(key);
   if (direct) return direct;
-  return AISLES.find((a) => categoryPath.includes(a.path) || a.path.includes(categoryPath));
+  if (key.length < 4) return undefined;
+  return AISLES.find((a) => key === a.path || key === a.slug);
 }
 
 export function aisleImage(categoryPath: string, fallback?: string | null): string {
-  return fallback || aisleFor(categoryPath)?.image || "/images/hero.jpg";
+  if (fallback && fallback.startsWith("/images/")) return fallback;
+  return aisleFor(categoryPath)?.image || fallback || "/images/hero.jpg";
 }
 
-/**
- * Map Open Food / Beauty / Pet Facts tags onto our 27 aisles.
- * Specific tags first so chocolate milk doesn't land in chocolate, etc.
- */
 export function aislePathFromTags(
   tags: string[] | undefined,
   title: string,
@@ -359,4 +361,3 @@ export function aislePathFromTags(
   }
   return "staples";
 }
-
