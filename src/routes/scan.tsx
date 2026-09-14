@@ -85,12 +85,6 @@ function ScanPage() {
       {busy ? <ReadingOverlay title={busy} /> : null}
 
       <PageHeader kicker="The lens" title="Scan" body={VOICE.scanHint} />
-      <img
-        src="/images/install.jpg"
-        alt="Healthie on a kitchen counter"
-        className="mt-5 aspect-[4/3] w-full rounded-xl object-cover shadow-[var(--shadow-border)]"
-      />
-      <InstallCard />
 
       <section className="mt-6 space-y-3">
         <ScanActions
@@ -124,16 +118,18 @@ function ScanPage() {
         {error ? <p className="text-sm text-score-poor">{error}</p> : null}
       </section>
 
-      <section className="mt-8">
-        <h2 className="font-display text-xl font-bold">Try a pack we already scored</h2>
-        <p className="mt-1 text-sm text-muted">Same score as a live scan — useful on a computer, or while the lens warms up.</p>
-        <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6">
+      <InstallCard />
+
+      <section className="mt-10">
+        <h2 className="font-display text-2xl font-medium">Try a pack we already scored</h2>
+        <p className="mt-1 text-sm text-muted">Same number as a live scan — useful on a computer.</p>
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {SAMPLE_PACKS.map((p) => (
             <button
               key={p.barcode}
               type="button"
               onClick={() => void openProduct(p.barcode)}
-              className="overflow-hidden rounded-xl bg-surface text-left shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)]"
+              className="overflow-hidden rounded-md bg-surface text-left shadow-[var(--shadow-border)]"
             >
               <img src={p.image} alt="" className="aspect-square w-full object-cover" />
               <span className="block truncate px-2 py-1.5 text-xs font-semibold">{p.title}</span>
@@ -144,7 +140,7 @@ function ScanPage() {
 
       {recent.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-display text-xl font-bold">Recently opened</h2>
+          <h2 className="font-display text-2xl font-medium">Recently opened</h2>
           <div className="mt-3 flex flex-col gap-2">
             {recent.map((p) => (
               <ProductCard
