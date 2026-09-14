@@ -44,6 +44,11 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+const STAGE = [
+  { barcode: "5449000000996", title: "Coca-Cola Classic", brand: "Coca-Cola", score: 35, image: "/packs/5449000000996.jpg" },
+  { barcode: "3274080005003", title: "Evian", brand: "Evian", score: 95, image: "/packs/3274080005003.jpg" },
+] as const;
+
 function Home() {
   const { featured, world } = Route.useLoaderData();
   const navigate = useNavigate();
@@ -115,22 +120,45 @@ function Home() {
     <AppShell wide>
       {busy ? <ReadingOverlay title={busy} /> : null}
 
-      <section className="healthie-in max-w-xl">
-        <p className="kicker">Food · beauty · pet</p>
-        <h1 className="mt-3 font-display text-[2.6rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.4rem]">
-          Scan it. Know immediately.
-        </h1>
-        <p className="mt-4 max-w-prose text-[16px] leading-relaxed text-muted">
-          A 0–100 score for what’s in the pack — nutrition, extras, processing. Then the better neighbour in the same aisle.{" "}
-          {VOICE.independent}
-        </p>
-        <p className="mt-3 text-sm text-muted">
-          <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
-          indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet.
-        </p>
+      <section className="grid items-end gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-6">
+          <p className="kicker">Food · beauty · pet</p>
+          <h1 className="mt-3 font-display text-[2.55rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.25rem]">
+            Scan it. Know immediately.
+          </h1>
+          <p className="mt-4 max-w-prose text-[16px] leading-relaxed text-muted">
+            A 0–100 score for what’s in the pack — nutrition, extras, processing. Then the better neighbour in the same aisle.{" "}
+            {VOICE.independent}
+          </p>
+          <p className="mt-3 text-sm text-muted">
+            <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
+            indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 lg:col-span-6">
+          {STAGE.map((p) => (
+            <Link
+              key={p.barcode}
+              to="/product/$barcode"
+              params={{ barcode: p.barcode }}
+              className="group overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)]"
+            >
+              <div className="relative aspect-[4/5] bg-surface-2">
+                <img src={p.image} alt={p.title} className="size-full object-cover" />
+                <div className="absolute right-3 top-3">
+                  <ScoreChip score={p.score} />
+                </div>
+              </div>
+              <div className="px-3 py-2.5">
+                <p className="truncate text-sm font-semibold">{p.title}</p>
+                <p className="text-xs text-muted">{p.brand}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
 
-      <section className="healthie-in-2 mt-8 space-y-3">
+      <section className="mt-8 space-y-3">
         <ScanActions
           onSession={scan.apply}
           onImage={(f) => void onImage(f)}
@@ -157,28 +185,28 @@ function Home() {
           />
         </form>
         {error ? <p className="text-sm text-score-poor">{error}</p> : null}
-        <p className="text-sm text-muted">{VOICE.scanHint}</p>
         <BandLegend />
-        <div className="pt-1">
-          <p className="kicker">Try a scored pack</p>
-          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {SAMPLE_PACKS.map((p) => (
-              <button
-                key={p.barcode}
-                type="button"
-                onClick={() => void openProduct(p.barcode)}
-                className="overflow-hidden rounded-md bg-surface text-left shadow-[var(--shadow-border)]"
-              >
-                <img src={p.image} alt="" className="aspect-square w-full object-cover" />
-                <span className="block truncate px-1.5 py-1 text-[11px] font-semibold">{p.title}</span>
-              </button>
-            ))}
+      </section>
+
+      <section className="mt-12">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="font-display text-2xl font-medium">Shop by aisle</h2>
+            <p className="mt-1 text-sm text-muted">Twenty-seven aisles. The mixer is honest because the shelves are not.</p>
           </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/catalog">All aisles</Link>
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {AISLES.slice(0, 8).map((a) => (
+            <AisleCard key={a.slug} slug={a.slug} title={a.title} kicker={a.kicker} image={a.image} />
+          ))}
         </div>
       </section>
 
       {!prefs.onboardingDone ? (
-        <section className="healthie-in-3 mt-8 flex flex-col gap-4 rounded-md bg-surface p-5 shadow-[var(--shadow-border)] md:flex-row md:items-center md:justify-between">
+        <section className="mt-10 flex flex-col gap-4 rounded-md bg-surface p-5 shadow-[var(--shadow-border)] md:flex-row md:items-center md:justify-between">
           <div className="min-w-0 md:max-w-xl">
             <p className="kicker">20 seconds</p>
             <h2 className="mt-1 font-display text-lg font-medium">Flag allergens and extras</h2>
@@ -245,27 +273,13 @@ function Home() {
       ) : null}
 
       <section className="mt-12">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-medium">Shop by aisle</h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/catalog">All aisles</Link>
-          </Button>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {AISLES.map((a) => (
-            <AisleCard key={a.slug} slug={a.slug} title={a.title} kicker={a.kicker} image={a.image} />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-12">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-medium">Open a product</h2>
+          <h2 className="font-display text-2xl font-medium">On the shelves</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">Full catalog</Link>
           </Button>
         </div>
-        <div className="grid gap-2 md:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {(spotlight.length ? spotlight : featured.slice(0, 6)).map((p: CatalogCard) => (
             <ProductCard
               key={p.barcode}
@@ -277,7 +291,25 @@ function Home() {
               score={p.overallScore}
               imageUrl={p.imageUrl}
               categoryPath={p.categoryPath}
+              layout="tile"
             />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <p className="kicker">Try a scored pack</p>
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+          {SAMPLE_PACKS.map((p) => (
+            <button
+              key={p.barcode}
+              type="button"
+              onClick={() => void openProduct(p.barcode)}
+              className="overflow-hidden rounded-md bg-surface text-left shadow-[var(--shadow-border)]"
+            >
+              <img src={p.image} alt="" className="aspect-square w-full object-cover" />
+              <span className="block truncate px-1.5 py-1 text-[11px] font-semibold">{p.title}</span>
+            </button>
           ))}
         </div>
       </section>
