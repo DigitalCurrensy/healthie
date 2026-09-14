@@ -26,7 +26,39 @@ export function localPackUrl(barcode?: string | null): string | null {
   return `/packs/${d}.jpg`;
 }
 
-export function packFaceStyle(barcode?: string | null): { hue: number; background: string; color: string } {
+const BRAND_PAINT: Array<{ test: RegExp; fill: string; ink: string }> = [
+  { test: /diet coke|coca-cola zero|coke zero/, fill: "#C5C7C9", ink: "#1A1A1A" },
+  { test: /coca-cola|coke/, fill: "#E41C23", ink: "#1A0A0A" },
+  { test: /pepsi/, fill: "#004B93", ink: "#0A1628" },
+  { test: /sprite/, fill: "#00A651", ink: "#063318" },
+  { test: /fanta/, fill: "#FF8A00", ink: "#4A2200" },
+  { test: /red bull/, fill: "#0033A0", ink: "#C5A059" },
+  { test: /gatorade/, fill: "#FF6A00", ink: "#2A1200" },
+  { test: /evian/, fill: "#8FD0E8", ink: "#16324A" },
+  { test: /perrier/, fill: "#1B7A3A", ink: "#06180C" },
+  { test: /pellegrino/, fill: "#1E4D8C", ink: "#F2E6C9" },
+  { test: /tropicana/, fill: "#F27D00", ink: "#3A1C00" },
+  { test: /heinz/, fill: "#B0102E", ink: "#2A0008" },
+  { test: /nutella|ferrero/, fill: "#4A2A14", ink: "#E8C36A" },
+  { test: /oreo/, fill: "#1A1A1A", ink: "#F4F0E6" },
+  { test: /dorito/, fill: "#E35205", ink: "#2A1000" },
+  { test: /walkers|lay's|lays/, fill: "#E10613", ink: "#2A0406" },
+  { test: /haribo/, fill: "#E10613", ink: "#FFD200" },
+  { test: /barilla/, fill: "#003DA5", ink: "#F4F0E6" },
+  { test: /lindt/, fill: "#6B0F1A", ink: "#E8C36A" },
+  { test: /activia|danone/, fill: "#5EAF3A", ink: "#14300C" },
+  { test: /coco pops|kellogg/, fill: "#6B3A14", ink: "#F4E2C4" },
+  { test: /herta/, fill: "#C8102E", ink: "#F4F0E6" },
+];
+
+export function packFaceStyle(
+  barcode?: string | null,
+  title?: string,
+  brand?: string,
+): { hue: number; background: string; color: string } {
+  const blob = `${title || ""} ${brand || ""}`.toLowerCase();
+  const painted = BRAND_PAINT.find((row) => row.test.test(blob));
+  if (painted) return { hue: 0, background: painted.fill, color: painted.ink };
   const d = rawDigits(barcode) || "0";
   let h = 0;
   for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
@@ -71,20 +103,18 @@ export function offPackUrls(barcode?: string | null, type?: ProductType): string
 
 type SpriteKind = "can" | "bottle" | "jar" | "box" | "bag" | "cup" | "tube" | "tin";
 
-function spriteKind(title: string, brand: string, type?: ProductType): SpriteKind {
-  const blob = `${title} ${brand}`.toLowerCase();
-  if (type === "cosmetic") {
-    if (/spf|sun|lotion|cream|balm/.test(blob)) return "tube";
-    if (/shampoo|wash|oil/.test(blob)) return "bottle";
+function spriteKind(title: string, brand: string, type?: ProductType, categoryPath?: string): SpriteKind {
+  const blob = `${title} ${brand} ${categoryPath || ""}`.toLowerCase();
+  if (type === "cosmetic" || /skincare|hair|sun|body|oral|makeup/.test(blob)) {
+    if (/shampoo|wash|oil|serum/.test(blob)) return "bottle";
     return "tube";
   }
   if (/water|evian|perrier|pellegrino|juice|tropicana|ketchup|sauce/.test(blob)) return "bottle";
-  if (/cola|pepsi|sprite|fanta|red bull|energy|soda|coke|gatorade|bodyarmor/.test(blob)) return "can";
+  if (/cola|pepsi|sprite|fanta|red bull|energy|soda|coke|gatorade|bodyarmor|beverage/.test(blob)) return "can";
   if (/nutella|butter|spread|jam|honey/.test(blob)) return "jar";
-  if (/yogurt|yoghurt|activia|chobani|cup/.test(blob)) return "cup";
-  if (/chip|dorito|lays|walkers|crisp|haribo|gummy|candy/.test(blob)) return "bag";
-  if (/tuna|salmon|tin|sardine/.test(blob)) return "tin";
-  if (/ham|bacon|deli|meat/.test(blob)) return "tin";
+  if (/yogurt|yoghurt|activia|chobani/.test(blob)) return "cup";
+  if (/chip|dorito|lays|walkers|crisp|haribo|gummy|candy|snack/.test(blob)) return "bag";
+  if (/tuna|salmon|tin|sardine|ham|bacon|deli|meat/.test(blob)) return "tin";
   return "box";
 }
 
@@ -124,19 +154,23 @@ function packShape(kind: SpriteKind, fill: string, ink: string): string {
     <rect x="72" y="56" width="176" height="36" fill="${ink}"/>`;
 }
 
-export function generatedPackSvg(title: string, brand: string, barcode?: string | null, type?: ProductType): string {
-  const face = packFaceStyle(barcode);
-  const kind = spriteKind(title, brand, type);
+export function generatedPackSvg(
+  title: string,
+  brand: string,
+  barcode?: string | null,
+  type?: ProductType,
+  categoryPath?: string,
+): string {
+  const face = packFaceStyle(barcode, title, brand);
+  const kind = spriteKind(title, brand, type, categoryPath);
   const label = (title || "Pack").slice(0, 18);
   const house = (brand || "").slice(0, 16);
-  const code = rawDigits(barcode).slice(-6);
-  const paper = `hsl(${face.hue} 10% 91%)`;
+  const paper = face.hue ? `hsl(${face.hue} 10% 91%)` : "#ECE8DF";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="400" viewBox="0 0 320 400">
     <rect width="320" height="400" fill="${paper}"/>
     ${packShape(kind, face.background, face.color)}
-    <text x="160" y="200" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#F7F4EE">${escapeXml(label)}</text>
-    <text x="160" y="220" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#F7F4EE">${escapeXml(house)}</text>
-    <text x="160" y="372" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" fill="${face.color}">${escapeXml(kind)} · ${escapeXml(code)}</text>
+    <text x="160" y="198" text-anchor="middle" font-family="Georgia, serif" font-size="13" fill="#F7F4EE">${escapeXml(label)}</text>
+    <text x="160" y="218" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#F7F4EE">${escapeXml(house)}</text>
   </svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
@@ -167,8 +201,9 @@ export function uniquePackSrc(
   barcode?: string | null,
   imageUrl?: string | null,
   type?: ProductType,
+  categoryPath?: string,
 ): string[] {
-  return [...packCandidates(imageUrl, barcode, type), generatedPackSvg(title, brand, barcode, type)];
+  return [...packCandidates(imageUrl, barcode, type), generatedPackSvg(title, brand, barcode, type, categoryPath)];
 }
 
 export function offProductUrl(barcode: string, type: ProductType): string {
