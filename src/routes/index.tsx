@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { AppShell } from "@/components/lumen/shell";
-import { HealthieLockup } from "@/components/lumen/logo";
 import { AisleCard, ProductCard } from "@/components/lumen/product-card";
 import { BandLegend, ScoreChip } from "@/components/lumen/score-ring";
 import { ScanActions, ScannerSheet, useLensReturn, useScanSession } from "@/components/lumen/scanner";
@@ -99,11 +98,9 @@ function Home() {
 
   const byCode = new Map(featured.map((p) => [p.barcode, p]));
   const pick = (id: string) => byCode.get(id);
-  const faceoff = [
-    pick("009800830039"),
-    pick("0810589032602"),
-    pick("099482513931"),
-  ].filter((p): p is CatalogCard => Boolean(p));
+  const faceoff = [pick("009800830039"), pick("0810589032602"), pick("099482513931")].filter(
+    (p): p is CatalogCard => Boolean(p),
+  );
   const spotlight = [
     pick("5449000000996"),
     pick("3017620422003"),
@@ -118,36 +115,22 @@ function Home() {
     <AppShell wide>
       {busy ? <ReadingOverlay title={busy} /> : null}
 
-      <section className="healthie-in max-w-2xl">
-        <HealthieLockup className="w-52 sm:w-72 md:w-80" />
-        <p className="kicker mt-6">Food · beauty · pet</p>
-        <h1 className="mt-2 font-display text-[2.4rem] font-bold leading-[1.02] tracking-[-0.05em] sm:text-[3.15rem]">
+      <section className="healthie-in max-w-xl">
+        <p className="kicker">Food · beauty · pet</p>
+        <h1 className="mt-3 font-display text-[2.6rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.4rem]">
           Scan it. Know immediately.
         </h1>
-        <p className="mt-3 max-w-prose text-[16px] leading-relaxed text-muted">
+        <p className="mt-4 max-w-prose text-[16px] leading-relaxed text-muted">
           A 0–100 score for what’s in the pack — nutrition, extras, processing. Then the better neighbour in the same aisle.{" "}
           {VOICE.independent}
         </p>
-        <p className="mt-4 text-sm text-muted">
+        <p className="mt-3 text-sm text-muted">
           <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
-          indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet. Scan
-          anything — if it isn’t here yet, we look it up.
+          indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet.
         </p>
-        <figure className="mt-6 overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-border)]">
-          <img
-            src="/og.jpg"
-            alt="Healthie — scan a pack, see the score"
-            width={1200}
-            height={630}
-            className="h-auto w-full object-cover"
-          />
-          <figcaption className="px-4 py-3 text-sm leading-relaxed text-muted">
-            Healthie — scan a pack, see the score.
-          </figcaption>
-        </figure>
       </section>
 
-      <section className="healthie-in-2 mt-7 space-y-3">
+      <section className="healthie-in-2 mt-8 space-y-3">
         <ScanActions
           onSession={scan.apply}
           onImage={(f) => void onImage(f)}
@@ -177,14 +160,14 @@ function Home() {
         <p className="text-sm text-muted">{VOICE.scanHint}</p>
         <BandLegend />
         <div className="pt-1">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-subtle">Try a scored pack</p>
+          <p className="kicker">Try a scored pack</p>
           <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
             {SAMPLE_PACKS.map((p) => (
               <button
                 key={p.barcode}
                 type="button"
                 onClick={() => void openProduct(p.barcode)}
-                className="overflow-hidden rounded-lg bg-surface text-left shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)]"
+                className="overflow-hidden rounded-md bg-surface text-left shadow-[var(--shadow-border)]"
               >
                 <img src={p.image} alt="" className="aspect-square w-full object-cover" />
                 <span className="block truncate px-1.5 py-1 text-[11px] font-semibold">{p.title}</span>
@@ -195,12 +178,12 @@ function Home() {
       </section>
 
       {!prefs.onboardingDone ? (
-        <section className="healthie-in-3 mt-7 flex flex-col gap-4 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)] md:flex-row md:items-center md:justify-between">
+        <section className="healthie-in-3 mt-8 flex flex-col gap-4 rounded-md bg-surface p-5 shadow-[var(--shadow-border)] md:flex-row md:items-center md:justify-between">
           <div className="min-w-0 md:max-w-xl">
             <p className="kicker">20 seconds</p>
-            <h2 className="mt-1 font-display text-lg font-bold">Flag allergens and extras</h2>
+            <h2 className="mt-1 font-display text-lg font-medium">Flag allergens and extras</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted">
-              Pregnancy, palm oil, fragrance, diet. We stop you in the aisle. Sign in and it follows you to the next phone.
+              Pregnancy, palm oil, fragrance, diet. We stop you in the aisle.
             </p>
           </div>
           <Button asChild className="h-12 w-full shrink-0 md:w-auto">
@@ -210,20 +193,16 @@ function Home() {
       ) : null}
 
       {faceoff.length === 3 ? (
-        <section className="mt-10">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2 className="font-display text-xl font-bold">Worst, middle, best</h2>
-              <p className="mt-1 text-sm text-muted">The three packs from a real camera roll. Same aisle logic, three different lives.</p>
-            </div>
-          </div>
-          <div className="grid gap-2 md:grid-cols-3">
+        <section className="mt-12">
+          <h2 className="font-display text-2xl font-medium">Worst, middle, best</h2>
+          <p className="mt-1 text-sm text-muted">Three packs. Same aisle logic.</p>
+          <div className="mt-4 grid gap-2 md:grid-cols-3">
             {faceoff.map((p) => (
               <Link
                 key={p.barcode}
                 to="/product/$barcode"
                 params={{ barcode: p.barcode }}
-                className="flex items-center gap-3 rounded-xl bg-surface p-3 shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)]"
+                className="flex items-center gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)]"
               >
                 <ScoreChip score={p.overallScore} />
                 <div className="min-w-0">
@@ -237,9 +216,9 @@ function Home() {
       ) : null}
 
       {recent.length > 0 ? (
-        <section className="mt-10">
+        <section className="mt-12">
           <div className="mb-3 flex items-end justify-between">
-            <h2 className="font-display text-xl font-bold">Recently opened</h2>
+            <h2 className="font-display text-2xl font-medium">Recently opened</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/history">History</Link>
             </Button>
@@ -265,9 +244,9 @@ function Home() {
         </section>
       ) : null}
 
-      <section className="mt-10">
+      <section className="mt-12">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="font-display text-xl font-bold">Shop by aisle</h2>
+          <h2 className="font-display text-2xl font-medium">Shop by aisle</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">All aisles</Link>
           </Button>
@@ -279,9 +258,9 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-10">
+      <section className="mt-12">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-xl font-bold">Open a product</h2>
+          <h2 className="font-display text-2xl font-medium">Open a product</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">Full catalog</Link>
           </Button>
@@ -303,9 +282,9 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-10 mb-4">
+      <section className="mt-12 mb-4">
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-xl font-bold">Short reads</h2>
+          <h2 className="font-display text-2xl font-medium">Short reads</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/guides">All guides</Link>
           </Button>
@@ -316,9 +295,9 @@ function Home() {
               key={g.slug}
               to="/guides/$slug"
               params={{ slug: g.slug }}
-              className="flex min-h-16 gap-3 rounded-xl bg-surface p-3 shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)]"
+              className="flex min-h-16 gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)]"
             >
-              <img src={g.image} alt="" className="size-16 shrink-0 rounded-md object-cover" />
+              <img src={g.image} alt="" className="size-16 shrink-0 rounded-sm object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold leading-snug">{g.title}</p>
                 <p className="mt-1 line-clamp-2 text-sm text-muted">{g.lede}</p>
