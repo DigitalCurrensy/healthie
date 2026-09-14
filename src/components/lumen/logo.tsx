@@ -21,14 +21,14 @@ export function HealthieWordmark({ className }: { className?: string }) {
   );
 }
 
+/** Full brand lockup. Use once — home masthead. Never next to itself. */
 export function HealthieLockup({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <HealthieMark className="size-8" />
-      <span className="font-display text-[1.25rem] font-semibold tracking-[-0.03em] text-fg">
-        Healthie
-      </span>
-    </span>
+    <img
+      src="/brand/healthie-logo.png"
+      alt="Healthie"
+      className={cn("h-auto w-44 object-contain object-left sm:w-56", className)}
+    />
   );
 }
 

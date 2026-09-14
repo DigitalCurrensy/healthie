@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/lumen/shell";
+import { HealthieMark } from "@/components/lumen/logo";
 import { PageHeader } from "@/components/lumen/empty";
 import { ScanActions, ScannerSheet, beginLiveScan, useLensReturn, useScanSession } from "@/components/lumen/scanner";
 import { ReadingOverlay } from "@/components/lumen/pack-photo";
@@ -84,9 +85,12 @@ function ScanPage() {
     <AppShell>
       {busy ? <ReadingOverlay title={busy} /> : null}
 
-      <PageHeader kicker="The lens" title="Scan" body={VOICE.scanHint} />
+      <div className="mb-6 flex items-center gap-3">
+        <HealthieMark className="size-11" />
+        <PageHeader kicker="The lens" title="Scan" body={VOICE.scanHint} />
+      </div>
 
-      <section className="mt-6 space-y-3">
+      <section className="space-y-3">
         <ScanActions
           onSession={scan.apply}
           onImage={(f) => void onImage(f)}
@@ -118,7 +122,20 @@ function ScanPage() {
         {error ? <p className="text-sm text-score-poor">{error}</p> : null}
       </section>
 
-      <InstallCard />
+      <section className="mt-6 flex items-center gap-4 rounded-md bg-pine px-4 py-4 text-accent-fg">
+        <HealthieMark className="size-12 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-fg/60">On your home screen</p>
+          <p className="mt-1 font-display text-lg leading-tight">Add Healthie so the camera can open.</p>
+          <p className="mt-1 text-sm text-accent-fg/75">Install, open the icon, then scan. This browser window may block the lens.</p>
+        </div>
+        <Button variant="secondary" className="shrink-0" asChild>
+          <Link to="/install">How to install</Link>
+        </Button>
+      </section>
+      <div className="hidden">
+        <InstallCard />
+      </div>
 
       <section className="mt-10">
         <h2 className="font-display text-2xl font-medium">Try a pack we already scored</h2>

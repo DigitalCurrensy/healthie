@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import { AppShell } from "@/components/lumen/shell";
+import { HealthieLockup } from "@/components/lumen/logo";
 import { AisleCard, ProductCard } from "@/components/lumen/product-card";
 import { BandLegend, ScoreChip } from "@/components/lumen/score-ring";
 import { ScanActions, ScannerSheet, useLensReturn, useScanSession } from "@/components/lumen/scanner";
@@ -122,7 +123,8 @@ function Home() {
 
       <section className="grid items-end gap-8 lg:grid-cols-12">
         <div className="lg:col-span-6">
-          <p className="kicker">Food · beauty · pet</p>
+          <HealthieLockup />
+          <p className="kicker mt-6">Food · beauty · pet</p>
           <h1 className="mt-3 font-display text-[2.55rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.25rem]">
             Scan it. Know immediately.
           </h1>
