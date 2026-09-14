@@ -89,8 +89,8 @@ export function packFaceStyle(barcode?: string | null): { background: string; co
   for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
   const h2 = (h + 48 + (Number(d.slice(-2)) || 0) * 3) % 360;
   return {
-    background: `linear-gradient(145deg, hsl(${h} 38% 86%), hsl(${h2} 34% 78%))`,
-    color: `hsl(${h} 32% 22%)`,
+    background: `linear-gradient(145deg, hsl(${h} 18% 82%), hsl(${h2} 14% 74%))`,
+    color: `hsl(${h} 18% 22%)`,
   };
 }
 
@@ -101,24 +101,50 @@ export function packToneClass(categoryPath?: string, type?: ProductType): string
   return "pack-default";
 }
 
-export function offPackUrl(barcode?: string | null): string | null {
-  if (!barcode) return null;
-  if (isDemoBarcode(barcode)) return null;
-  const d = normalizeBarcode(barcode);
-  if (d.length < 8 || d.length > 14) return null;
-  const padded = d.padStart(13, "0");
-  const path = `${padded.slice(0, 3)}/${padded.slice(3, 6)}/${padded.slice(6, 9)}/${padded.slice(9)}`;
-  return `https://images.openfoodfacts.org/images/products/${path}/front_small.jpg`;
+function offHost(type?: ProductType): string {
+  if (type === "cosmetic") return "images.openbeautyfacts.org";
+  if (type === "pet") return "images.openpetfoodfacts.org";
+  return "images.openfoodfacts.org";
 }
 
-export function packCandidates(imageUrl?: string | null, barcode?: string | null): string[] {
+function offPath(digits: string): string | null {
+  const padded = digits.padStart(13, "0");
+  if (padded.length !== 13) return null;
+  return `${padded.slice(0, 3)}/${padded.slice(3, 6)}/${padded.slice(6, 9)}/${padded.slice(9)}`;
+}
+
+const OFF_FILES = ["front_small.jpg", "front.400.jpg", "front_en.400.jpg"] as const;
+
+export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
+  const urls = offPackUrls(barcode, type);
+  return urls[0] ?? null;
+}
+
+export function offPackUrls(barcode?: string | null, type?: ProductType): string[] {
+  if (!barcode || isDemoBarcode(barcode)) return [];
+  const d = normalizeBarcode(barcode);
+  if (d.length < 8 || d.length > 14) return [];
+  const path = offPath(d);
+  if (!path) return [];
+  const hosts = [offHost(type)];
+  if (type && type !== "food") hosts.push("images.openfoodfacts.org");
   const out: string[] = [];
-  const add = (u: string | null) => {
+  for (const host of hosts) {
+    for (const file of OFF_FILES) {
+      out.push(`https://${host}/images/products/${path}/${file}`);
+    }
+  }
+  return out;
+}
+
+export function packCandidates(imageUrl?: string | null, barcode?: string | null, type?: ProductType): string[] {
+  const out: string[] = [];
+  const add = (u: string | null | undefined) => {
     if (u && !out.includes(u)) out.push(u);
   };
   add(realPackUrl(imageUrl));
   add(localPackUrl(barcode));
-  add(offPackUrl(barcode));
+  for (const u of offPackUrls(barcode, type)) add(u);
   return out;
 }
 
