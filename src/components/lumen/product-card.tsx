@@ -4,7 +4,8 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { packInitial, packFaceStyle, packCandidates } from "@/lib/catalog/pack-image";
+import { packCandidates } from "@/lib/catalog/pack-image";
+import { aisleImage } from "@/lib/catalog/aisles";
 
 export function ProductCard({
   barcode,
@@ -41,7 +42,7 @@ export function ProductCard({
           imageUrl={imageUrl}
           categoryPath={categoryPath}
           barcode={barcode}
-          className="aspect-[4/5] size-auto w-full text-3xl"
+          className="aspect-[4/5] size-auto w-full"
         />
         <div className="mt-3 flex items-start gap-3">
           <div className="min-w-0 flex-1">
@@ -93,34 +94,23 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(0);
-  const candidates = packCandidates(imageUrl, barcode, type).slice(0, 3);
-  const src = candidates[failed] ?? null;
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={title}
-        className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
-        onError={() => setFailed((n) => n + 1)}
-        referrerPolicy="no-referrer"
-        loading="lazy"
-        decoding="async"
-      />
-    );
-  }
-  const initial = packInitial(title);
-  const face = packFaceStyle(barcode);
+  const aisle = aisleImage(categoryPath || type || "staples");
+  const candidates = [...packCandidates(imageUrl, barcode, type), aisle].filter(
+    (url, i, all) => Boolean(url) && all.indexOf(url) === i,
+  );
+  const src = candidates[Math.min(failed, candidates.length - 1)] ?? aisle;
   return (
-    <div
-      className={cn(
-        "flex size-16 shrink-0 items-center justify-center font-display text-sm font-medium tracking-tight",
-        className,
-      )}
-      style={face}
-      aria-hidden="true"
-    >
-      {initial}
-    </div>
+    <img
+      src={src}
+      alt={title}
+      className={cn("size-16 shrink-0 bg-surface-2 object-cover", className)}
+      onError={() => {
+        if (failed < candidates.length - 1) setFailed((n) => n + 1);
+      }}
+      referrerPolicy="no-referrer"
+      loading="lazy"
+      decoding="async"
+    />
   );
 }
 
