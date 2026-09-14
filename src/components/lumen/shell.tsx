@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { BookOpen, House, LayoutGrid, ScanLine, Sparkles, UserRound } from "lucide-react";
-import { HealthieWordmark } from "./logo";
+import { HealthieBrand } from "./logo";
 import { AccountChip } from "./account-chip";
 import { AccountSync } from "./account-sync";
 import { cn } from "@/lib/utils";
@@ -55,9 +55,9 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   return (
     <div className="min-h-dvh overflow-x-hidden bg-bg text-fg">
       <AccountSync />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-bg px-6 py-8 md:flex">
-        <Link to="/" aria-label="Healthie home" className="mb-8 inline-flex min-h-11 items-center border-b border-border pb-6">
-          <HealthieWordmark />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-bg px-5 py-7 md:flex">
+        <Link to="/" aria-label="Healthie home" className="mb-7 block border-b border-border pb-5">
+          <HealthieBrand />
         </Link>
         <nav aria-label="Primary">
           <ul className="flex flex-col">
@@ -84,21 +84,21 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
           </ul>
         </nav>
         <p className="mt-auto text-[11px] leading-relaxed text-subtle">
-          {modeLabel ? `${modeLabel}. ` : ""}Independent scores. No brand pays for a better number.
+          {modeLabel ? `${modeLabel}. ` : ""}Independent pack scores. No brand pays for a better number.
         </p>
         <div className="mt-5 border-t border-border pt-4">
           <AccountChip />
         </div>
       </aside>
 
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-bg/92 px-4 pb-3 pt-[max(0.7rem,env(safe-area-inset-top))] backdrop-blur-sm md:hidden">
-        <Link to="/" aria-label="Healthie home" className="inline-flex min-h-11 items-center">
-          <HealthieWordmark />
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-bg/94 px-4 pb-2.5 pt-[max(0.55rem,env(safe-area-inset-top))] backdrop-blur-sm md:hidden">
+        <Link to="/" aria-label="Healthie home" className="min-w-0 flex-1">
+          <HealthieBrand compact />
         </Link>
         <AccountChip />
       </header>
 
-      <main className="px-4 pb-[max(8rem,calc(5.75rem+env(safe-area-inset-bottom)))] md:px-12 md:pb-20 md:pl-64 md:pt-14">
+      <main className="px-4 pb-[max(8rem,calc(5.75rem+env(safe-area-inset-bottom)))] md:px-12 md:pb-20 md:pl-[17.5rem] md:pt-14">
         <div className={cn("mx-auto w-full min-w-0", wide ? "max-w-5xl" : "max-w-3xl")}>{children}</div>
       </main>
 

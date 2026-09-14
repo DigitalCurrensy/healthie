@@ -2,7 +2,7 @@ import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-ro
 import { useEffect, useState, type FormEvent } from "react";
 import { GROK_PROVIDERS, authClient, authEnabled, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { HealthieLockup, HealthieWordmark } from "@/components/lumen/logo";
+import { HealthieBrand } from "@/components/lumen/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -65,12 +65,11 @@ function Login() {
   return (
     <main className="min-h-dvh bg-bg px-5 pb-16 pt-[max(2rem,env(safe-area-inset-top))]">
       <div className="mx-auto w-full max-w-md">
-        <Link to="/" aria-label="Healthie home" className="inline-flex min-h-11 items-center">
-          <HealthieWordmark />
+        <Link to="/" aria-label="Healthie home">
+          <HealthieBrand />
         </Link>
-        <HealthieLockup className="mx-auto mt-8 w-48 sm:w-56" />
-        <p className="kicker mt-8">Your notes, any phone</p>
-        <h1 className="mt-2 font-display text-[2.15rem] font-bold leading-[1.05] tracking-[-0.04em]">
+        <p className="kicker mt-10">Your notes, any phone</p>
+        <h1 className="mt-2 font-display text-[2.15rem] font-medium leading-[1.05] tracking-[-0.04em]">
           History follows you.
         </h1>
         <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">
