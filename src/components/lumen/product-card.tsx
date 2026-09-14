@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
 import { generatedPackSvg, isGenericStill, packCandidates } from "@/lib/catalog/pack-image";
+import { productSprite } from "@/lib/catalog/product-sprite";
 
 export function ProductCard({
   barcode,
@@ -85,10 +86,6 @@ export function ProductCard({
   );
 }
 
-function uniqueFace(title: string, brand: string, barcode?: string) {
-  return generatedPackSvg(title, brand, barcode);
-}
-
 export function ProductThumb({
   title,
   brand,
@@ -106,18 +103,24 @@ export function ProductThumb({
   barcode?: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  const face = uniqueFace(title, brand || "", barcode);
-  const packs = packCandidates(imageUrl, barcode, type, categoryPath).filter((url) => !isGenericStill(url));
-  const src = failed || packs.length === 0 ? face : packs[0]!;
+  const [failed, setFailed] = useState(0);
+  const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
+  const packs = packCandidates(imageUrl, barcode, type).filter((url) => !isGenericStill(url));
+  const face = generatedPackSvg(title, brand || "", barcode, type);
+  const candidates = [...packs, sprite || face].filter(Boolean);
+  const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
+  const tile = Boolean(className && className.includes("w-full"));
   return (
     <img
       src={src}
       alt={title}
-      width={64}
-      height={64}
+      width={tile ? 320 : 64}
+      height={tile ? 400 : 64}
+      sizes={tile ? "(min-width: 1024px) 30vw, 92vw" : "64px"}
       className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
-      onError={() => setFailed(true)}
+      onError={() => {
+        if (failed < candidates.length - 1) setFailed((n) => n + 1);
+      }}
       referrerPolicy="no-referrer"
       loading="lazy"
       decoding="async"
