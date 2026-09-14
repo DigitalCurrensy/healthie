@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
 import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
@@ -34,7 +33,7 @@ export function ProductCard({
         to="/product/$barcode"
         params={{ barcode }}
         aria-label={`${title}, score ${Math.round(score)}`}
-        className="group flex flex-col overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
+        className="group flex flex-col"
       >
         <ProductThumb
           title={title}
@@ -42,11 +41,11 @@ export function ProductCard({
           imageUrl={imageUrl}
           categoryPath={categoryPath}
           barcode={barcode}
-          className="aspect-[4/3] size-auto w-full rounded-none text-3xl"
+          className="aspect-[4/5] size-auto w-full text-3xl"
         />
-        <div className="flex items-start gap-3 p-3">
+        <div className="mt-3 flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold leading-snug text-fg">{title}</p>
+            <p className="truncate font-display text-[17px] font-medium leading-snug tracking-[-0.02em] text-fg">{title}</p>
             <p className="mt-0.5 truncate text-sm text-muted">
               {brand || typeLabel(type)}
               {isOrganic ? " · Organic" : ""}
@@ -63,18 +62,17 @@ export function ProductCard({
       to="/product/$barcode"
       params={{ barcode }}
       aria-label={`${title}, score ${Math.round(score)}`}
-      className="group flex min-h-16 items-center gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
+      className="group flex min-h-16 items-center gap-4 border-b border-border py-3 transition-colors duration-[var(--motion-ui,180ms)] ease-[var(--ease-out,cubic-bezier(.22,1,.36,1))] hover:bg-surface/60"
     >
       <ProductThumb title={title} type={type} imageUrl={imageUrl} categoryPath={categoryPath} barcode={barcode} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold leading-snug text-fg">{title}</p>
+        <p className="truncate font-medium leading-snug text-fg">{title}</p>
         <p className="mt-0.5 truncate text-sm text-muted">
           {brand || typeLabel(type)}
           {isOrganic ? " · Organic" : ""}
         </p>
       </div>
       <ScoreChip score={score} />
-      <ChevronRight className="hidden size-4 shrink-0 text-subtle opacity-0 transition-opacity group-hover:opacity-100 sm:block" aria-hidden />
     </Link>
   );
 }
@@ -88,7 +86,6 @@ export function ProductThumb({
   className,
 }: {
   title: string;
-  title: string;
   type: ProductType;
   imageUrl?: string | null;
   categoryPath?: string;
@@ -96,14 +93,14 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(0);
-  const candidates = packCandidates(imageUrl, barcode);
+  const candidates = packCandidates(imageUrl, barcode, type);
   const src = candidates[failed] ?? null;
   if (src) {
     return (
       <img
         src={src}
         alt={title}
-        className={cn("size-14 shrink-0 rounded-sm bg-surface-2 object-contain p-1", className)}
+        className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
         onError={() => setFailed((n) => n + 1)}
         referrerPolicy="no-referrer"
       />
@@ -114,7 +111,7 @@ export function ProductThumb({
   return (
     <div
       className={cn(
-        "flex size-14 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold tracking-tight",
+        "flex size-16 shrink-0 items-center justify-center font-display text-sm font-medium tracking-tight",
         className,
       )}
       style={face}
@@ -139,21 +136,16 @@ export function AisleCard({
   count?: number;
 }) {
   return (
-    <Link
-      to="/aisle/$slug"
-      params={{ slug }}
-      aria-label={`${title} aisle`}
-      className="group overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
-    >
+    <Link to="/aisle/$slug" params={{ slug }} aria-label={`${title} aisle`} className="group block">
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={image}
           alt={`${title} aisle`}
-          className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out motion-safe:group-hover:scale-[1.04]"
+          className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-fg/55 via-fg/0 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-fg/70 via-fg/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-3 text-accent-fg">
-          <p className="font-semibold leading-tight drop-shadow-sm">{title}</p>
+          <p className="font-display text-lg font-medium leading-tight tracking-[-0.02em]">{title}</p>
           <p className="mt-0.5 line-clamp-1 text-xs text-accent-fg/80">
             {count ? `${count} on the shelves` : kicker}
           </p>
