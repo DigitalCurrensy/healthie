@@ -18,6 +18,14 @@ const NAV = [
   { to: "/you", label: "You", icon: UserRound, exact: false },
 ] as const;
 
+const MOBILE_NAV = [
+  { to: "/", label: "Home", icon: House, exact: true, primary: false },
+  { to: "/catalog", label: "Aisles", icon: LayoutGrid, exact: false, primary: false },
+  { to: "/scan", label: "Scan", icon: ScanLine, exact: true, primary: true },
+  { to: "/guides", label: "Guides", icon: BookOpen, exact: false, primary: false },
+  { to: "/you", label: "You", icon: UserRound, exact: false, primary: false },
+] as const;
+
 const YOU_PATHS = ["/history", "/method", "/compare", "/saved", "/ingredients", "/ingredient", "/lists", "/brand", "/install", "/recalls", "/demo"];
 
 export function AppShell({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
@@ -55,12 +63,12 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   return (
     <div className="min-h-dvh overflow-x-hidden bg-bg text-fg">
       <AccountSync />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-bg px-5 py-7 md:flex">
-        <Link to="/" aria-label="Healthie home" className="mb-7 block border-b border-border pb-5">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-bg px-6 py-8 md:flex">
+        <Link to="/" aria-label="Healthie home" className="mb-8 block border-b border-border pb-6">
           <HealthieBrand />
         </Link>
         <nav aria-label="Primary">
-          <ul className="flex flex-col">
+          <ul className="flex flex-col gap-0.5">
             {NAV.map((item) => {
               const active = isActive(pathname, item);
               const Icon = item.icon;
@@ -69,13 +77,11 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
                   <Link
                     to={item.to}
                     className={cn(
-                      "flex min-h-11 items-center gap-3 border-l-2 px-3 text-[14px] tracking-wide transition-colors duration-150",
-                      active
-                        ? "border-gold font-medium text-fg"
-                        : "border-transparent text-muted hover:text-fg",
+                      "flex min-h-12 items-center gap-3 px-3 text-[15px] tracking-wide transition-colors duration-150",
+                      active ? "bg-pine text-accent-fg" : "text-muted hover:bg-surface hover:text-fg",
                     )}
                   >
-                    <Icon className="size-4" strokeWidth={1.6} />
+                    <Icon className="size-4" strokeWidth={active ? 1.9 : 1.6} />
                     {item.label}
                   </Link>
                 </li>
@@ -98,18 +104,31 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         <AccountChip />
       </header>
 
-      <main className="px-4 pb-[max(8rem,calc(5.75rem+env(safe-area-inset-bottom)))] md:px-12 md:pb-20 md:pl-[17.5rem] md:pt-14">
-        <div className={cn("mx-auto w-full min-w-0", wide ? "max-w-5xl" : "max-w-3xl")}>{children}</div>
+      <main className="px-4 pb-[max(8.75rem,calc(6.5rem+env(safe-area-inset-bottom)))] pt-6 md:px-16 md:pb-24 md:pl-[18.5rem] md:pt-16">
+        <div className={cn("mx-auto w-full min-w-0", wide ? "max-w-6xl" : "max-w-3xl")}>{children}</div>
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-sm md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg/96 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-sm md:hidden"
         aria-label="Primary"
       >
-        <ul className="grid grid-cols-6">
-          {NAV.map((item) => {
+        <ul className="grid grid-cols-5 items-end">
+          {MOBILE_NAV.map((item) => {
             const active = isActive(pathname, item);
             const Icon = item.icon;
+            if (item.primary) {
+              return (
+                <li key={item.to} className="flex justify-center">
+                  <Link
+                    to={item.to}
+                    aria-label="Scan"
+                    className="-mt-5 flex size-14 flex-col items-center justify-center rounded-full bg-pine text-accent-fg"
+                  >
+                    <ScanLine className="size-6" strokeWidth={1.8} />
+                  </Link>
+                </li>
+              );
+            }
             return (
               <li key={item.to}>
                 <Link
@@ -130,7 +149,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
       {compareCount > 0 && pathname !== "/compare" ? (
         <Link
           to="/compare"
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 bg-accent px-4 py-2 text-sm font-medium text-accent-fg md:bottom-6"
+          className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 bg-accent px-4 py-2 text-sm font-medium text-accent-fg md:bottom-6"
         >
           Compare tray · {compareCount} of 2
         </Link>
@@ -139,7 +158,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   );
 }
 
-function isActive(pathname: string, item: (typeof NAV)[number]) {
+function isActive(pathname: string, item: { to: string; exact?: boolean }) {
   if (item.exact) return pathname === item.to;
   if (item.to === "/you") {
     return pathname.startsWith("/you") || YOU_PATHS.some((p) => pathname.startsWith(p));
