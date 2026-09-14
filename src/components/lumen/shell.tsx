@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BookOpen, LayoutGrid, ScanLine, Sparkles, UserRound } from "lucide-react";
+import { BookOpen, House, LayoutGrid, ScanLine, Sparkles, UserRound } from "lucide-react";
 import { HealthieWordmark } from "./logo";
 import { AccountChip } from "./account-chip";
 import { AccountSync } from "./account-sync";
@@ -10,6 +10,7 @@ import { usePrefs } from "@/lib/prefs";
 import { shoppingModeLabel } from "@/lib/catalog/mode";
 
 const NAV = [
+  { to: "/", label: "Home", icon: House, exact: true },
   { to: "/scan", label: "Scan", icon: ScanLine, exact: true },
   { to: "/catalog", label: "Aisles", icon: LayoutGrid, exact: false },
   { to: "/guides", label: "Guides", icon: BookOpen, exact: false },
@@ -103,7 +104,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-sm md:hidden"
         aria-label="Primary"
       >
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {NAV.map((item) => {
             const active = isActive(pathname, item);
             const Icon = item.icon;
