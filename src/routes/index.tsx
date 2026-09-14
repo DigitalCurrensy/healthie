@@ -119,23 +119,24 @@ function Home() {
     <AppShell wide>
       {busy ? <ReadingOverlay title={busy} /> : null}
 
-      <section className="grid items-end gap-8 lg:grid-cols-12">
+      <section className="grid items-end gap-10 lg:grid-cols-12 lg:gap-14">
         <div className="order-2 lg:order-1 lg:col-span-5">
-          <p className="kicker">Food · beauty · pet</p>
-          <h1 className="mt-3 font-display text-[2.4rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.1rem]">
-            Scan it. Know immediately.
+          <p className="kicker">Independent pack scores</p>
+          <h1 className="mt-4 font-display text-[clamp(2.75rem,6vw,4.75rem)] font-medium leading-[0.92] tracking-[-0.045em]">
+            Scan it.
+            <br />
+            Know immediately.
           </h1>
-          <p className="mt-4 max-w-prose text-[16px] leading-relaxed text-muted">
-            A 0–100 score for what’s in the pack — nutrition, extras, processing. Then the better neighbour in the same aisle.{" "}
-            {VOICE.independent}
+          <p className="mt-5 max-w-[34rem] text-[17px] leading-relaxed text-muted">
+            A 0–100 score for what’s in the pack — nutrition, extras, processing. Then the better neighbour in the same aisle.
           </p>
           <p className="mt-3 text-sm text-muted">
             <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
             indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet.
           </p>
-          <div className="mt-6 flex max-w-md flex-col gap-3">
+          <div className="mt-8 flex max-w-md flex-col gap-3">
             <Button
-              className="h-12 w-full"
+              className="h-14 w-full text-base"
               disabled={Boolean(busy)}
               onClick={() => {
                 setError(null);
@@ -152,7 +153,7 @@ function Home() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search a name or type the barcode"
-                className="pl-10"
+                className="h-12 pl-10"
                 enterKeyHint="search"
                 autoComplete="off"
                 autoCorrect="off"
@@ -161,43 +162,51 @@ function Home() {
               />
             </form>
             {error ? <p className="text-sm text-score-poor">{error}</p> : null}
-            <BandLegend />
           </div>
         </div>
-        <div className="order-1 grid grid-cols-2 gap-3 lg:order-2 lg:col-span-7">
+        <div className="order-1 grid grid-cols-2 gap-2 lg:order-2 lg:col-span-7 lg:gap-4">
           {STAGE.map((p) => (
             <Link
               key={p.barcode}
               to="/product/$barcode"
               params={{ barcode: p.barcode }}
-              className="group overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)]"
+              className="group block min-w-0"
             >
-              <div className="relative aspect-[4/5] bg-surface-2">
-                <img src={p.image} alt={p.title} className="size-full object-cover" />
+              <div className="relative aspect-[3/4] overflow-hidden bg-surface-2">
+                <img src={p.image} alt={p.title} className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 <div className="absolute right-3 top-3">
                   <ScoreChip score={p.score} />
                 </div>
               </div>
-              <div className="px-3 py-2.5">
-                <p className="truncate text-sm font-semibold">{p.title}</p>
-                <p className="text-xs text-muted">{p.brand}</p>
+              <div className="mt-3">
+                <p className="truncate font-display text-lg font-medium leading-none tracking-[-0.03em]">{p.title}</p>
+                <p className="mt-1 text-sm text-muted">{p.brand}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="mt-12">
-        <div className="mb-4 flex items-end justify-between">
+      <section className="mt-12 border-y border-border py-8">
+        <p className="font-display text-[clamp(1.6rem,3vw,2.4rem)] font-medium leading-tight tracking-[-0.03em]">
+          No brand pays for a better number.
+        </p>
+        <div className="mt-6">
+          <BandLegend />
+        </div>
+      </section>
+
+      <section className="mt-14">
+        <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-medium">Shop by aisle</h2>
+            <h2 className="font-display text-3xl font-medium tracking-[-0.03em]">Shop by aisle</h2>
             <p className="mt-1 text-sm text-muted">Twenty-seven aisles. The mixer is honest because the shelves are not.</p>
           </div>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">All aisles</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3">
           {AISLES.slice(0, 8).map((a) => (
             <AisleCard key={a.slug} slug={a.slug} title={a.title} kicker={a.kicker} image={a.image} />
           ))}
@@ -205,10 +214,10 @@ function Home() {
       </section>
 
       {!prefs.onboardingDone ? (
-        <section className="mt-10 flex flex-col gap-4 rounded-md bg-surface p-5 shadow-[var(--shadow-border)] md:flex-row md:items-center md:justify-between">
+        <section className="mt-12 flex flex-col gap-4 border-t border-border pt-8 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0 md:max-w-xl">
             <p className="kicker">20 seconds</p>
-            <h2 className="mt-1 font-display text-lg font-medium">Flag allergens and extras</h2>
+            <h2 className="mt-2 font-display text-2xl font-medium tracking-[-0.03em]">Flag allergens and extras</h2>
             <p className="mt-1 text-sm leading-relaxed text-muted">
               Pregnancy, palm oil, fragrance, diet. We stop you in the aisle.
             </p>
@@ -220,20 +229,15 @@ function Home() {
       ) : null}
 
       {faceoff.length === 3 ? (
-        <section className="mt-12">
-          <h2 className="font-display text-2xl font-medium">Worst, middle, best</h2>
-          <p className="mt-1 text-sm text-muted">Three packs. Same aisle logic.</p>
-          <div className="mt-4 grid gap-2 md:grid-cols-3">
+        <section className="mt-14">
+          <h2 className="font-display text-3xl font-medium tracking-[-0.03em]">Three packs. Same aisle.</h2>
+          <p className="mt-1 text-sm text-muted">Worst, middle, best — the mixer does not flatter the middle one.</p>
+          <div className="mt-5 grid gap-6 md:grid-cols-3">
             {faceoff.map((p) => (
-              <Link
-                key={p.barcode}
-                to="/product/$barcode"
-                params={{ barcode: p.barcode }}
-                className="flex items-center gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)]"
-              >
+              <Link key={p.barcode} to="/product/$barcode" params={{ barcode: p.barcode }} className="flex items-center gap-4">
                 <ScoreChip score={p.overallScore} />
                 <div className="min-w-0">
-                  <p className="truncate font-semibold leading-snug">{p.title}</p>
+                  <p className="truncate font-display text-lg font-medium leading-snug">{p.title}</p>
                   <p className="truncate text-sm text-muted">{p.brand}</p>
                 </div>
               </Link>
@@ -243,9 +247,9 @@ function Home() {
       ) : null}
 
       {recent.length > 0 ? (
-        <section className="mt-12">
-          <div className="mb-3 flex items-end justify-between">
-            <h2 className="font-display text-2xl font-medium">Recently opened</h2>
+        <section className="mt-14">
+          <div className="mb-4 flex items-end justify-between">
+            <h2 className="font-display text-3xl font-medium tracking-[-0.03em]">Recently opened</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/history">History</Link>
             </Button>
@@ -271,9 +275,9 @@ function Home() {
         </section>
       ) : null}
 
-      <section className="mt-12">
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-medium">On the shelves</h2>
+      <section className="mt-14">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="font-display text-3xl font-medium tracking-[-0.03em]">On the shelves</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/catalog">Full catalog</Link>
           </Button>
@@ -296,24 +300,19 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-12 mb-4">
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-2xl font-medium">Short reads</h2>
+      <section className="mt-14 mb-4">
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="font-display text-3xl font-medium tracking-[-0.03em]">Short reads</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/guides">All guides</Link>
           </Button>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2">
           {GUIDES.slice(0, 6).map((g) => (
-            <Link
-              key={g.slug}
-              to="/guides/$slug"
-              params={{ slug: g.slug }}
-              className="flex min-h-16 gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)]"
-            >
-              <img src={g.image} alt="" className="size-16 shrink-0 rounded-sm object-cover" />
+            <Link key={g.slug} to="/guides/$slug" params={{ slug: g.slug }} className="flex min-h-16 gap-4">
+              <img src={g.image} alt="" className="size-[4.5rem] shrink-0 object-cover" />
               <div className="min-w-0 flex-1">
-                <p className="font-semibold leading-snug">{g.title}</p>
+                <p className="font-display text-lg font-medium leading-snug tracking-[-0.02em]">{g.title}</p>
                 <p className="mt-1 line-clamp-2 text-sm text-muted">{g.lede}</p>
               </div>
               <ArrowRight className="mt-1 size-4 shrink-0 text-subtle" />
