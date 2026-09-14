@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Camera, Search } from "lucide-react";
 import { AppShell } from "@/components/lumen/shell";
-import { HealthieLockup } from "@/components/lumen/logo";
 import { AisleCard, ProductCard } from "@/components/lumen/product-card";
 import { BandLegend, ScoreChip } from "@/components/lumen/score-ring";
-import { ScanActions, ScannerSheet, useLensReturn, useScanSession } from "@/components/lumen/scanner";
+import { ScannerSheet, beginLiveScan, useLensReturn, useScanSession } from "@/components/lumen/scanner";
 import { ReadingOverlay } from "@/components/lumen/pack-photo";
 import { readPackPhoto } from "@/lib/scan/read-pack";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,6 @@ import { AISLES } from "@/lib/catalog/aisles";
 import { GUIDES } from "@/lib/catalog/guides";
 import { VOICE } from "@/lib/copy";
 import { formatWorldCount } from "@/lib/world";
-import { SAMPLE_PACKS } from "@/lib/scan/samples";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -122,10 +120,9 @@ function Home() {
       {busy ? <ReadingOverlay title={busy} /> : null}
 
       <section className="grid items-end gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-6">
-          <HealthieLockup />
-          <p className="kicker mt-6">Food · beauty · pet</p>
-          <h1 className="mt-3 font-display text-[2.55rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.25rem]">
+        <div className="order-2 lg:order-1 lg:col-span-5">
+          <p className="kicker">Food · beauty · pet</p>
+          <h1 className="mt-3 font-display text-[2.4rem] font-medium leading-[1.02] tracking-[-0.03em] sm:text-[3.1rem]">
             Scan it. Know immediately.
           </h1>
           <p className="mt-4 max-w-prose text-[16px] leading-relaxed text-muted">
@@ -136,8 +133,38 @@ function Home() {
             <span className="font-semibold text-fg tabular-nums">{formatWorldCount(world.foodCount)}</span> food barcodes
             indexed, plus {formatWorldCount(world.beautyCount)} beauty and {formatWorldCount(world.petCount)} pet.
           </p>
+          <div className="mt-6 flex max-w-md flex-col gap-3">
+            <Button
+              className="h-12 w-full"
+              disabled={Boolean(busy)}
+              onClick={() => {
+                setError(null);
+                void beginLiveScan("barcode", scan.apply);
+              }}
+            >
+              <Camera className="size-4" />
+              Scan barcode
+            </Button>
+            <form onSubmit={onSearch} className="relative">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted" />
+              <Input
+                id="home-search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search a name or type the barcode"
+                className="pl-10"
+                enterKeyHint="search"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                aria-label="Search by name or barcode"
+              />
+            </form>
+            {error ? <p className="text-sm text-score-poor">{error}</p> : null}
+            <BandLegend />
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 lg:col-span-6">
+        <div className="order-1 grid grid-cols-2 gap-3 lg:order-2 lg:col-span-7">
           {STAGE.map((p) => (
             <Link
               key={p.barcode}
@@ -158,36 +185,6 @@ function Home() {
             </Link>
           ))}
         </div>
-      </section>
-
-      <section className="mt-8 space-y-3">
-        <ScanActions
-          onSession={scan.apply}
-          onImage={(f) => void onImage(f)}
-          onStart={() => {
-            setError(null);
-            setBusy("Opening the photo…");
-          }}
-          onEmpty={() => setBusy(null)}
-          disabled={Boolean(busy)}
-        />
-        <form onSubmit={onSearch} className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted" />
-          <Input
-            id="home-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search a name or type the barcode"
-            className="pl-10"
-            enterKeyHint="search"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            aria-label="Search by name or barcode"
-          />
-        </form>
-        {error ? <p className="text-sm text-score-poor">{error}</p> : null}
-        <BandLegend />
       </section>
 
       <section className="mt-12">
@@ -295,23 +292,6 @@ function Home() {
               categoryPath={p.categoryPath}
               layout="tile"
             />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-12">
-        <p className="kicker">Try a scored pack</p>
-        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
-          {SAMPLE_PACKS.map((p) => (
-            <button
-              key={p.barcode}
-              type="button"
-              onClick={() => void openProduct(p.barcode)}
-              className="overflow-hidden rounded-md bg-surface text-left shadow-[var(--shadow-border)]"
-            >
-              <img src={p.image} alt="" className="aspect-square w-full object-cover" />
-              <span className="block truncate px-1.5 py-1 text-[11px] font-semibold">{p.title}</span>
-            </button>
           ))}
         </div>
       </section>

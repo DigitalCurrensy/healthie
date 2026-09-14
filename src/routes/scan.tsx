@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AppShell } from "@/components/lumen/shell";
-import { HealthieMark } from "@/components/lumen/logo";
 import { PageHeader } from "@/components/lumen/empty";
 import { ScanActions, ScannerSheet, beginLiveScan, useLensReturn, useScanSession } from "@/components/lumen/scanner";
 import { ReadingOverlay } from "@/components/lumen/pack-photo";
@@ -116,18 +115,13 @@ function ScanPage() {
           </Button>
         </form>
         {error ? <p className="text-sm text-score-poor">{error}</p> : null}
-      </section>
-
-      <section className="mt-6 flex flex-col gap-4 rounded-md bg-pine px-4 py-4 text-accent-fg sm:flex-row sm:items-center">
-        <HealthieMark className="size-12 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-fg/60">On your home screen</p>
-          <p className="mt-1 font-display text-lg leading-tight">Add Healthie so the camera can open.</p>
-          <p className="mt-1 text-sm text-accent-fg/75">Install, open the icon, then scan. This window may block the lens.</p>
-        </div>
-        <Button variant="secondary" className="shrink-0 self-start" asChild>
-          <Link to="/install">How to install</Link>
-        </Button>
+        <p className="text-sm text-muted">
+          If this window blocks the lens,{" "}
+          <Link to="/install" className="font-semibold text-fg underline-offset-4 hover:underline">
+            add Healthie to your home screen
+          </Link>
+          .
+        </p>
       </section>
 
       <section className="mt-10">
