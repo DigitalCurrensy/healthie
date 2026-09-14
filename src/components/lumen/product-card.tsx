@@ -34,7 +34,7 @@ export function ProductCard({
         to="/product/$barcode"
         params={{ barcode }}
         aria-label={`${title}, score ${Math.round(score)}`}
-        className="group flex flex-col overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
+        className="group flex flex-col overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
       >
         <ProductThumb
           title={title}
@@ -44,7 +44,7 @@ export function ProductCard({
           barcode={barcode}
           className="aspect-[4/3] size-auto w-full rounded-none text-3xl"
         />
-        <div className="flex items-start gap-3 p-3.5">
+        <div className="flex items-start gap-3 p-3">
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold leading-snug text-fg">{title}</p>
             <p className="mt-0.5 truncate text-sm text-muted">
@@ -63,7 +63,7 @@ export function ProductCard({
       to="/product/$barcode"
       params={{ barcode }}
       aria-label={`${title}, score ${Math.round(score)}`}
-      className="group flex min-h-16 items-center gap-3.5 rounded-xl bg-surface p-3 pr-3 shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
+      className="group flex min-h-16 items-center gap-3 rounded-md bg-surface p-3 shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-px hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
     >
       <ProductThumb title={title} type={type} imageUrl={imageUrl} categoryPath={categoryPath} barcode={barcode} />
       <div className="min-w-0 flex-1">
@@ -88,6 +88,7 @@ export function ProductThumb({
   className,
 }: {
   title: string;
+  title: string;
   type: ProductType;
   imageUrl?: string | null;
   categoryPath?: string;
@@ -102,7 +103,7 @@ export function ProductThumb({
       <img
         src={src}
         alt={title}
-        className={cn("size-14 shrink-0 rounded-md bg-surface-2 object-contain p-1", className)}
+        className={cn("size-14 shrink-0 rounded-sm bg-surface-2 object-contain p-1", className)}
         onError={() => setFailed((n) => n + 1)}
         referrerPolicy="no-referrer"
       />
@@ -113,7 +114,7 @@ export function ProductThumb({
   return (
     <div
       className={cn(
-        "flex size-14 shrink-0 items-center justify-center rounded-md font-display text-sm font-bold tracking-tight",
+        "flex size-14 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold tracking-tight",
         className,
       )}
       style={face}
@@ -142,7 +143,7 @@ export function AisleCard({
       to="/aisle/$slug"
       params={{ slug }}
       aria-label={`${title} aisle`}
-      className="group overflow-hidden rounded-xl bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
+      className="group overflow-hidden rounded-md bg-surface shadow-[var(--shadow-border)] transition-[transform,box-shadow] duration-150 ease-out motion-safe:hover:-translate-y-0.5 hover:shadow-[var(--shadow-border-hover)] active:scale-[0.99]"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
