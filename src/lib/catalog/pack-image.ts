@@ -40,6 +40,11 @@ export function isGenericStill(url?: string | null): boolean {
   return GENERIC_STILLS.includes(url);
 }
 
+export function isSyntheticGtin(barcode?: string | null): boolean {
+  const d = normalizeBarcode(barcode || "");
+  return d.startsWith("2092");
+}
+
 export function realPackUrl(url?: string | null): string | null {
   if (!url || isGenericStill(url)) return null;
   return url;
@@ -48,7 +53,7 @@ export function realPackUrl(url?: string | null): string | null {
 export function localPackUrl(barcode?: string | null): string | null {
   if (!barcode) return null;
   const d = normalizeBarcode(barcode);
-  if (isDemoBarcode(d) || d.length < 8 || d.length > 14) return null;
+  if (isDemoBarcode(d) || isSyntheticGtin(d) || d.length < 8 || d.length > 14) return null;
   return `/packs/${d}.jpg`;
 }
 
@@ -93,6 +98,37 @@ export function packFaceStyle(barcode?: string | null): { background: string; co
   };
 }
 
+function hueFromBarcode(barcode?: string | null): { h: number; h2: number } {
+  const d = (barcode || "0").replace(/\D/g, "") || "0";
+  let h = 0;
+  for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
+  return { h, h2: (h + 48 + (Number(d.slice(-2)) || 0) * 3) % 360 };
+}
+
+function xmlEscape(s: string): string {
+  return s.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
+}
+
+/** Deterministic SVG specimen so a missing SKU still has an image, not letters. */
+export function generatedPackUri(title: string, brand: string, barcode?: string | null): string {
+  const { h, h2 } = hueFromBarcode(barcode);
+  const name = xmlEscape((title || "Healthie").slice(0, 32));
+  const house = xmlEscape((brand || "").slice(0, 24));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="400" viewBox="0 0 320 400">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="hsl(${h} 16% 78%)"/>
+        <stop offset="1" stop-color="hsl(${h2} 12% 70%)"/>
+      </linearGradient>
+    </defs>
+    <rect width="320" height="400" fill="url(#g)"/>
+    <rect x="18" y="18" width="284" height="364" fill="none" stroke="hsl(${h} 18% 28%)" stroke-opacity="0.22"/>
+    <text x="28" y="318" fill="hsl(${h} 18% 18%)" font-family="Georgia, 'Times New Roman', serif" font-size="22">${name}</text>
+    <text x="28" y="348" fill="hsl(${h} 10% 32%)" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">${house}</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 export function packToneClass(categoryPath?: string, type?: ProductType): string {
   if (categoryPath && TONE[categoryPath]) return TONE[categoryPath];
   if (type === "cosmetic") return "pack-skincare";
@@ -112,7 +148,7 @@ function offPath(digits: string): string | null {
   return `${padded.slice(0, 3)}/${padded.slice(3, 6)}/${padded.slice(6, 9)}/${padded.slice(9)}`;
 }
 
-const OFF_FILES = ["front_en.400.jpg", "front_small.jpg"] as const;
+const OFF_FILES = ["front_small.jpg", "front_en.400.jpg"] as const;
 
 export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
   const urls = offPackUrls(barcode, type);
@@ -120,7 +156,7 @@ export function offPackUrl(barcode?: string | null, type?: ProductType): string 
 }
 
 export function offPackUrls(barcode?: string | null, type?: ProductType): string[] {
-  if (!barcode || isDemoBarcode(barcode)) return [];
+  if (!barcode || isDemoBarcode(barcode) || isSyntheticGtin(barcode)) return [];
   const d = normalizeBarcode(barcode);
   if (d.length < 8 || d.length > 14) return [];
   const path = offPath(d);
@@ -128,7 +164,11 @@ export function offPackUrls(barcode?: string | null, type?: ProductType): string
   return OFF_FILES.map((file) => `https://${offHost(type)}/images/products/${path}/${file}`);
 }
 
-export function packCandidates(imageUrl?: string | null, barcode?: string | null, type?: ProductType): string[] {
+export function packCandidates(
+  imageUrl?: string | null,
+  barcode?: string | null,
+  type?: ProductType,
+): string[] {
   const out: string[] = [];
   const add = (u: string | null | undefined) => {
     if (u && !out.includes(u)) out.push(u);
