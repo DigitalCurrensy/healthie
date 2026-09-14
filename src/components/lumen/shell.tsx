@@ -55,12 +55,12 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   return (
     <div className="min-h-dvh overflow-x-hidden bg-bg text-fg">
       <AccountSync />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border/80 bg-bg px-5 py-7 md:flex">
-        <Link to="/" aria-label="Healthie home" className="mb-10 inline-flex min-h-11 items-center">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-bg px-6 py-8 md:flex">
+        <Link to="/" aria-label="Healthie home" className="mb-8 inline-flex min-h-11 items-center border-b border-border pb-6">
           <HealthieWordmark />
         </Link>
         <nav aria-label="Primary">
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col">
             {NAV.map((item) => {
               const active = isActive(pathname, item);
               const Icon = item.icon;
@@ -69,11 +69,13 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
                   <Link
                     to={item.to}
                     className={cn(
-                      "flex min-h-11 items-center gap-3 rounded-md px-3 text-[15px] font-medium transition-colors duration-150",
-                      active ? "bg-accent text-accent-fg" : "text-muted hover:bg-surface-2 hover:text-fg",
+                      "flex min-h-11 items-center gap-3 border-l-2 px-3 text-[14px] tracking-wide transition-colors duration-150",
+                      active
+                        ? "border-gold font-medium text-fg"
+                        : "border-transparent text-muted hover:text-fg",
                     )}
                   >
-                    <Icon className="size-4" strokeWidth={1.75} />
+                    <Icon className="size-4" strokeWidth={1.6} />
                     {item.label}
                   </Link>
                 </li>
@@ -84,24 +86,24 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
         <p className="mt-auto text-[11px] leading-relaxed text-subtle">
           {modeLabel ? `${modeLabel}. ` : ""}Independent scores. No brand pays for a better number.
         </p>
-        <div className="mt-4">
+        <div className="mt-5 border-t border-border pt-4">
           <AccountChip />
         </div>
       </aside>
 
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-bg/90 px-4 pb-2 pt-[max(0.65rem,env(safe-area-inset-top))] backdrop-blur-sm md:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-bg/92 px-4 pb-3 pt-[max(0.7rem,env(safe-area-inset-top))] backdrop-blur-sm md:hidden">
         <Link to="/" aria-label="Healthie home" className="inline-flex min-h-11 items-center">
           <HealthieWordmark />
         </Link>
         <AccountChip />
       </header>
 
-      <main className="px-4 pb-[max(8rem,calc(5.75rem+env(safe-area-inset-bottom)))] md:px-12 md:pb-20 md:pl-64 md:pt-12">
+      <main className="px-4 pb-[max(8rem,calc(5.75rem+env(safe-area-inset-bottom)))] md:px-12 md:pb-20 md:pl-64 md:pt-14">
         <div className={cn("mx-auto w-full min-w-0", wide ? "max-w-5xl" : "max-w-3xl")}>{children}</div>
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-sm md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-bg/95 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-sm md:hidden"
         aria-label="Primary"
       >
         <ul className="grid grid-cols-6">
@@ -113,11 +115,11 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
                 <Link
                   to={item.to}
                   className={cn(
-                    "flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[11px] font-medium tracking-wide",
-                    active ? "text-accent" : "text-muted",
+                    "flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-medium uppercase tracking-[0.12em]",
+                    active ? "text-fg" : "text-muted",
                   )}
                 >
-                  <Icon className="size-5" strokeWidth={1.7} />
+                  <Icon className="size-5" strokeWidth={active ? 1.9 : 1.6} />
                   {item.label}
                 </Link>
               </li>
@@ -128,7 +130,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
       {compareCount > 0 && pathname !== "/compare" ? (
         <Link
           to="/compare"
-          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-fg shadow-[var(--shadow-border)] md:bottom-6"
+          className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 bg-accent px-4 py-2 text-sm font-medium text-accent-fg md:bottom-6"
         >
           Compare tray · {compareCount} of 2
         </Link>

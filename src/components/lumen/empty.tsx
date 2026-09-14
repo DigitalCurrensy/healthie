@@ -13,7 +13,7 @@ export function EmptyState({
 }) {
   return (
     <div className="mt-6 max-w-prose">
-      <h2 className="font-display text-2xl font-bold">{title}</h2>
+      <h2 className="font-display text-2xl font-medium">{title}</h2>
       <p className="mt-2 text-base leading-relaxed text-muted">{body}</p>
       {action ? (
         <Button asChild className="mt-6 h-12">
@@ -54,11 +54,13 @@ export function PageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-4 border-b border-border pb-7 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {kicker ? <p className="kicker">{kicker}</p> : null}
-        <h1 className="mt-1 font-display text-[1.85rem] font-bold tracking-[-0.04em] sm:text-4xl">{title}</h1>
-        {body ? <p className="mt-2 max-w-prose text-base leading-relaxed text-muted">{body}</p> : null}
+        <h1 className="mt-2 font-display text-[2.4rem] font-medium leading-[0.96] tracking-[-0.04em] sm:text-[3.25rem]">
+          {title}
+        </h1>
+        {body ? <p className="mt-3 max-w-prose text-[15px] leading-relaxed text-muted">{body}</p> : null}
       </div>
       {action ? <div className="shrink-0 self-start sm:self-end">{action}</div> : null}
     </header>

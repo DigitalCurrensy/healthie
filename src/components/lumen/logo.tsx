@@ -10,18 +10,19 @@ export function HealthieMark({ className }: { className?: string }) {
   );
 }
 
+/** Rail and mobile masthead. Type only — the 3D PNG is for the icon and OG card. */
 export function HealthieWordmark({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <HealthieMark className="size-7" />
-      <span className="font-display text-[1.15rem] font-semibold tracking-[-0.03em] text-fg">
+    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
+      <span className="font-display text-[1.35rem] font-medium leading-none tracking-[-0.04em] text-fg">
         Healthie
       </span>
+      <span className="mb-0.5 inline-block size-1.5 rounded-full bg-gold" aria-hidden />
     </span>
   );
 }
 
-/** Full brand lockup. Use once — home masthead. Never next to itself. */
+/** Full brand lockup. PWA / OG only. Never on a page that already has the wordmark. */
 export function HealthieLockup({ className }: { className?: string }) {
   return (
     <img
