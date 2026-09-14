@@ -34,7 +34,6 @@ const GENERIC_STILLS = [
   "/images/guides.jpg",
 ];
 
-/** Pack shots we ship so the demo doesn’t wait on Open Food Facts CDN. */
 export function isGenericStill(url?: string | null): boolean {
   if (!url) return true;
   if (url.startsWith("/images/")) return true;
@@ -113,7 +112,7 @@ function offPath(digits: string): string | null {
   return `${padded.slice(0, 3)}/${padded.slice(3, 6)}/${padded.slice(6, 9)}/${padded.slice(9)}`;
 }
 
-const OFF_FILES = ["front_small.jpg", "front.400.jpg", "front_en.400.jpg"] as const;
+const OFF_FILES = ["front_en.400.jpg", "front_small.jpg"] as const;
 
 export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
   const urls = offPackUrls(barcode, type);
@@ -126,15 +125,7 @@ export function offPackUrls(barcode?: string | null, type?: ProductType): string
   if (d.length < 8 || d.length > 14) return [];
   const path = offPath(d);
   if (!path) return [];
-  const hosts = [offHost(type)];
-  if (type && type !== "food") hosts.push("images.openfoodfacts.org");
-  const out: string[] = [];
-  for (const host of hosts) {
-    for (const file of OFF_FILES) {
-      out.push(`https://${host}/images/products/${path}/${file}`);
-    }
-  }
-  return out;
+  return OFF_FILES.map((file) => `https://${offHost(type)}/images/products/${path}/${file}`);
 }
 
 export function packCandidates(imageUrl?: string | null, barcode?: string | null, type?: ProductType): string[] {
@@ -144,8 +135,8 @@ export function packCandidates(imageUrl?: string | null, barcode?: string | null
   };
   add(realPackUrl(imageUrl));
   add(localPackUrl(barcode));
-  for (const u of offPackUrls(barcode, type)) add(u);
-  return out;
+  add(offPackUrls(barcode, type)[0] ?? null);
+  return out.slice(0, 2);
 }
 
 export function offProductUrl(barcode: string, type: ProductType): string {
