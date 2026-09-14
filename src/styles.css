@@ -7,18 +7,18 @@
   --color-fg: #1b2a26;
   --color-muted: #5a564c;
   --color-subtle: #8a8478;
-  --color-border: #d4cec2;
+  --color-border: #d0c9bb;
   --color-accent: #1b2a26;
   --color-accent-fg: #f4f1ea;
   --color-pine: #1b2a26;
   --color-gold: #c5a059;
   --color-sage: #4e6e60;
   --color-score-excellent: #2d5a43;
-  --color-score-good: #6b7d3c;
+  --color-score-good: #6b7a3a;
   --color-score-poor: #b87333;
   --color-score-bad: #8b2626;
   --color-hazard-green: #2d5a43;
-  --color-hazard-yellow: #c5a059;
+  --color-hazard-yellow: #b87333;
   --color-hazard-orange: #b87333;
   --color-hazard-red: #8b2626;
 
@@ -30,10 +30,10 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 8px;
+  --radius-xl: 10px;
 
-  --shadow-border: 0px 0px 0px 1px rgba(27, 42, 38, 0.08);
-  --shadow-border-hover: 0px 0px 0px 1px rgba(27, 42, 38, 0.16);
+  --shadow-border: 0px 0px 0px 1px rgba(27, 42, 38, 0.10);
+  --shadow-border-hover: 0px 0px 0px 1px rgba(27, 42, 38, 0.18);
 }
 
 @layer base {
@@ -68,11 +68,9 @@
 .healthie-in-4 { animation-delay: 130ms; }
 @keyframes healthie-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-.panel { background: var(--color-surface); box-shadow: var(--shadow-border); border-radius: var(--radius-md); }
-.kicker { font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-subtle); }
-.kicker-gold { color: var(--color-gold); }
+.panel { background: transparent; box-shadow: none; border-radius: 0; border-bottom: 1px solid var(--color-border); }
+.kicker { font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-gold); }
 .tap-link { display: inline-flex; min-height: 2.75rem; align-items: center; }
-.hairline { box-shadow: var(--shadow-border); }
 
 .scan-window { position: absolute; left: 8%; right: 8%; top: 30%; height: 32%; border-radius: var(--radius-md); }
 .scan-window-dim { opacity: 0.28; }

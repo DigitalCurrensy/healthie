@@ -55,9 +55,9 @@ function YouPage() {
         prefs.applyLabCard(raw);
         if (Array.isArray(raw.history)) history.replace(raw.history);
         prefs.setOnboardingDone(true);
-        setImportNote("Lab card restored on this phone.");
+        setImportNote("Notes restored on this phone.");
       } catch {
-        setImportNote("That file isn’t a Healthie notes file.");
+        setImportNote("That file isn\u2019t a Healthie notes file.");
       }
     };
     reader.readAsText(file);
@@ -75,19 +75,19 @@ function YouPage() {
         }
       />
 
-      <section className="mt-6 rounded-xl bg-surface p-5 shadow-[var(--shadow-border)]">
+      <section className="mt-8 border-b border-border pb-6">
         <p className="kicker">{user ? "Signed in" : "Across phones"}</p>
-        <h2 className="mt-1 font-display text-xl font-bold">
+        <h2 className="mt-1 font-display text-xl font-medium">
           {user ? "These notes are yours" : "Take history with you"}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted">
+        <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted">
           {user
-            ? "Scans, saved packs, the list, and these notes live on your account. Open Healthie on another phone and sign in — it’s already there."
+            ? "Scans, saved packs, the list, and these notes live on your account. Open Healthie on another phone and sign in \u2014 it\u2019s already there."
             : "Without an account, notes stay on this phone. Sign in with Google, X, or email and the next device is the same."}
         </p>
         <div className="mt-4">
           {isPending ? (
-            <div className="h-8 w-28 animate-pulse rounded-full bg-surface-2" />
+            <div className="h-8 w-28 animate-pulse bg-surface-2" />
           ) : (
             <AccountChip />
           )}
@@ -95,17 +95,17 @@ function YouPage() {
       </section>
 
       {!prefs.onboardingDone ? (
-        <div className="mt-6 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+        <div className="mt-6 border-b border-border pb-6">
           <p className="font-medium">Finish this once</p>
-          <p className="mt-1 text-sm text-muted">Tick what matters, then we’ll remember it on every product.</p>
+          <p className="mt-1 text-sm text-muted">Tick what matters, then we\u2019ll remember it on every product.</p>
           <Button className="mt-3" onClick={() => prefs.setOnboardingDone(true)}>
-            I’m done
+            I\u2019m done
           </Button>
         </div>
       ) : null}
 
       <section className="mt-8">
-        <h2 className="font-display text-xl font-medium">Who you’re shopping for</h2>
+        <h2 className="font-display text-xl font-medium">Who you\u2019re shopping for</h2>
         <p className="mt-1 text-sm text-muted">
           Pregnancy or a child is a mode, not a note. Watch-outs become stops. Aisles hide those packs. The disc on the
           pack does not move.
@@ -137,7 +137,7 @@ function YouPage() {
 
       <section className="mt-8">
         <h2 className="font-display text-xl font-medium">Allergens</h2>
-        <p className="mt-1 text-sm text-muted">We’ll stop you in the aisle. Always double-check the pack.</p>
+        <p className="mt-1 text-sm text-muted">We\u2019ll stop you in the aisle. Always double-check the pack.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {ALLERGEN_OPTIONS.map((a) => (
             <Button
@@ -153,7 +153,7 @@ function YouPage() {
       </section>
 
       <section className="mt-8">
-        <h2 className="font-display text-xl font-medium">I’d rather skip</h2>
+        <h2 className="font-display text-xl font-medium">I\u2019d rather skip</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button size="sm" variant={prefs.avoidPalm ? "default" : "secondary"} onClick={prefs.toggleAvoidPalm}>
             Palm oil
@@ -173,7 +173,7 @@ function YouPage() {
         </div>
       </section>
 
-      <section className="mt-8 rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+      <section className="mt-8 border-y border-border py-6">
         <h2 className="font-display text-xl font-medium">Your notes</h2>
         <p className="mt-1 text-sm text-muted">
           {user
@@ -188,11 +188,12 @@ function YouPage() {
           aria-label="A name for these notes"
           maxLength={40}
         />
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button variant="secondary" className="h-12" onClick={exportLab}>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button onClick={() => prefs.setOnboardingDone(true)}>Save these notes</Button>
+          <Button variant="secondary" onClick={exportLab}>
             Export
           </Button>
-          <Button variant="secondary" className="h-12" asChild>
+          <Button variant="secondary" asChild>
             <label>
               Import
               <input type="file" accept="application/json" className="sr-only" onChange={onImport} />
@@ -200,9 +201,9 @@ function YouPage() {
           </Button>
         </div>
         {importNote ? <p className="mt-2 text-sm text-muted">{importNote}</p> : null}
-        <Button
-          variant="ghost"
-          className="mt-4 h-12 w-full text-score-bad"
+        <button
+          type="button"
+          className="mt-4 text-sm text-score-bad underline-offset-4 hover:underline"
           onClick={() => {
             pauseAccountPush();
             prefs.resetLab();
@@ -210,31 +211,27 @@ function YouPage() {
             void wipeLabStores();
             setImportNote(
               user
-                ? "Gone from this phone. The account still has them — sign out and in to bring them back."
+                ? "Gone from this phone. The account still has them \u2014 sign out and in to bring them back."
                 : "Notes, history, saved packs, and the list are gone from this device.",
             );
           }}
         >
           Delete my data on this device
-        </Button>
+        </button>
       </section>
 
       {prefs.onboardingDone ? (
-        <Button variant="ghost" className="mt-6" onClick={() => prefs.setOnboardingDone(false)}>
-          Show the setup card again
+        <Button variant="ghost" className="mt-4" onClick={() => prefs.setOnboardingDone(false)}>
+          Show the setup again
         </Button>
-      ) : (
-        <Button className="mt-8" onClick={() => prefs.setOnboardingDone(true)}>
-          Save these notes
-        </Button>
-      )}
+      ) : null}
 
-      <section className="mt-10 space-y-2">
+      <section className="mt-8">
         <LinkRow to="/saved" label="Saved products" hint={`${prefs.favorites.length}`} />
         <LinkRow to="/lists" label="Shopping list" hint={`${prefs.list.length}`} />
         <LinkRow to="/history" label="Scan history" hint={`${history.items.length}`} />
         <LinkRow to="/compare" label="Compare tray" hint={`${prefs.compare.length}/2`} />
-        <LinkRow to="/ingredients" label="Ingredient index" hint="What’s in the pack" />
+        <LinkRow to="/ingredients" label="Ingredient index" hint="What\u2019s in the pack" />
         <LinkRow to="/guides" label="Guides" hint="Short reads" />
         <LinkRow to="/method" label="How scoring works" hint="Plain English" />
       </section>
@@ -254,7 +251,7 @@ function LinkRow({
   return (
     <Link
       to={to}
-      className="flex min-h-14 items-center justify-between rounded-xl bg-surface px-4 py-3.5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-150 hover:shadow-[var(--shadow-border-hover)]"
+      className="flex min-h-14 items-center justify-between border-b border-border py-3 transition-colors hover:text-pine"
     >
       <span className="font-medium">{label}</span>
       <span className="text-sm text-muted">{hint}</span>
