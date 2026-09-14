@@ -93,7 +93,7 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(0);
-  const candidates = packCandidates(imageUrl, barcode, type);
+  const candidates = packCandidates(imageUrl, barcode, type).slice(0, 3);
   const src = candidates[failed] ?? null;
   if (src) {
     return (
@@ -103,6 +103,8 @@ export function ProductThumb({
         className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
         onError={() => setFailed((n) => n + 1)}
         referrerPolicy="no-referrer"
+        loading="lazy"
+        decoding="async"
       />
     );
   }
@@ -142,6 +144,8 @@ export function AisleCard({
           src={image}
           alt={`${title} aisle`}
           className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"
+          loading="lazy"
+          decoding="async"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-fg/70 via-fg/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-3 text-accent-fg">
