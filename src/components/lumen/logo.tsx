@@ -10,12 +10,12 @@ export function HealthieMark({ className }: { className?: string }) {
   );
 }
 
-/** Official mark + word. Used in the rail, mobile header, and login. */
+/** Official mark + word. Rail, mobile header, login. */
 export function HealthieWordmark({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <HealthieMark className="size-8 shrink-0 sm:size-9" />
-      <span className="font-display text-[1.28rem] font-medium leading-none tracking-[-0.04em] text-fg">
+    <span className={cn("inline-flex items-center gap-3", className)}>
+      <HealthieMark className="size-11 shrink-0 md:size-14" />
+      <span className="font-display text-[1.55rem] font-medium leading-none tracking-[-0.045em] text-fg md:text-[1.85rem]">
         Healthie
       </span>
     </span>
@@ -33,7 +33,12 @@ export function HealthieBrand({
   return (
     <span className={cn("flex min-w-0 flex-col items-start", className)}>
       <HealthieWordmark />
-      <span className={cn("text-[11px] leading-snug text-muted", compact ? "mt-0.5 pl-[2.55rem]" : "mt-1.5 pl-[2.7rem]")}>
+      <span
+        className={cn(
+          "text-[11px] leading-snug text-muted md:text-xs",
+          compact ? "mt-1 pl-[3.5rem]" : "mt-2 pl-[4.25rem]",
+        )}
+      >
         Scan a pack. See the score.
       </span>
     </span>
