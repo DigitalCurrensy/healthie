@@ -4,8 +4,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { packCandidates } from "@/lib/catalog/pack-image";
-import { aisleImage } from "@/lib/catalog/aisles";
+import { generatedPackSvg, isGenericStill, packCandidates } from "@/lib/catalog/pack-image";
 
 export function ProductCard({
   barcode,
@@ -38,6 +37,7 @@ export function ProductCard({
       >
         <ProductThumb
           title={title}
+          brand={brand}
           type={type}
           imageUrl={imageUrl}
           categoryPath={categoryPath}
@@ -65,7 +65,14 @@ export function ProductCard({
       aria-label={`${title}, score ${Math.round(score)}`}
       className="group flex min-h-16 items-center gap-4 border-b border-border py-3 transition-colors duration-[var(--motion-ui,180ms)] ease-[var(--ease-out,cubic-bezier(.22,1,.36,1))] hover:bg-surface/60"
     >
-      <ProductThumb title={title} type={type} imageUrl={imageUrl} categoryPath={categoryPath} barcode={barcode} />
+      <ProductThumb
+        title={title}
+        brand={brand}
+        type={type}
+        imageUrl={imageUrl}
+        categoryPath={categoryPath}
+        barcode={barcode}
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium leading-snug text-fg">{title}</p>
         <p className="mt-0.5 truncate text-sm text-muted">
@@ -78,8 +85,13 @@ export function ProductCard({
   );
 }
 
+function uniqueFace(title: string, brand: string, barcode?: string) {
+  return generatedPackSvg(title, brand, barcode);
+}
+
 export function ProductThumb({
   title,
+  brand,
   type,
   imageUrl,
   categoryPath,
@@ -87,26 +99,25 @@ export function ProductThumb({
   className,
 }: {
   title: string;
+  brand?: string;
   type: ProductType;
   imageUrl?: string | null;
   categoryPath?: string;
   barcode?: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(0);
-  const aisle = aisleImage(categoryPath || type || "staples");
-  const candidates = [...packCandidates(imageUrl, barcode, type), aisle].filter(
-    (url, i, all) => Boolean(url) && all.indexOf(url) === i,
-  );
-  const src = candidates[Math.min(failed, candidates.length - 1)] ?? aisle;
+  const [failed, setFailed] = useState(false);
+  const face = uniqueFace(title, brand || "", barcode);
+  const packs = packCandidates(imageUrl, barcode, type, categoryPath).filter((url) => !isGenericStill(url));
+  const src = failed || packs.length === 0 ? face : packs[0]!;
   return (
     <img
       src={src}
       alt={title}
-      className={cn("size-16 shrink-0 bg-surface-2 object-cover", className)}
-      onError={() => {
-        if (failed < candidates.length - 1) setFailed((n) => n + 1);
-      }}
+      width={64}
+      height={64}
+      className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
+      onError={() => setFailed(true)}
       referrerPolicy="no-referrer"
       loading="lazy"
       decoding="async"
@@ -133,6 +144,8 @@ export function AisleCard({
         <img
           src={image}
           alt={`${title} aisle`}
+          width={640}
+          height={480}
           className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"
           loading="lazy"
           decoding="async"
