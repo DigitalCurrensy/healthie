@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #ece8df;
-  --color-surface: #f4f1ea;
-  --color-surface-2: #e4dfd4;
-  --color-fg: #1b2a26;
-  --color-muted: #5a564c;
+  --color-bg: #f2eee6;
+  --color-surface: #f8f5ef;
+  --color-surface-2: #e8e2d6;
+  --color-fg: #10231d;
+  --color-muted: #5f5a52;
   --color-subtle: #8a8478;
-  --color-border: #d0c9bb;
-  --color-accent: #1b2a26;
-  --color-accent-fg: #f4f1ea;
-  --color-pine: #1b2a26;
-  --color-gold: #c5a059;
-  --color-sage: #4e6e60;
-  --color-score-excellent: #2d5a43;
-  --color-score-good: #6b7a3a;
-  --color-score-poor: #b87333;
-  --color-score-bad: #8b2626;
-  --color-hazard-green: #2d5a43;
-  --color-hazard-yellow: #b87333;
-  --color-hazard-orange: #b87333;
-  --color-hazard-red: #8b2626;
+  --color-border: #d4cec2;
+  --color-accent: #102b24;
+  --color-accent-fg: #fcfaf6;
+  --color-pine: #174638;
+  --color-gold: #c89a48;
+  --color-sage: #27644e;
+  --color-score-excellent: #226143;
+  --color-score-good: #758844;
+  --color-score-poor: #c6762d;
+  --color-score-bad: #982e2d;
+  --color-hazard-green: #226143;
+  --color-hazard-yellow: #c89a48;
+  --color-hazard-orange: #c6762d;
+  --color-hazard-red: #982e2d;
 
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
@@ -30,10 +30,10 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 10px;
+  --radius-xl: 14px;
 
-  --shadow-border: 0px 0px 0px 1px rgba(27, 42, 38, 0.10);
-  --shadow-border-hover: 0px 0px 0px 1px rgba(27, 42, 38, 0.18);
+  --shadow-border: 0px 0px 0px 1px rgba(16, 35, 29, 0.12);
+  --shadow-border-hover: 0px 0px 0px 1px rgba(16, 35, 29, 0.2);
 }
 
 @layer base {
@@ -55,9 +55,9 @@
   }
   h1, h2, h3 {
     font-family: var(--font-display);
-    font-weight: 560;
-    letter-spacing: -0.028em;
-    line-height: 1.08;
+    font-weight: 500;
+    letter-spacing: -0.032em;
+    line-height: 1.02;
     text-wrap: balance;
   }
 }
@@ -71,6 +71,7 @@
 .panel { background: transparent; box-shadow: none; border-radius: 0; border-bottom: 1px solid var(--color-border); }
 .kicker { font-size: 0.6875rem; font-weight: 650; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-gold); }
 .tap-link { display: inline-flex; min-height: 2.75rem; align-items: center; }
+.display-xl { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.045em; line-height: 0.92; font-size: clamp(2.6rem, 6vw, 5.4rem); }
 
 .scan-window { position: absolute; left: 8%; right: 8%; top: 30%; height: 32%; border-radius: var(--radius-md); }
 .scan-window-dim { opacity: 0.28; }
@@ -116,3 +117,6 @@
 @keyframes scan-laser { 0% { top: 10%; opacity: 0.2; } 50% { top: 86%; opacity: 1; } 100% { top: 10%; opacity: 0.2; } }
 .scan-listen { position: absolute; inset: -6px; border-radius: inherit; border: 1px solid color-mix(in oklab, var(--color-gold) 55%, transparent); animation: scan-listen 1200ms ease-in-out infinite; pointer-events: none; }
 @keyframes scan-listen { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) {
+  .scan-laser, .scan-listen, .healthie-in, .healthie-in-2, .healthie-in-3, .healthie-in-4 { animation: none; }
+}
