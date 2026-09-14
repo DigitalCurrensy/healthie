@@ -5,24 +5,35 @@ export function HealthieMark({ className }: { className?: string }) {
     <img
       src="/brand/healthie-mark.png"
       alt=""
-      className={cn("object-contain", className)}
+      className={cn("object-contain object-center", className)}
     />
   );
 }
 
-/** Rail and mobile masthead. Type only — the 3D PNG is for the icon and OG card. */
-export function HealthieWordmark({ className }: { className?: string }) {
+/** Compact official lockup for the rail and mobile top bar. */
+export function HealthieWordmark({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   return (
-    <span className={cn("inline-flex items-baseline gap-1.5", className)}>
-      <span className="font-display text-[1.35rem] font-medium leading-none tracking-[-0.04em] text-fg">
-        Healthie
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
+      <HealthieMark className={cn("shrink-0", compact ? "size-8" : "size-10")} />
+      <span className="min-w-0">
+        <span className="block font-display text-[1.28rem] font-medium leading-none tracking-[-0.04em] text-fg">
+          Healthie
+        </span>
+        {compact ? null : (
+          <span className="mt-1 block text-[11px] leading-snug text-muted">Scan a pack. See the score.</span>
+        )}
       </span>
-      <span className="mb-0.5 inline-block size-1.5 rounded-full bg-gold" aria-hidden />
     </span>
   );
 }
 
-/** Full brand lockup. PWA / OG only. Never on a page that already has the wordmark. */
+/** Full official lockup. Use in install / share surfaces only — never next to the rail mark. */
 export function HealthieLockup({ className }: { className?: string }) {
   return (
     <img
