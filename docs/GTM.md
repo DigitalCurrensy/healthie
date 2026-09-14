@@ -1,10 +1,14 @@
 # Live demo
 
-There is no public Healthie domain yet. Do not send a `workers.dev` or `pages.dev` link — those are disposable sandbox hosts. iMessage, Mail, and X will not grow a Healthie card from them.
+**App:** https://healthie-hazel.vercel.app
+
+This is the standing preview. GitHub `main` deploys here. Do not open `*.workers.dev` — those were one-hour Cloudflare sandbox hosts and they are dead (503).
+
+Cloudflare is not connected to this workspace. The durable host is Vercel.
 
 ## On the demo phone
 
-1. Open **this Healthie preview** in Safari or Chrome on the phone — not inside the Grok window.
+1. Open https://healthie-hazel.vercel.app in Safari or Chrome — not inside the Grok window.
 2. Share → Add to Home Screen (iPhone) or Install app (Android).
 3. Open **Healthie** from the icon.
 4. Scan these packs:
@@ -17,4 +21,4 @@ There is no public Healthie domain yet. Do not send a `workers.dev` or `pages.de
 
 Vibrate + beep on a valid code. History stores on the phone.
 
-To send a pack, use the in-app **Share** button. That copies the page you are on — never a sandbox hostname.
+To send a pack, use the in-app **Share** button.
