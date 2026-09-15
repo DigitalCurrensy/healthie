@@ -137,7 +137,7 @@ export const searchCatalog = createServerFn({ method: "GET" })
       const local = await searchProducts(q);
       let world: Awaited<ReturnType<typeof searchOpenWorld>> = [];
       try {
-        world = (await withTimeout(searchOpenWorld(q), 700)) ?? [];
+        world = (await withTimeout(searchOpenWorld(q), 1200)) ?? [];
         void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
       } catch {
         world = [];
@@ -148,7 +148,7 @@ export const searchCatalog = createServerFn({ method: "GET" })
         ...world.filter((p) => !seen.has(p.barcode)).map(evaluatedToCard),
       ];
       const typed = data.type && data.type !== "all" ? merged.filter((c) => c.type === data.type) : merged;
-      return demoShelf(dedupeCards(typed), 24);
+      return dedupeCards(typed).slice(0, 48);
     }
     const cards = await withTimeout(listCards(), 400);
     const source = cards && cards.length ? cards : await shelvesFallback();
@@ -228,10 +228,7 @@ export const loadAisleWorld = createServerFn({ method: "GET" })
       const world = (await withTimeout(browseOpenWorld(data.path), 700)) ?? [];
       const seen = (await withTimeout(barcodesInAisle(data.path), 300)) ?? new Set<string>();
       void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
-      return demoShelf(
-        world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard),
-        24,
-      );
+      return world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard);
     } catch {
       return [] as CatalogCard[];
     }
@@ -276,10 +273,7 @@ export const loadBrandWorld = createServerFn({ method: "GET" })
       const cards = (await withTimeout(listCardsForBrand(data.name, 24), 400)) ?? [];
       const seen = new Set(cards.map((c) => c.barcode));
       void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
-      return demoShelf(
-        world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard),
-        24,
-      );
+      return world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard);
     } catch {
       return [] as CatalogCard[];
     }
