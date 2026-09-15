@@ -2,37 +2,29 @@
 
 Ship desks that finish. Do not ship a camera button that hangs. Do not ship a score you cannot explain in one sentence.
 
-## Now (in the app)
+## Now (in the demo)
 
-- Scan a barcode on a real phone (live lens)
-- Photograph the pack when the lens cannot open
-- Type the numbers / sample packs (Coca-Cola, Nutella, …)
-- 0–100 score in food, body & beauty, pet
-- Ingredients, why, swaps, prices where we have them
-- Guides and ingredient pages in the same voice
-- Compare, lists, saved, history
-- Optional account so notes follow you
+- Scan a barcode on a real phone (PWA / top-level HTTPS)
+- Photograph the pack when the lens cannot open; shots save locally
+- Type the numbers / sample packs (Coca-Cola, Evian, Nutella, Pepsi, applesauce)
+- 0–100 score; ultra-processed cannot be Good
+- Open Food Facts fronts when the world API is up
+- USDA FDC branded search: page 1, size 25 — no Foundation crawl
+- OpenFDA Ongoing recall match (two pages of 1,000); weekly zip is offline-only
+- Guides, Insights letter, You lists
 
-## Next
+## Next (still prototype)
 
-- Nightly Open Food Facts dump + live lookup for long-tail barcodes (already sketched; keep it honest when a pack is missing)
-- Better pack-photo reading on beauty and pet (front of tin, not just EAN)
-- Retailer prices that say “we searched,” never “in stock at your store” unless we know
-- Household aisle (cleaners) with the same score ring — only when the method is ready
-- Share a product as a still card, not a dump of lab names
-- iOS / Android wrap (PWA is first; native shell later)
+- Unique pack fronts on every demo-shelf SKU
+- Cart / week score
+- Child / pregnancy as a shopping mode
+- Published mixer PDF
+- Rename or subtitle if this ever leaves a private demo (Healthie EHR collision)
 
 ## Later (not buttons today)
 
-- Allergen profiles that change the score (must be opt-in and reversible)
-- Wearable / grocery-list sync
+- Native App Store / Play binaries
 - Brand-paid anything — **never**
-- Medical claims, “cures,” or doctor-replace copy — **never**
-- A fake live camera inside an embedded preview that cannot grant the lens — **never**. Photograph + type is the product there.
-
-## Decision rules
-
-1. If a shopper cannot say the line at the shelf, the copy is wrong. See [docs/MESSAGING.md](docs/MESSAGING.md).
-2. If a control does not complete a scan, do not show it as Scan.
-3. Missing data is a sentence (“we don’t have this barcode yet”), not a spinner forever.
-4. Houses do not merge. Healthie does not grow EventFix desks, AutoShield bays, or a feed.
+- Medical claims — **never**
+- Fake live camera inside an embedded preview — **never**
+- Public GitHub with forks enabled — **not until RELEASE.md gates pass**

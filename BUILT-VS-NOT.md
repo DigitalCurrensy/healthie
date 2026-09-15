@@ -1,31 +1,25 @@
 # Built vs not
 
-Honest inventory so the next agent (or a tired human) does not ship a ghost button.
-
 ## Built
 
-- Home scan desk: barcode, take photo, camera roll, type, sample packs
-- Live `getUserMedia` lens + ZXing / BarcodeDetector on a **top-level** HTTPS or localhost page
-- Photograph-the-pack fallback when the window is an iframe / has no camera
-- Product page: 0–100, band word, why, ingredients, swaps, prices when known
-- Food, body & beauty, pet catalogs and aisles
-- Guides (how to read a score, sugar, palm, fragrance, pet, pregnancy, sun, …)
-- Ingredient pages
-- Compare, lists, saved, history
-- Optional sign-in (Better Auth)
-- PWA bits (manifest, icons, service worker)
+- Home, Scan, product disc, aisles, guides, insights, you
+- Live lens on a **top-level** HTTPS / PWA page (ZXing + BarcodeDetector + GS1)
+- Photograph + local shots album when the window cannot hold a camera
+- Mixer: 0–100, Nutri-Score 2023 tables, NOVA cap (ultra-processed cannot be Good)
+- Demo shelf of proven fronts + live OFF / USDA FDC / OpenFDA on search
+- FDC live path: Branded only, page 1, size 25
+- OpenFDA live path: Ongoing only, limit 1000 × 2
+- Harvest-only: `scripts/harvest-fda.mjs` (search_after) and `scripts/download-fda-zip.mjs` (weekly 5.6 MB dump)
 
 ## Not built / will not fake
 
-- Live camera **inside** an embedded Grok (or any parent) preview that does not `allow="camera"` — the browser forbids it. Fallback is the product, not a demo barcode pretending to be your lens.
-- Native App Store / Play binaries
-- Paid brand boost
-- Diagnosis, prescriptions, “personalized medicine”
-- “In stock at the Tesco on your corner” unless we actually know
+- National inventory
+- Live camera inside an iframe / embedded preview
+- App Store binary
+- Cart / week score
+- “This lot was pulled” from the weekly zip on the product request path
+- Affiliation with gethealthie.com
 
-## Scan contract
+## Honest demo sentence
 
-1. A tap on **Scan barcode** must open a reader that can finish (lens, photograph, type, or sample).
-2. **Take photo** is a shutter or the phone camera, not an unlabeled file picker as the primary CTA.
-3. **Camera roll** is the only “I already have a picture” path.
-4. If the lens cannot start, say so in one line and show photograph + type + samples immediately.
+This is the scorer and two packs. The aisle is still being photographed. The lens lives on the home-screen icon.
