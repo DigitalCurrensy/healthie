@@ -4,7 +4,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { isGenericStill, localPackUrl, offPackUrl, realPackUrl } from "@/lib/catalog/pack-image";
+import { isGenericStill, offPackUrl } from "@/lib/catalog/pack-image";
 import { productSprite } from "@/lib/catalog/product-sprite";
 
 export function ProductCard({
@@ -86,6 +86,13 @@ export function ProductCard({
   );
 }
 
+function isMockPack(url?: string | null): boolean {
+  if (!url) return true;
+  if (url.startsWith("/images/")) return true;
+  if (url.startsWith("/packs/")) return true;
+  return false;
+}
+
 export function ProductThumb({
   title,
   brand,
@@ -103,16 +110,12 @@ export function ProductThumb({
   barcode?: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(0);
+  const [failed, setFailed] = useState(false);
   const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
-  const stored = imageUrl && !isGenericStill(imageUrl) ? imageUrl : null;
-  const local = localPackUrl(barcode);
+  const stored = imageUrl && !isGenericStill(imageUrl) && !isMockPack(imageUrl) ? imageUrl : null;
   const off = offPackUrl(barcode, type);
-  const packs = [stored, realPackUrl(imageUrl), local, off].filter(
-    (url, i, all): url is string => Boolean(url) && !isGenericStill(url) && all.indexOf(url) === i,
-  );
-  const candidates = [...packs, sprite];
-  const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
+  const photo = stored || off;
+  const src = failed || !photo ? sprite : photo;
   const tile = Boolean(className && className.includes("w-full"));
   return (
     <img
@@ -122,9 +125,7 @@ export function ProductThumb({
       height={tile ? 400 : 64}
       sizes={tile ? "(min-width: 1024px) 30vw, 92vw" : "64px"}
       className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
-      onError={() => {
-        if (failed < candidates.length - 1) setFailed((n) => n + 1);
-      }}
+      onError={() => setFailed(true)}
       referrerPolicy="no-referrer"
       loading="lazy"
       decoding="async"
