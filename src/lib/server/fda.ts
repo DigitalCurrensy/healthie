@@ -69,23 +69,30 @@ function mapRow(r: FdaRaw): FdaRecall | null {
   };
 }
 
+/**
+ * openFDA food/enforcement: RES recalls, 2004–present, weekly.
+ * Live check 2026-09-09: 29,406 rows. status.exact = Terminated 27,917 / Ongoing 1,030 / Completed 459.
+ * Paging is skip + limit (limit max 1,000). skip+limit caps at 26,000 hits; beyond that use search_after.
+ * 1,030 ongoing fits in two pages of 1,000.
+ */
 export async function loadFdaFeed(): Promise<FdaRecall[]> {
   const hit = globalRef.__fdaFeed__;
   if (hit && Date.now() - hit.at < TTL) return hit.rows;
   const rows: FdaRecall[] = [];
   try {
-    for (const skip of [0, 100, 200]) {
+    for (const skip of [0, 1000]) {
       const url =
         `https://api.fda.gov/food/enforcement.json?search=status:"Ongoing"` +
-        `&limit=100&skip=${skip}`;
+        `&limit=1000&skip=${skip}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
       if (!res.ok) break;
-      const json = (await res.json()) as { results?: FdaRaw[] };
+      const json = (await res.json()) as { results?: FdaRaw[]; meta?: { results?: { total?: number } } };
       for (const r of json.results ?? []) {
         const mapped = mapRow(r);
         if (mapped) rows.push(mapped);
       }
-      if ((json.results ?? []).length < 100) break;
+      const total = json.meta?.results?.total ?? 0;
+      if ((json.results ?? []).length < 1000 || rows.length >= total) break;
     }
   } catch {
     /* feed down — keep last cache or empty */
@@ -101,11 +108,13 @@ function digitRuns(s: string): string[] {
 export function matchFdaRecall(
   input: { barcode: string; title: string; brand: string },
   feed: FdaRecall[],
+  extra?: FdaRecall[],
 ): FdaRecall | null {
+  const pool = extra?.length ? [...extra, ...feed] : feed;
   const gtin = normalizeBarcode(input.barcode);
   const tail = gtin.slice(-12);
   const tail11 = gtin.slice(-11);
-  for (const r of feed) {
+  for (const r of pool) {
     for (const code of digitRuns(r.codes)) {
       if (code === gtin || code === tail || (tail11.length >= 11 && code === tail11) || code.endsWith(tail) || tail.endsWith(code)) {
         return r;
@@ -119,7 +128,7 @@ export function matchFdaRecall(
     .split(/[^a-z0-9]+/)
     .filter((w) => w.length > 3 && !GENERIC.test(w) && w !== brand);
   if (words.length === 0) return null;
-  for (const r of feed) {
+  for (const r of pool) {
     const blob = `${r.product} ${r.firm}`.toLowerCase();
     if (!blob.includes(brand)) continue;
     const hits = words.filter((w) => blob.includes(w)).length;

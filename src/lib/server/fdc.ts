@@ -22,9 +22,16 @@ type FdcFood = {
   foodNutrients?: FdcNutrient[];
 };
 
-type FdcSearch = { foods?: FdcFood[]; totalHits?: number };
+export type FdcSearchPage = {
+  foods: FdcFood[];
+  totalHits: number;
+  totalPages: number;
+  currentPage: number;
+};
 
 const UA = "Healthie/1.0 (https://healthie-hazel.vercel.app)";
+const PAGE_SIZE_MAX = 200;
+const LIVE_PAGE_SIZE = 25;
 
 function key(): string {
   return process.env.FDC_API_KEY || process.env.USDA_FDC_API_KEY || "DEMO_KEY";
@@ -111,29 +118,52 @@ export function fdcFoodToEvaluated(food: FdcFood): EvaluatedProduct | null {
   return evaluateDef(def, { unmatched: parsed.unmatched, source: "usda-fdc" });
 }
 
-export async function searchFoodDataCentral(query: string): Promise<EvaluatedProduct[]> {
+/**
+ * USDA search is 1-based. pageSize max 200.
+ * Envelope: foods, totalHits, totalPages, currentPage.
+ * Do not walk every page on a live query — "applesauce" branded is ~988 hits / 494 pages at size 2.
+ */
+export async function fetchFdcPage(query: string, pageNumber = 1, pageSize = LIVE_PAGE_SIZE): Promise<FdcSearchPage | null> {
   const q = query.trim();
-  if (q.length < 2) return [];
+  if (q.length < 2) return null;
+  const size = Math.min(Math.max(pageSize, 1), PAGE_SIZE_MAX);
+  const page = Math.max(pageNumber, 1);
   const url =
     `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(key())}` +
-    `&query=${encodeURIComponent(q)}&pageSize=12&dataType=Branded`;
+    `&query=${encodeURIComponent(q)}&pageSize=${size}&pageNumber=${page}&dataType=Branded`;
   try {
     const res = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": UA },
       signal: AbortSignal.timeout(3500),
     });
-    if (!res.ok) return [];
-    const data = (await res.json()) as FdcSearch;
-    const out: EvaluatedProduct[] = [];
-    const seen = new Set<string>();
-    for (const food of data.foods ?? []) {
-      const ev = fdcFoodToEvaluated(food);
-      if (!ev || seen.has(ev.barcode)) continue;
-      seen.add(ev.barcode);
-      out.push(ev);
-    }
-    return out;
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      foods?: FdcFood[];
+      totalHits?: number;
+      totalPages?: number;
+      currentPage?: number;
+    };
+    return {
+      foods: data.foods ?? [],
+      totalHits: data.totalHits ?? 0,
+      totalPages: data.totalPages ?? 0,
+      currentPage: data.currentPage ?? page,
+    };
   } catch {
-    return [];
+    return null;
   }
+}
+
+export async function searchFoodDataCentral(query: string): Promise<EvaluatedProduct[]> {
+  const page = await fetchFdcPage(query, 1, LIVE_PAGE_SIZE);
+  if (!page) return [];
+  const out: EvaluatedProduct[] = [];
+  const seen = new Set<string>();
+  for (const food of page.foods) {
+    const ev = fdcFoodToEvaluated(food);
+    if (!ev || seen.has(ev.barcode)) continue;
+    seen.add(ev.barcode);
+    out.push(ev);
+  }
+  return out;
 }
