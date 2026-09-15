@@ -18,6 +18,7 @@ import { AISLES } from "@/lib/catalog/aisles";
 import { GUIDES } from "@/lib/catalog/guides";
 import { formatWorldCount } from "@/lib/world";
 import { HERO_FRONTS } from "@/lib/catalog/pack-gtins";
+import { openLensOrInstall } from "@/lib/scan/gate";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -140,7 +141,9 @@ function Home() {
               disabled={Boolean(busy)}
               onClick={() => {
                 setError(null);
-                void beginLiveScan("barcode", scan.apply);
+                openLensOrInstall(() => {
+                  void beginLiveScan("barcode", scan.apply);
+                });
               }}
             >
               <Camera className="size-4" />
@@ -166,12 +169,7 @@ function Home() {
         </div>
         <div className="order-1 grid grid-cols-2 gap-2 lg:order-2 lg:col-span-7 lg:gap-4">
           {STAGE.map((p) => (
-            <Link
-              key={p.barcode}
-              to="/product/$barcode"
-              params={{ barcode: p.barcode }}
-              className="group block min-w-0"
-            >
+            <Link key={p.barcode} to="/product/$barcode" params={{ barcode: p.barcode }} className="group block min-w-0">
               <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-surface-2 p-6">
                 <img src={p.image} alt={p.title} className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" referrerPolicy="no-referrer" />
                 <div className="absolute right-3 top-3">
