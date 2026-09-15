@@ -25,57 +25,56 @@ const BRAND_PAINT: Array<{ test: RegExp; fill: string; accent: string }> = [
   { test: /gatorade/, fill: "#FF6A00", accent: "#2A1200" },
   { test: /evian/, fill: "#8FD0E8", accent: "#16324A" },
   { test: /perrier/, fill: "#1B7A3A", accent: "#06180C" },
+  { test: /pellegrino/, fill: "#1E4D8C", accent: "#F2E6C9" },
+  { test: /pure leaf/, fill: "#5C4033", accent: "#F4E2C4" },
   { test: /tropicana/, fill: "#F27D00", accent: "#3A1C00" },
   { test: /heinz/, fill: "#B0102E", accent: "#2A0008" },
-  { test: /nutella|ferrero/, fill: "#4A2A14", accent: "#E8C36A" },
+  { test: /nutella|ferrero rocher|ferrero/, fill: "#4A2A14", accent: "#E8C36A" },
   { test: /oreo|mondelez/, fill: "#1A1A1A", accent: "#F4F0E6" },
   { test: /dorito/, fill: "#E35205", accent: "#2A1000" },
   { test: /walkers|lay's|lays/, fill: "#E10613", accent: "#FFD200" },
+  { test: /pringles/, fill: "#E10613", accent: "#1A1A1A" },
   { test: /haribo/, fill: "#E10613", accent: "#FFD200" },
   { test: /barilla/, fill: "#003DA5", accent: "#F4F0E6" },
   { test: /lindt/, fill: "#6B0F1A", accent: "#E8C36A" },
-  { test: /activia|danone/, fill: "#5EAF3A", accent: "#14300C" },
-  { test: /coco pops|kellogg/, fill: "#6B3A14", accent: "#F4E2C4" },
+  { test: /kitkat|kit kat/, fill: "#E10613", accent: "#F4F0E6" },
+  { test: /mars bar|\bmars\b/, fill: "#1A1A1A", accent: "#C5A059" },
+  { test: /magnum/, fill: "#1A1A1A", accent: "#E8C36A" },
+  { test: /activia|actimel|danone/, fill: "#5EAF3A", accent: "#14300C" },
+  { test: /frosties|coco pops|special k|kellogg/, fill: "#E10613", accent: "#F4E2C4" },
+  { test: /weetabix/, fill: "#C4A000", accent: "#2A2200" },
+  { test: /cheerios|general mills/, fill: "#F2B200", accent: "#6B3A14" },
   { test: /herta/, fill: "#C8102E", accent: "#F4F0E6" },
-  { test: /cerave/, fill: "#1B4F8A", accent: "#E8EEF4" },
-  { test: /chobani/, fill: "#6B2D5B", accent: "#F4E8C4" },
-  { test: /starbucks/, fill: "#00704A", accent: "#F4F0E6" },
-  { test: /nestle|nestl/, fill: "#003366", accent: "#E10613" },
-  { test: /kraft/, fill: "#003DA5", accent: "#E10613" },
-  { test: /purina/, fill: "#003DA5", accent: "#F4F0E6" },
-  { test: /nivea/, fill: "#003DA5", accent: "#F4F0E6" },
-  { test: /dove/, fill: "#1A4A6E", accent: "#E8EEF4" },
-  { test: /gerber/, fill: "#F27D00", accent: "#2A1200" },
-  { test: /kind /, fill: "#6B3A14", accent: "#F4E2C4" },
-  { test: /clif/, fill: "#C4A000", accent: "#2A2200" },
-  { test: /haagen|häagen/, fill: "#6B0F1A", accent: "#E8C36A" },
-  { test: /ben & jerry|ben and jerry/, fill: "#1B4F8A", accent: "#E10613" },
   { test: /philadelphia/, fill: "#003DA5", accent: "#F4F0E6" },
-  { test: /jif/, fill: "#E10613", accent: "#FFD200" },
-  { test: /quaker/, fill: "#E10613", accent: "#F4F0E6" },
-  { test: /nature valley/, fill: "#5EAF3A", accent: "#F4E2C4" },
-  { test: /annie/, fill: "#E35205", accent: "#F4E2C4" },
-  { test: /kirkland/, fill: "#1A1A1A", accent: "#E8C36A" },
-  { test: /365|whole foods/, fill: "#00704A", accent: "#F4F0E6" },
+  { test: /hellmann/, fill: "#003DA5", accent: "#F4E2C4" },
+  { test: /marmite/, fill: "#1A1A1A", accent: "#E8C36A" },
+  { test: /nesquik/, fill: "#6B3A14", accent: "#F4E2C4" },
+  { test: /cerave/, fill: "#1B4F8A", accent: "#E8EEF4" },
+  { test: /nivea/, fill: "#003DA5", accent: "#F4F0E6" },
+  { test: /garnier/, fill: "#5EAF3A", accent: "#14300C" },
+  { test: /l'oréal|loreal/, fill: "#1A1A1A", accent: "#E8C36A" },
+  { test: /head & shoulders|head and shoulders/, fill: "#003DA5", accent: "#F4F0E6" },
+  { test: /colgate/, fill: "#E10613", accent: "#F4F0E6" },
+  { test: /dove/, fill: "#1A4A6E", accent: "#E8EEF4" },
 ];
 
 function formFor(title: string, brand: string, categoryPath?: string, type?: ProductType): PackForm {
   const blob = `${title} ${brand} ${categoryPath ?? ""}`.toLowerCase();
-  if (type === "cosmetic") {
-    if (/sun|spf|lotion|cream|ointment/.test(blob)) return "tube";
-    if (/shampoo|wash|serum/.test(blob)) return "bottle";
+  if (type === "cosmetic" || /skincare|hair|sun|body|oral|makeup/.test(blob)) {
+    if (/shampoo|wash|micellar|serum/.test(blob)) return "bottle";
+    if (/bar soap|beauty bar/.test(blob)) return "bar";
     return "tube";
   }
   if (type === "pet") return "pouch";
   if (/cola|pepsi|sprite|fanta|soda|energy|red bull|gatorade|coke/.test(blob)) return "can";
-  if (/water|evian|perrier|sparkling|juice|tropicana|ketchup|heinz/.test(blob)) return "bottle";
-  if (/nutella|butter|spread|jam|honey/.test(blob) || categoryPath === "spreads") return "jar";
-  if (/chip|dorito|cheeto|lay|walkers|crisp|haribo/.test(blob) || categoryPath === "snacks") return "pouch";
-  if (/yogurt|yoghurt|activia|chobani/.test(blob) || categoryPath === "dairy") return "cup";
-  if (/chocolate|lindt/.test(blob) || categoryPath === "chocolate") return "bar";
-  if (/pasta|barilla|cereal|coco pops|oreo|oat/.test(blob) || categoryPath === "breakfast") return "box";
-  if (/ham|bacon|meat|herta/.test(blob) || categoryPath === "meat") return "tin";
-  if (/ice cream/.test(blob) || categoryPath === "icecream") return "carton";
+  if (/water|evian|perrier|pellegrino|juice|tropicana|ketchup|heinz|tea|pure leaf/.test(blob)) return "bottle";
+  if (/nutella|butter|spread|jam|honey|marmite|mayo|hellmann/.test(blob) || categoryPath === "spreads") return "jar";
+  if (/chip|dorito|cheeto|lay|walkers|crisp|haribo|pringles/.test(blob) || categoryPath === "snacks") return "pouch";
+  if (/yogurt|yoghurt|activia|actimel|chobani|philadelphia/.test(blob) || categoryPath === "dairy") return "cup";
+  if (/chocolate|lindt|kitkat|mars|rocher|magnum/.test(blob) || categoryPath === "chocolate") return "bar";
+  if (/pasta|barilla|cereal|coco pops|oreo|oat|frosties|weetabix|special k|cheerios|beans/.test(blob)) return "box";
+  if (/ham|bacon|meat|herta/.test(blob)) return "tin";
+  if (/ice cream/.test(blob)) return "carton";
   if (categoryPath === "beverages") return /cola|soda|coke|pepsi/.test(blob) ? "can" : "bottle";
   if (categoryPath === "alcohol") return "bottle";
   if (categoryPath === "baby") return "jar";
