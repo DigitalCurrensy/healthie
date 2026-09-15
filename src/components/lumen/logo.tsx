@@ -10,19 +10,18 @@ export function HealthieMark({ className }: { className?: string }) {
   );
 }
 
-/** Official mark + word. Rail, mobile header, login. */
+/** Mark + public name. Rail, mobile header, login. */
 export function HealthieWordmark({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
       <HealthieMark className="size-11 shrink-0 md:size-14" />
-      <span className="font-display text-[1.55rem] font-medium leading-none tracking-[-0.045em] text-fg md:text-[1.85rem]">
-        Healthie
+      <span className="font-display text-[1.35rem] font-medium leading-none tracking-[-0.04em] text-fg md:text-[1.65rem]">
+        Honest Aisle
       </span>
     </span>
   );
 }
 
-/** Official header block: mark, word, brand line. One per viewport. */
 export function HealthieBrand({
   className,
   compact = false,
@@ -45,12 +44,11 @@ export function HealthieBrand({
   );
 }
 
-/** Full lockup PNG. OG / PWA only — not next to HealthieBrand. */
 export function HealthieLockup({ className }: { className?: string }) {
   return (
     <img
       src="/brand/healthie-logo.png"
-      alt="Healthie"
+      alt="Honest Aisle"
       className={cn("h-auto w-44 object-contain object-left sm:w-56", className)}
     />
   );

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Healthie",
-  "short_name": "Healthie",
-  "description": "Independent scores for food, beauty, and pet. Scan a pack. Read what’s in it.",
+  "name": "Honest Aisle",
+  "short_name": "Aisle",
+  "description": "Independent scores for food, beauty, and pet. Scan a pack. Read what is in it.",
   "start_url": "/scan",
   "scope": "/",
   "display": "standalone",

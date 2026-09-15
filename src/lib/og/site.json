@@ -1,10 +1,10 @@
 {
-  "title": "Healthie",
-  "description": "Independent scores for food, body & beauty, and pet food. Scan a barcode. Read what’s in it. See the better neighbour.",
+  "title": "Honest Aisle",
+  "description": "Independent 0–100 pack scores. Scan a barcode. Read what is in it.",
   "card": "custom",
   "color": "102E28",
   "image": "/og.jpg",
   "logo": "/brand/og-logo.png",
-  "imageAlt": "Healthie logo — scan a pack, see the score",
+  "imageAlt": "Honest Aisle — scan a pack, see the score",
   "twitterSite": "@IAmAdrianSwish"
 }
