@@ -4,7 +4,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { isGenericStill } from "@/lib/catalog/pack-image";
+import { isGenericStill, optimizedPackSrc } from "@/lib/catalog/pack-image";
 import { frontUrlFor } from "@/lib/catalog/pack-gtins";
 
 export function ProductCard({
@@ -75,7 +75,13 @@ function isUsableFront(url?: string | null): boolean {
   if (!url || isGenericStill(url)) return false;
   if (url.startsWith("/packs/")) return false;
   if (url.startsWith("data:")) return false;
-  return url.includes("front_") || url.includes("openfoodfacts") || url.includes("openbeautyfacts") || url.includes("openpetfoodfacts");
+  return (
+    url.startsWith("/api/img") ||
+    url.includes("front_") ||
+    url.includes("openfoodfacts") ||
+    url.includes("openbeautyfacts") ||
+    url.includes("openpetfoodfacts")
+  );
 }
 
 export function ProductThumb({
@@ -93,9 +99,10 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(false);
-  const mapped = frontUrlFor(title, brand);
-  const src = !failed && isUsableFront(imageUrl) ? imageUrl : mapped && !failed ? mapped : null;
   const tile = Boolean(className && className.includes("w-full"));
+  const mapped = frontUrlFor(title, brand);
+  const raw = !failed && isUsableFront(imageUrl) ? imageUrl : mapped && !failed ? mapped : null;
+  const src = optimizedPackSrc(raw, tile ? "tile" : "thumb");
   if (!src) {
     return (
       <span
@@ -140,7 +147,7 @@ export function AisleCard({
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={image}
-          alt={`${title} aisle`}
+          alt={`${title} aisle"}
           width={640}
           height={480}
           className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"

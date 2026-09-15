@@ -1,7 +1,9 @@
 import { frontUrlFor } from "./pack-gtins";
+import { PRODUCTS } from "./products";
+import { evaluateDef } from "./evaluate";
+import { isDemoBarcode, isDemoBrand } from "./quality";
 import type { CatalogCard } from "@/lib/server/catalog";
 
-/** A pack is demo-safe only when we have a photographed front. */
 export function hasProvenFront(title?: string | null, imageUrl?: string | null): boolean {
   if (frontUrlFor(title)) return true;
   if (imageUrl && /front_/i.test(imageUrl) && /openfoodfacts|openbeautyfacts|openpetfoodfacts/i.test(imageUrl)) {
@@ -31,4 +33,27 @@ export function demoShelf(cards: CatalogCard[], limit = 24): CatalogCard[] {
     if (out.length >= limit) break;
   }
   return out;
+}
+
+/** Memory path for cold Vercel: score only packs that already have a front. */
+export function memoryDemoCards(limit = 24): CatalogCard[] {
+  const raw: CatalogCard[] = [];
+  for (const p of PRODUCTS) {
+    if (isDemoBarcode(p.barcode) || isDemoBrand(p.brand)) continue;
+    if (!frontUrlFor(p.title, p.brand)) continue;
+    const scored = evaluateDef(p);
+    raw.push({
+      barcode: p.barcode,
+      title: p.title,
+      brand: p.brand,
+      type: p.type,
+      categoryPath: p.categoryPath,
+      isOrganic: p.isOrganic,
+      overallScore: scored.score.overall,
+      imageUrl: scored.imageUrl,
+      additiveCount: scored.additiveCount,
+    });
+    if (raw.length >= limit) break;
+  }
+  return demoShelf(raw, limit);
 }
