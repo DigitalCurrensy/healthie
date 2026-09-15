@@ -5,9 +5,9 @@ import { PwaRegister } from "@/components/lumen/pwa-register";
 import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Healthie";
+const APP_NAME = "Honest Aisle";
 const APP_DESCRIPTION =
-  "Independent scores for food, body & beauty, and pet food. Scan a barcode. Read what’s in it. See the better neighbour.";
+  "Independent 0–100 pack scores. Scan a barcode. Read what is in it.";
 const OG_IMAGE = "/og.jpg";
 const OG_LOGO = "/brand/og-logo.png";
 const JSON_LD = JSON.stringify({
