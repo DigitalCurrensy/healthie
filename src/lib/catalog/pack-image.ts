@@ -9,6 +9,7 @@ export function isGenericStill(url?: string | null): boolean {
 
 export function realPackUrl(url?: string | null): string | null {
   if (!url || isGenericStill(url)) return null;
+  if (url.includes("openfoodfacts") || url.includes("openbeautyfacts") || url.includes("openpetfoodfacts")) return null;
   return url;
 }
 
@@ -38,17 +39,51 @@ const BRAND_PAINT: Array<{ test: RegExp; fill: string; ink: string }> = [
   { test: /perrier/, fill: "#1B7A3A", ink: "#06180C" },
   { test: /pellegrino/, fill: "#1E4D8C", ink: "#F2E6C9" },
   { test: /tropicana/, fill: "#F27D00", ink: "#3A1C00" },
+  { test: /pure leaf/, fill: "#2F5D3A", ink: "#F4E8C4" },
+  { test: /arizona/, fill: "#6B8F3A", ink: "#F4E27A" },
   { test: /heinz/, fill: "#B0102E", ink: "#2A0008" },
-  { test: /nutella|ferrero/, fill: "#4A2A14", ink: "#E8C36A" },
+  { test: /nutella/, fill: "#4A2A14", ink: "#E8C36A" },
+  { test: /rocher|ferrero/, fill: "#C5A059", ink: "#3A2208" },
   { test: /oreo/, fill: "#1A1A1A", ink: "#F4F0E6" },
   { test: /dorito/, fill: "#E35205", ink: "#2A1000" },
-  { test: /walkers|lay's|lays/, fill: "#E10613", ink: "#2A0406" },
+  { test: /pringles/, fill: "#C8102E", ink: "#F4E27A" },
+  { test: /walkers/, fill: "#E10613", ink: "#F4C430" },
+  { test: /lay'?s|lays/, fill: "#E10613", ink: "#F4C430" },
   { test: /haribo/, fill: "#E10613", ink: "#FFD200" },
   { test: /barilla/, fill: "#003DA5", ink: "#F4F0E6" },
   { test: /lindt/, fill: "#6B0F1A", ink: "#E8C36A" },
-  { test: /activia|danone/, fill: "#5EAF3A", ink: "#14300C" },
-  { test: /coco pops|kellogg/, fill: "#6B3A14", ink: "#F4E2C4" },
+  { test: /kitkat|kit kat/, fill: "#C8102E", ink: "#F4E2C4" },
+  { test: /mars bar|\bmars\b/, fill: "#1A1A1A", ink: "#C5A059" },
+  { test: /activia/, fill: "#5EAF3A", ink: "#14300C" },
+  { test: /actimel/, fill: "#E10613", ink: "#F4F0E6" },
+  { test: /danone/, fill: "#0066B3", ink: "#F4F0E6" },
+  { test: /philadelphia/, fill: "#C5A059", ink: "#3A2208" },
+  { test: /coco pops/, fill: "#6B3A14", ink: "#F4E2C4" },
+  { test: /frosties/, fill: "#F4C430", ink: "#1A1A1A" },
+  { test: /special k/, fill: "#C8102E", ink: "#F4F0E6" },
+  { test: /cheerios/, fill: "#F4A000", ink: "#3A2208" },
+  { test: /weetabix/, fill: "#C4A36A", ink: "#3A2208" },
+  { test: /kellogg/, fill: "#C8102E", ink: "#F4F0E6" },
   { test: /herta/, fill: "#C8102E", ink: "#F4F0E6" },
+  { test: /magnum/, fill: "#1A1A1A", ink: "#C5A059" },
+  { test: /nesquik/, fill: "#6B3A14", ink: "#F4E2C4" },
+  { test: /hellmann/, fill: "#003DA5", ink: "#F4E27A" },
+  { test: /marmite/, fill: "#1A1A1A", ink: "#F4C430" },
+  { test: /nivea/, fill: "#003DA5", ink: "#F4F0E6" },
+  { test: /cerave/, fill: "#1B4F72", ink: "#F4F0E6" },
+  { test: /garnier/, fill: "#5EAF3A", ink: "#14300C" },
+  { test: /l'?or[eé]al|elvive/, fill: "#1A1A1A", ink: "#C5A059" },
+  { test: /head\s*&?\s*shoulders/, fill: "#003DA5", ink: "#F4F0E6" },
+  { test: /colgate/, fill: "#C8102E", ink: "#F4F0E6" },
+  { test: /dove/, fill: "#E8DCC8", ink: "#3A3328" },
+  { test: /chobani/, fill: "#1A1A1A", ink: "#F4F0E6" },
+  { test: /starbucks/, fill: "#00704A", ink: "#F4F0E6" },
+  { test: /nestl[eé]/, fill: "#003DA5", ink: "#F4F0E6" },
+  { test: /kirkland/, fill: "#C8102E", ink: "#F4F0E6" },
+  { test: /365|whole foods/, fill: "#00704A", ink: "#F4F0E6" },
+  { test: /gerber/, fill: "#0066B3", ink: "#F4F0E6" },
+  { test: /\bkind\b/, fill: "#5EAF3A", ink: "#F4F0E6" },
+  { test: /clif/, fill: "#C45C14", ink: "#F4F0E6" },
 ];
 
 export function packFaceStyle(
@@ -64,7 +99,7 @@ export function packFaceStyle(
   for (let i = 0; i < d.length; i += 1) h = (h * 33 + Number(d[i])) % 360;
   return {
     hue: h,
-    background: `hsl(${h} 28% 62%)`,
+    background: `hsl(${h} 32% 42%)`,
     color: `hsl(${h} 30% 16%)`,
   };
 }
@@ -101,20 +136,24 @@ export function offPackUrls(barcode?: string | null, type?: ProductType): string
   return one ? [one] : [];
 }
 
-type SpriteKind = "can" | "bottle" | "jar" | "box" | "bag" | "cup" | "tube" | "tin";
+type SpriteKind = "can" | "bottle" | "jar" | "box" | "bag" | "cup" | "tube" | "tin" | "bar";
 
 function spriteKind(title: string, brand: string, type?: ProductType, categoryPath?: string): SpriteKind {
   const blob = `${title} ${brand} ${categoryPath || ""}`.toLowerCase();
-  if (type === "cosmetic" || /skincare|hair|sun|body|oral|makeup/.test(blob)) {
-    if (/shampoo|wash|oil|serum/.test(blob)) return "bottle";
+  if (type === "cosmetic" || /skincare|hair|sun|body|oral|makeup|nivea|cerave|garnier|elvive|colgate|dove|head/.test(blob)) {
+    if (/shampoo|wash|micellar|lotion/.test(blob)) return "bottle";
+    if (/bar soap|beauty bar/.test(blob)) return "bar";
     return "tube";
   }
-  if (/water|evian|perrier|pellegrino|juice|tropicana|ketchup|sauce/.test(blob)) return "bottle";
-  if (/cola|pepsi|sprite|fanta|red bull|energy|soda|coke|gatorade|bodyarmor|beverage/.test(blob)) return "can";
-  if (/nutella|butter|spread|jam|honey/.test(blob)) return "jar";
+  if (/pringles/.test(blob)) return "can";
+  if (/water|evian|perrier|pellegrino|juice|tropicana|pure leaf|tea|ketchup|sauce|mayo|actimel/.test(blob)) return "bottle";
+  if (/cola|pepsi|sprite|fanta|red bull|energy|soda|coke|gatorade|bodyarmor/.test(blob)) return "can";
+  if (/nutella|butter|spread|jam|honey|philadelphia|marmite|nivea creme/.test(blob)) return "jar";
   if (/yogurt|yoghurt|activia|chobani/.test(blob)) return "cup";
   if (/chip|dorito|lays|walkers|crisp|haribo|gummy|candy|snack/.test(blob)) return "bag";
-  if (/tuna|salmon|tin|sardine|ham|bacon|deli|meat/.test(blob)) return "tin";
+  if (/kitkat|kit kat|mars bar|magnum|lindt|chocolate/.test(blob)) return "bar";
+  if (/tuna|salmon|tin|sardine|ham|bacon|deli|meat|baked beans/.test(blob)) return "tin";
+  if (/cereal|frosties|weetabix|cheerios|special k|coco pops|barilla|pasta|oat/.test(blob)) return "box";
   return "box";
 }
 
@@ -150,6 +189,10 @@ function packShape(kind: SpriteKind, fill: string, ink: string): string {
       <rect x="68" y="88" width="184" height="220" fill="${fill}"/>
       <ellipse cx="160" cy="308" rx="92" ry="28" fill="${ink}"/>`;
   }
+  if (kind === "bar") {
+    return `<rect x="48" y="140" width="224" height="120" rx="10" fill="${fill}"/>
+      <rect x="48" y="140" width="224" height="22" fill="${ink}"/>`;
+  }
   return `<rect x="72" y="56" width="176" height="288" fill="${fill}"/>
     <rect x="72" y="56" width="176" height="36" fill="${ink}"/>`;
 }
@@ -176,13 +219,12 @@ export function generatedPackSvg(
 }
 
 function escapeXml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return value.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """);
 }
 
 export function packCandidates(
   imageUrl?: string | null,
   barcode?: string | null,
-  type?: ProductType,
 ): string[] {
   const out: string[] = [];
   const add = (u: string | null | undefined) => {
@@ -191,7 +233,6 @@ export function packCandidates(
   add(realPackUrl(imageUrl));
   if (imageUrl?.startsWith("/packs/")) add(imageUrl);
   add(localPackUrl(barcode));
-  add(offPackUrl(barcode, type));
   return out.slice(0, 2);
 }
 
@@ -203,7 +244,7 @@ export function uniquePackSrc(
   type?: ProductType,
   categoryPath?: string,
 ): string[] {
-  return [...packCandidates(imageUrl, barcode, type), generatedPackSvg(title, brand, barcode, type, categoryPath)];
+  return [...packCandidates(imageUrl, barcode), generatedPackSvg(title, brand, barcode, type, categoryPath)];
 }
 
 export function offProductUrl(barcode: string, type: ProductType): string {
