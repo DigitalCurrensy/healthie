@@ -1,21 +1,20 @@
-# Portfolio and release
+# Portfolio card
 
-Honest position as of 14 Sep 2026.
+**Public name:** Honest Aisle  
+**Repo:** github.com/DigitalCurrensy/healthie (folder name only)  
+**Demo:** https://healthie-hazel.vercel.app
 
-## What this is
+## Resume bullet
 
-A working **consumer scoring prototype**. Enough surface to walk a recruiter or a founder through a real stack: GS1 check digits, Nutri-Score 2023 tables, NOVA honesty cap, ZXing/PWA lens, Open Food Facts fronts, USDA FDC branded search (page 1 / size 25), OpenFDA Ongoing recalls.
+Built Honest Aisle, a consumer product-scoring PWA (TanStack Start / TypeScript) that maps GTIN → 0–100 using Nutri-Score 2023 tables and a NOVA honesty cap, with Open Food Facts pack fronts, USDA FDC branded search, and OpenFDA recall match.
 
-It is **not** a launched product. It is **not** Yuka. It is **not** gethealthie.com.
+## What to show in an interview
 
-## Resume line (use this)
+1. Live demo: Coke 35 vs Evian 95  
+2. `src/lib/scoring` — why Doritos cannot be Good  
+3. `src/lib/scan` — GS1 check digit  
+4. `src/lib/server/fdc.ts` + `fda.ts` — live vs harvest split  
 
-> Built a consumer product-scoring PWA (TanStack Start / TS) that maps GTIN → Nutri-Score 2023 + NOVA cap, with Open Food Facts fronts, USDA FDC branded search, and OpenFDA recall match. Demo: scorer + two packs + PWA lens.
+## What not to claim
 
-Do not write “launched a Yuka competitor” or “production health app.”
-
-## Public repo?
-
-Default: **keep private.** Flip public only after the three items in RELEASE.md. Name collision with Healthie the EHR is a real problem for Google, App Store, and recruiters who type “Healthie” and land on gethealthie.com.
-
-Forks: **off** until the license and the name are settled. Stars from a half-finished scanner do not compound. A clean case-study link does.
+Launched product. Yuka killer. Affiliation with the Healthie EHR.
