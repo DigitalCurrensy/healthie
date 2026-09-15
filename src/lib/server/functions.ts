@@ -21,6 +21,8 @@ import {
 import { brandBySlug } from "@/lib/catalog/brands";
 import { brandPlace, metricsFromCards, rankedHouses, shopAverage } from "@/lib/catalog/brand-metrics";
 import { lookupOpenFacts, searchOpenWorld, browseOpenWorld, evaluatedToCard } from "./off";
+import { searchFoodDataCentral } from "./fdc";
+import { searchOpenFda } from "./openfda";
 import { extractLabel } from "./ocr";
 import type { EvaluatedProduct } from "@/lib/catalog/evaluate";
 import { lookupPrices } from "./prices";
@@ -135,17 +137,17 @@ export const searchCatalog = createServerFn({ method: "GET" })
     if (data.q && data.q.trim().length >= 2) {
       const q = data.q.trim();
       const local = await searchProducts(q);
-      let world: Awaited<ReturnType<typeof searchOpenWorld>> = [];
-      try {
-        world = (await withTimeout(searchOpenWorld(q), 1200)) ?? [];
-        void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
-      } catch {
-        world = [];
-      }
+      const [world, usda] = await Promise.all([
+        withTimeout(searchOpenWorld(q), 1200),
+        withTimeout(searchFoodDataCentral(q), 3500),
+      ]);
+      void searchOpenFda(q).catch(() => []);
+      const remote = [...(world ?? []), ...(usda ?? [])];
+      void Promise.all(remote.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
       const seen = new Set(local.map((p) => p.barcode));
       const merged = [
         ...local.map(evaluatedToCard),
-        ...world.filter((p) => !seen.has(p.barcode)).map(evaluatedToCard),
+        ...remote.filter((p) => !seen.has(p.barcode)).map(evaluatedToCard),
       ];
       const typed = data.type && data.type !== "all" ? merged.filter((c) => c.type === data.type) : merged;
       return dedupeCards(typed).slice(0, 48);
