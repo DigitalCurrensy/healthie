@@ -4,7 +4,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { isGenericStill, localPackUrl, realPackUrl } from "@/lib/catalog/pack-image";
+import { isGenericStill, localPackUrl, offPackUrl, realPackUrl } from "@/lib/catalog/pack-image";
 import { productSprite } from "@/lib/catalog/product-sprite";
 
 export function ProductCard({
@@ -105,9 +105,12 @@ export function ProductThumb({
 }) {
   const [failed, setFailed] = useState(0);
   const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
-  const real = realPackUrl(imageUrl);
+  const stored = imageUrl && !isGenericStill(imageUrl) ? imageUrl : null;
   const local = localPackUrl(barcode);
-  const packs = [real, local].filter((url): url is string => Boolean(url) && !isGenericStill(url));
+  const off = offPackUrl(barcode, type);
+  const packs = [stored, realPackUrl(imageUrl), local, off].filter(
+    (url, i, all): url is string => Boolean(url) && !isGenericStill(url) && all.indexOf(url) === i,
+  );
   const candidates = [...packs, sprite];
   const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
   const tile = Boolean(className && className.includes("w-full"));
@@ -147,7 +150,7 @@ export function AisleCard({
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={image}
-          alt={`${title} aisle"}
+          alt={`${title} aisle`}
           width={640}
           height={480}
           className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"
