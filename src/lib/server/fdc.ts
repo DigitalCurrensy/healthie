@@ -118,19 +118,13 @@ export function fdcFoodToEvaluated(food: FdcFood): EvaluatedProduct | null {
   return evaluateDef(def, { unmatched: parsed.unmatched, source: "usda-fdc" });
 }
 
-/**
- * USDA search is 1-based. pageSize max 200.
- * Envelope: foods, totalHits, totalPages, currentPage.
- * Do not walk every page on a live query — "applesauce" branded is ~988 hits / 494 pages at size 2.
- */
-export async function fetchFdcPage(query: string, pageNumber = 1, pageSize = LIVE_PAGE_SIZE): Promise<FdcSearchPage | null> {
+/** Live shopper search only. Page 1, size 25, Branded. Never Foundation. Never crawl totalPages. */
+export async function fetchFdcPage(query: string): Promise<FdcSearchPage | null> {
   const q = query.trim();
   if (q.length < 2) return null;
-  const size = Math.min(Math.max(pageSize, 1), PAGE_SIZE_MAX);
-  const page = Math.max(pageNumber, 1);
   const url =
     `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${encodeURIComponent(key())}` +
-    `&query=${encodeURIComponent(q)}&pageSize=${size}&pageNumber=${page}&dataType=Branded`;
+    `&query=${encodeURIComponent(q)}&pageSize=${LIVE_PAGE_SIZE}&pageNumber=1&dataType=Branded`;
   try {
     const res = await fetch(url, {
       headers: { Accept: "application/json", "User-Agent": UA },
@@ -147,7 +141,7 @@ export async function fetchFdcPage(query: string, pageNumber = 1, pageSize = LIV
       foods: data.foods ?? [],
       totalHits: data.totalHits ?? 0,
       totalPages: data.totalPages ?? 0,
-      currentPage: data.currentPage ?? page,
+      currentPage: data.currentPage ?? 1,
     };
   } catch {
     return null;
@@ -155,7 +149,7 @@ export async function fetchFdcPage(query: string, pageNumber = 1, pageSize = LIV
 }
 
 export async function searchFoodDataCentral(query: string): Promise<EvaluatedProduct[]> {
-  const page = await fetchFdcPage(query, 1, LIVE_PAGE_SIZE);
+  const page = await fetchFdcPage(query);
   if (!page) return [];
   const out: EvaluatedProduct[] = [];
   const seen = new Set<string>();
@@ -167,3 +161,5 @@ export async function searchFoodDataCentral(query: string): Promise<EvaluatedPro
   }
   return out;
 }
+
+void PAGE_SIZE_MAX;
