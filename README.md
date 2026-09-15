@@ -3,12 +3,16 @@
 Scan a pack. Get an independent 0–100 score in plain English.
 
 **Live demo:** [healthie-hazel.vercel.app](https://healthie-hazel.vercel.app)  
-**Case study** · Digital Currensy Inc. · Not a medical device · Not the [Healthie EHR](https://www.gethealthie.com)
+Case study · Digital Currensy Inc. · Not a medical device · Not the [Healthie EHR](https://www.gethealthie.com)
 
 <p align="center">
-  <img src="docs/media/home.jpg" width="260" alt="Home" />
-  <img src="docs/media/coke.jpg" width="260" alt="Coca-Cola Classic — 35 Poor" />
-  <img src="docs/media/evian.jpg" width="260" alt="Evian — 95 Excellent" />
+  <img src="docs/media/coke.jpg" width="280" alt="Coca-Cola Classic — 35 Poor" />
+  <img src="docs/media/evian.jpg" width="280" alt="Evian — 95 Excellent" />
+</p>
+
+<p align="center">
+  <img src="docs/media/scan.jpg" width="280" alt="Scan desk" />
+  <img src="docs/media/insights.jpg" width="280" alt="Insights" />
 </p>
 
 ## 90-second walk
