@@ -147,7 +147,7 @@ export function AisleCard({
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={image}
-          alt={`${title} aisle"}
+          alt={`${title} aisle`}
           width={640}
           height={480}
           className="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[cubic-bezier(.22,1,.36,1)] motion-safe:group-hover:scale-[1.02]"
