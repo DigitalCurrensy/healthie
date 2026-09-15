@@ -16,8 +16,8 @@ import { useHistory } from "@/lib/history";
 import { usePrefs } from "@/lib/prefs";
 import { AISLES } from "@/lib/catalog/aisles";
 import { GUIDES } from "@/lib/catalog/guides";
-import { VOICE } from "@/lib/copy";
 import { formatWorldCount } from "@/lib/world";
+import { HERO_FRONTS } from "@/lib/catalog/pack-gtins";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -44,8 +44,8 @@ export const Route = createFileRoute("/")({
 });
 
 const STAGE = [
-  { barcode: "5449000000996", title: "Coca-Cola Classic", brand: "Coca-Cola", score: 35, image: "/packs/5449000000996.jpg" },
-  { barcode: "3274080005003", title: "Evian", brand: "Evian", score: 95, image: "/packs/3274080005003.jpg" },
+  { barcode: "5449000000996", title: "Coca-Cola Classic", brand: "Coca-Cola", score: 35, image: HERO_FRONTS.coke },
+  { barcode: "3274080005003", title: "Evian", brand: "Evian", score: 95, image: HERO_FRONTS.evian },
 ] as const;
 
 function Home() {
@@ -172,8 +172,8 @@ function Home() {
               params={{ barcode: p.barcode }}
               className="group block min-w-0"
             >
-              <div className="relative aspect-[3/4] overflow-hidden bg-surface-2">
-                <img src={p.image} alt={p.title} className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+              <div className="relative flex aspect-[3/4] items-center justify-center overflow-hidden bg-surface-2 p-6">
+                <img src={p.image} alt={p.title} className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.02]" referrerPolicy="no-referrer" />
                 <div className="absolute right-3 top-3">
                   <ScoreChip score={p.score} />
                 </div>

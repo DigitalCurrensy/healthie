@@ -1,8 +1,32 @@
-/** Proven Open Food Facts fronts only. Status=1 and image_front_small_url present. */
+/** Proven fronts only. image_front_small_url from OFF/OBF with matching brand. */
 
 export type PackFront = { gtin: string; frontUrl: string };
 
 const FRONT_BY_KEY: Record<string, PackFront> = {
+  "coca-cola classic": {
+    gtin: "5000112548068",
+    frontUrl: "https://images.openfoodfacts.org/images/products/500/011/254/8068/front_de.82.400.jpg",
+  },
+  "coca-cola": {
+    gtin: "5000112548068",
+    frontUrl: "https://images.openfoodfacts.org/images/products/500/011/254/8068/front_de.82.400.jpg",
+  },
+  evian: {
+    gtin: "3068320055008",
+    frontUrl: "https://images.openfoodfacts.org/images/products/306/832/005/5008/front_en.179.400.jpg",
+  },
+  "evian natural mineral water": {
+    gtin: "3068320055008",
+    frontUrl: "https://images.openfoodfacts.org/images/products/306/832/005/5008/front_en.179.400.jpg",
+  },
+  nutella: {
+    gtin: "3017620425035",
+    frontUrl: "https://images.openfoodfacts.org/images/products/301/762/042/5035/front_en.583.400.jpg",
+  },
+  "nutella biscuits": {
+    gtin: "8000500310397",
+    frontUrl: "https://images.openfoodfacts.org/images/products/800/050/031/0397/front_en.303.200.jpg",
+  },
   "alpro oat": {
     gtin: "5411188123132",
     frontUrl: "https://images.openfoodfacts.org/images/products/541/118/812/3132/front_en.66.200.jpg",
@@ -47,21 +71,17 @@ const FRONT_BY_KEY: Record<string, PackFront> = {
     gtin: "3033491147067",
     frontUrl: "https://images.openfoodfacts.org/images/products/303/349/114/7067/front_fr.121.200.jpg",
   },
-  "coca-cola classic": {
-    gtin: "5449000000996",
-    frontUrl: "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.1129.200.jpg",
+  "arizona green tea with ginseng and honey": {
+    gtin: "0613008724221",
+    frontUrl: "https://images.openfoodfacts.org/images/products/061/300/872/4221/front_en.47.200.jpg",
   },
-  "coca-cola": {
-    gtin: "5449000000996",
-    frontUrl: "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.1129.200.jpg",
+  "aveeno daily moisturizing lotion": {
+    gtin: "0381370038443",
+    frontUrl: "https://images.openbeautyfacts.org/images/products/038/137/003/8443/front_en.16.200.jpg",
   },
-  "evian natural mineral water": {
-    gtin: "3274080005003",
-    frontUrl: "https://images.openfoodfacts.org/images/products/327/408/000/5003/front_en.797.200.jpg",
-  },
-  "nutella": {
-    gtin: "3017620422003",
-    frontUrl: "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.200.jpg",
+  "almond butter & berries protein ancient grain granola": {
+    gtin: "0810589032312",
+    frontUrl: "https://images.openfoodfacts.org/images/products/081/058/903/2312/front_en.220.200.jpg",
   },
 };
 
@@ -80,3 +100,8 @@ export function realGtinFor(title?: string | null, brand?: string | null): strin
 export function frontUrlFor(title?: string | null, brand?: string | null): string | null {
   return packFrontFor(title, brand)?.frontUrl ?? null;
 }
+
+export const HERO_FRONTS = {
+  coke: FRONT_BY_KEY["coca-cola classic"]!.frontUrl,
+  evian: FRONT_BY_KEY.evian!.frontUrl,
+} as const;
