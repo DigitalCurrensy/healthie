@@ -4,9 +4,8 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { isGenericStill, offPackUrls } from "@/lib/catalog/pack-image";
-import { productSprite } from "@/lib/catalog/product-sprite";
-import { realGtinFor } from "@/lib/catalog/pack-gtins";
+import { isGenericStill } from "@/lib/catalog/pack-image";
+import { frontUrlFor } from "@/lib/catalog/pack-gtins";
 
 export function ProductCard({
   barcode,
@@ -37,15 +36,7 @@ export function ProductCard({
         aria-label={`${title}, score ${Math.round(score)}`}
         className="group flex flex-col"
       >
-        <ProductThumb
-          title={title}
-          brand={brand}
-          type={type}
-          imageUrl={imageUrl}
-          categoryPath={categoryPath}
-          barcode={barcode}
-          className="aspect-[4/5] size-auto w-full"
-        />
+        <ProductThumb title={title} brand={brand} imageUrl={imageUrl} className="aspect-[4/5] size-auto w-full" />
         <div className="mt-3 flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-[17px] font-medium leading-snug tracking-[-0.02em] text-fg">{title}</p>
@@ -67,14 +58,7 @@ export function ProductCard({
       aria-label={`${title}, score ${Math.round(score)}`}
       className="group flex min-h-16 items-center gap-4 border-b border-border py-3 transition-colors duration-[var(--motion-ui,180ms)] ease-[var(--ease-out,cubic-bezier(.22,1,.36,1))] hover:bg-surface/60"
     >
-      <ProductThumb
-        title={title}
-        brand={brand}
-        type={type}
-        imageUrl={imageUrl}
-        categoryPath={categoryPath}
-        barcode={barcode}
-      />
+      <ProductThumb title={title} brand={brand} imageUrl={imageUrl} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium leading-snug text-fg">{title}</p>
         <p className="mt-0.5 truncate text-sm text-muted">
@@ -87,40 +71,40 @@ export function ProductCard({
   );
 }
 
-function isPlaceholderPack(url?: string | null): boolean {
-  if (!url) return true;
-  if (url.startsWith("/images/")) return true;
-  if (url.startsWith("/packs/")) return true;
-  return isGenericStill(url);
+function isUsableFront(url?: string | null): boolean {
+  if (!url || isGenericStill(url)) return false;
+  if (url.startsWith("/packs/")) return false;
+  if (url.startsWith("data:")) return false;
+  return url.includes("front_") || url.includes("openfoodfacts") || url.includes("openbeautyfacts") || url.includes("openpetfoodfacts");
 }
 
 export function ProductThumb({
   title,
   brand,
-  type,
   imageUrl,
-  categoryPath,
-  barcode,
   className,
 }: {
   title: string;
   brand?: string;
-  type: ProductType;
+  type?: ProductType;
   imageUrl?: string | null;
   categoryPath?: string;
   barcode?: string;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const mapped = frontUrlFor(title, brand);
+  const src = !failed && isUsableFront(imageUrl) ? imageUrl : mapped && !failed ? mapped : null;
   const tile = Boolean(className && className.includes("w-full"));
-  const stored = imageUrl && !isPlaceholderPack(imageUrl) ? imageUrl : null;
-  const gtin = realGtinFor(title, brand) || barcode;
-  const offs = offPackUrls(gtin, type, tile ? "tile" : "thumb");
-  const photos = [stored, ...offs].filter((url, i, all): url is string => Boolean(url) && all.indexOf(url) === i);
-  const needSprite = failed >= photos.length;
-  const sprite = needSprite ? productSprite(title, brand || "", barcode, categoryPath, type) : "";
-  const candidates = needSprite ? [...photos, sprite] : photos;
-  const src = candidates[Math.min(failed, Math.max(candidates.length - 1, 0))] || sprite;
+  if (!src) {
+    return (
+      <span
+        aria-hidden="true"
+        className={cn("size-16 shrink-0 bg-surface-2", className)}
+        style={{ aspectRatio: tile ? "4 / 5" : "1 / 1" }}
+      />
+    );
+  }
   return (
     <img
       src={src}
@@ -130,9 +114,7 @@ export function ProductThumb({
       sizes={tile ? "(min-width: 1024px) 30vw, 92vw" : "64px"}
       className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
       style={{ aspectRatio: tile ? "4 / 5" : "1 / 1" }}
-      onError={() => {
-        setFailed((n) => n + 1);
-      }}
+      onError={() => setFailed(true)}
       referrerPolicy="no-referrer"
       loading="lazy"
       decoding="async"

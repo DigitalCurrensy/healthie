@@ -3,6 +3,7 @@ import type { MatchedIngredient, ScoreBreakdown } from "@/lib/scoring";
 import { ingredientsByIds } from "./match";
 import { productAllergens, productConcerns } from "./flags";
 import { realPackUrl } from "./pack-image";
+import { frontUrlFor } from "./pack-gtins";
 import type { ProductDef } from "./products";
 import type { AllergenId } from "@/lib/scoring/types";
 
@@ -72,6 +73,9 @@ export function evaluateDef(
   if (ingredients.some((i) => i.id === "fragrance")) flags.push("fragrance");
   if (ingredients.some((i) => i.endocrine)) flags.push("endocrine");
   const eco = score.type === "cosmetic" ? 50 : score.ecoScore;
+  const stored = realPackUrl(def.imageUrl);
+  const front = frontUrlFor(def.title, def.brand);
+  const imageUrl = front || (stored && stored.includes("front_") ? stored : stored?.includes("openfoodfacts") || stored?.includes("openbeautyfacts") || stored?.includes("openpetfoodfacts") ? stored : front);
   return {
     id: def.barcode,
     barcode: def.barcode,
@@ -87,7 +91,7 @@ export function evaluateDef(
     ingredients,
     unmatched: extra?.unmatched ?? [],
     nutrition: def.nutrition ?? null,
-    imageUrl: realPackUrl(def.imageUrl),
+    imageUrl: imageUrl ?? null,
     novaGroup: score.type === "cosmetic" ? def.novaGroup ?? null : score.novaGroup,
     source: extra?.source ?? "catalog",
     score,
