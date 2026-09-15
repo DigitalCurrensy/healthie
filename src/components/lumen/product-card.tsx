@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
 import { generatedPackSvg, isGenericStill, packCandidates } from "@/lib/catalog/pack-image";
-import { productSprite } from "@/lib/catalog/product-sprite";
 
 export function ProductCard({
   barcode,
@@ -104,11 +103,10 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(0);
-  const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
   const packs = packCandidates(imageUrl, barcode, type).filter((url) => !isGenericStill(url));
-  const face = generatedPackSvg(title, brand || "", barcode, type);
-  const candidates = [...packs, sprite || face].filter(Boolean);
-  const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
+  const face = generatedPackSvg(title, brand || "", barcode, type, categoryPath);
+  const candidates = [...packs, face];
+  const src = candidates[Math.min(failed, candidates.length - 1)] ?? face;
   const tile = Boolean(className && className.includes("w-full"));
   return (
     <img
