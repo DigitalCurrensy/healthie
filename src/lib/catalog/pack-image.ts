@@ -2,6 +2,8 @@ import type { ProductType } from "@/lib/scoring/types";
 import { normalizeBarcode } from "@/lib/utils";
 import { isDemoBarcode } from "./quality";
 
+const OFF_IMG = /^https:\/\/images\.open(food|beauty|petfood)facts\.org\/images\/products\//i;
+
 export function isGenericStill(url?: string | null): boolean {
   if (!url) return true;
   return url.startsWith("/images/");
@@ -46,7 +48,6 @@ function offBase(barcode?: string | null, type?: ProductType): string | null {
   return `https://${offHost(type)}/images/products/${path}`;
 }
 
-/** 1.100.jpg ~2KB for 64px rows. 1.400.jpg ~20KB for tiles. 1.jpg is the full pack (~300KB+). */
 export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
   const base = offBase(barcode, type);
   return base ? `${base}/1.100.jpg` : null;
@@ -75,6 +76,28 @@ export function packCandidates(
   add(realPackUrl(imageUrl));
   for (const u of offPackUrls(barcode, type, "thumb")) add(u);
   return out;
+}
+
+/** Prefer the 200px OFF derivative, then serve through /api/img so Vercel can cache it. */
+export function optimizedPackSrc(url?: string | null, size: "thumb" | "tile" | "hero" = "thumb"): string | null {
+  if (!url) return null;
+  let next = url;
+  if (size === "thumb") next = next.replace(/\.400\.jpg$/i, ".200.jpg");
+  if (!OFF_IMG.test(next)) return next;
+  return `/api/img?u=${encodeURIComponent(next)}`;
+}
+
+export function isAllowedPackHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return (
+      host === "images.openfoodfacts.org" ||
+      host === "images.openbeautyfacts.org" ||
+      host === "images.openpetfoodfacts.org"
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function offProductUrl(barcode: string, type: ProductType): string {
