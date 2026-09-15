@@ -4,7 +4,7 @@ import { ScoreChip } from "./score-ring";
 import { cn } from "@/lib/utils";
 import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
-import { isGenericStill, offPackUrl } from "@/lib/catalog/pack-image";
+import { isGenericStill, offPackUrls } from "@/lib/catalog/pack-image";
 import { productSprite } from "@/lib/catalog/product-sprite";
 import { realGtinFor } from "@/lib/catalog/pack-gtins";
 
@@ -115,8 +115,10 @@ export function ProductThumb({
   const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
   const stored = imageUrl && !isPlaceholderPack(imageUrl) ? imageUrl : null;
   const gtin = realGtinFor(title, brand) || barcode;
-  const off = offPackUrl(gtin, type);
-  const candidates = [stored, off, sprite].filter((url, i, all): url is string => Boolean(url) && all.indexOf(url) === i);
+  const offs = offPackUrls(gtin, type);
+  const candidates = [stored, ...offs, sprite].filter(
+    (url, i, all): url is string => Boolean(url) && all.indexOf(url) === i,
+  );
   const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
   const tile = Boolean(className && className.includes("w-full"));
   return (
