@@ -27,6 +27,7 @@ import { lookupPrices } from "./prices";
 import type { PriceBoard } from "@/lib/world";
 import type { WorldIndex } from "@/lib/world";
 import { loadFdaFeed, matchFdaRecall, type FdaRecall } from "./fda";
+import { demoShelf } from "@/lib/catalog/demo-shelf";
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   return Promise.race([
@@ -54,8 +55,7 @@ async function shelvesFallback(): Promise<CatalogCard[]> {
   const { PRODUCTS } = await import("@/lib/catalog/products");
   const { evaluateDef } = await import("@/lib/catalog/evaluate");
   const { isDemoBarcode, isDemoBrand } = await import("@/lib/catalog/quality");
-  const { realPackUrl } = await import("@/lib/catalog/pack-image");
-  return PRODUCTS.filter((p) => !isDemoBarcode(p.barcode) && !isDemoBrand(p.brand)).map((p) => {
+  const raw = PRODUCTS.filter((p) => !isDemoBarcode(p.barcode) && !isDemoBrand(p.brand)).map((p) => {
     const scored = evaluateDef(p);
     return {
       barcode: p.barcode,
@@ -65,10 +65,11 @@ async function shelvesFallback(): Promise<CatalogCard[]> {
       categoryPath: p.categoryPath,
       isOrganic: p.isOrganic,
       overallScore: scored.score.overall,
-      imageUrl: realPackUrl(p.imageUrl ?? null),
+      imageUrl: scored.imageUrl,
       additiveCount: scored.additiveCount,
     };
   });
+  return demoShelf(raw, 24);
 }
 
 async function matchProductRecall(product: {
@@ -164,25 +165,26 @@ export const searchCatalog = createServerFn({ method: "GET" })
         ...world.filter((p) => !seen.has(p.barcode)).map(evaluatedToCard),
       ];
       const typed = data.type && data.type !== "all" ? merged.filter((c) => c.type === data.type) : merged;
-      return dedupeCards(typed).slice(0, 48);
+      return demoShelf(dedupeCards(typed), 24);
     }
     const cards = await withTimeout(listCards(), 700);
     const source = cards && cards.length ? cards : await shelvesFallback();
     const typed = data.type && data.type !== "all" ? source.filter((c) => c.type === data.type) : source;
-    return dedupeCards(typed).slice(0, 48);
+    return demoShelf(dedupeCards(typed), 24);
   });
 
 export const listFeatured = createServerFn({ method: "GET" }).handler(async () => {
   void ensureCatalog();
   const cards = await withTimeout(listFeaturedCards(), 800);
-  return cards && cards.length ? cards : (await shelvesFallback()).slice(0, 12);
+  const source = cards && cards.length ? cards : await shelvesFallback();
+  return demoShelf(source, 12);
 });
 
 export const listShelves = createServerFn({ method: "GET" }).handler(async () => {
   void ensureCatalog();
   const hot = await withTimeout(listCards(), 700);
   const source = hot && hot.length ? hot : await shelvesFallback();
-  return dedupeCards(source).slice(0, 48);
+  return demoShelf(dedupeCards(source), 24);
 });
 
 export const loadWorldIndex = createServerFn({ method: "GET" }).handler(async (): Promise<WorldIndex> => {
@@ -232,7 +234,7 @@ export const loadAisle = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     void ensureCatalog();
     const local = (await withTimeout(listCardsByAisle(data.path, 24), 800)) ?? [];
-    return { local: dedupeCards(local), extra: [] as CatalogCard[] };
+    return { local: demoShelf(dedupeCards(local), 24), extra: [] as CatalogCard[] };
   });
 
 export const loadAisleWorld = createServerFn({ method: "GET" })
@@ -243,7 +245,10 @@ export const loadAisleWorld = createServerFn({ method: "GET" })
       const world = (await withTimeout(browseOpenWorld(data.path), 900)) ?? [];
       const seen = (await withTimeout(barcodesInAisle(data.path), 400)) ?? new Set<string>();
       void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
-      return world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard);
+      return demoShelf(
+        world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard),
+        24,
+      );
     } catch {
       return [] as CatalogCard[];
     }
@@ -271,7 +276,7 @@ export const loadBrand = createServerFn({ method: "GET" })
     const metrics = houses.find((h) => h.slug === brand.slug) ?? metricsFromCards(local)[0] ?? null;
     return {
       brand,
-      local: dedupeCards(local),
+      local: demoShelf(dedupeCards(local), 24),
       extra: [] as CatalogCard[],
       shopAvg: shopAverage(all),
       rank: metrics ? brandPlace(ranked, metrics.slug) : null,
@@ -288,7 +293,10 @@ export const loadBrandWorld = createServerFn({ method: "GET" })
       const cards = (await withTimeout(listCardsForBrand(data.name, 24), 700)) ?? [];
       const seen = new Set(cards.map((c) => c.barcode));
       void Promise.all(world.slice(0, 24).map((p) => upsertEvaluated(p, { protectCatalog: true }).catch(() => undefined)));
-      return world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard);
+      return demoShelf(
+        world.filter((p) => !seen.has(p.barcode)).slice(0, 24).map(evaluatedToCard),
+        24,
+      );
     } catch {
       return [] as CatalogCard[];
     }
