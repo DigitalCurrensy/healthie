@@ -6,6 +6,7 @@ import type { ProductType } from "@/lib/scoring/types";
 import { typeLabel } from "@/lib/prefs";
 import { isGenericStill, offPackUrl } from "@/lib/catalog/pack-image";
 import { productSprite } from "@/lib/catalog/product-sprite";
+import { realGtinFor } from "@/lib/catalog/pack-gtins";
 
 export function ProductCard({
   barcode,
@@ -113,7 +114,8 @@ export function ProductThumb({
   const [failed, setFailed] = useState(0);
   const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
   const stored = imageUrl && !isPlaceholderPack(imageUrl) ? imageUrl : null;
-  const off = offPackUrl(barcode, type);
+  const gtin = realGtinFor(title, brand) || barcode;
+  const off = offPackUrl(gtin, type);
   const candidates = [stored, off, sprite].filter((url, i, all): url is string => Boolean(url) && all.indexOf(url) === i);
   const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
   const tile = Boolean(className && className.includes("w-full"));
