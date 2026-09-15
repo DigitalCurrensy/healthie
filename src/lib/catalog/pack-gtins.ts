@@ -83,6 +83,14 @@ const FRONT_BY_KEY: Record<string, PackFront> = {
     gtin: "0810589032312",
     frontUrl: "https://images.openfoodfacts.org/images/products/081/058/903/2312/front_en.220.200.jpg",
   },
+  "athletic brewing run wild ipa": {
+    gtin: "0855352008057",
+    frontUrl: "https://images.openfoodfacts.org/images/products/085/535/200/8057/front_en.6.200.jpg",
+  },
+  "airheads white mystery": {
+    gtin: "0073390002213",
+    frontUrl: "https://images.openfoodfacts.org/images/products/007/339/000/2213/front_en.30.200.jpg",
+  },
 };
 
 function key(title?: string | null): string {
