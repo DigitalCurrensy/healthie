@@ -112,15 +112,15 @@ export function ProductThumb({
   className?: string;
 }) {
   const [failed, setFailed] = useState(0);
-  const sprite = productSprite(title, brand || "", barcode, categoryPath, type);
+  const tile = Boolean(className && className.includes("w-full"));
   const stored = imageUrl && !isPlaceholderPack(imageUrl) ? imageUrl : null;
   const gtin = realGtinFor(title, brand) || barcode;
-  const offs = offPackUrls(gtin, type);
-  const candidates = [stored, ...offs, sprite].filter(
-    (url, i, all): url is string => Boolean(url) && all.indexOf(url) === i,
-  );
-  const src = candidates[Math.min(failed, candidates.length - 1)] ?? sprite;
-  const tile = Boolean(className && className.includes("w-full"));
+  const offs = offPackUrls(gtin, type, tile ? "tile" : "thumb");
+  const photos = [stored, ...offs].filter((url, i, all): url is string => Boolean(url) && all.indexOf(url) === i);
+  const needSprite = failed >= photos.length;
+  const sprite = needSprite ? productSprite(title, brand || "", barcode, categoryPath, type) : "";
+  const candidates = needSprite ? [...photos, sprite] : photos;
+  const src = candidates[Math.min(failed, Math.max(candidates.length - 1, 0))] || sprite;
   return (
     <img
       src={src}
@@ -129,8 +129,9 @@ export function ProductThumb({
       height={tile ? 400 : 64}
       sizes={tile ? "(min-width: 1024px) 30vw, 92vw" : "64px"}
       className={cn("size-16 shrink-0 bg-surface-2 object-contain", className)}
+      style={{ aspectRatio: tile ? "4 / 5" : "1 / 1" }}
       onError={() => {
-        if (failed < candidates.length - 1) setFailed((n) => n + 1);
+        setFailed((n) => n + 1);
       }}
       referrerPolicy="no-referrer"
       loading="lazy"

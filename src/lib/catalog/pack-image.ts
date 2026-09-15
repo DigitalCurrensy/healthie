@@ -32,35 +32,35 @@ function offHost(type?: ProductType): string {
   return "images.openfoodfacts.org";
 }
 
-/** OFF stores EAN-13 as aaa/bbb/ccc/dddd. UPC-A is zero-padded. */
 export function offPath(digits: string): string | null {
   const padded = digits.replace(/\D/g, "").padStart(13, "0");
   if (padded.length !== 13) return null;
   return `${padded.slice(0, 3)}/${padded.slice(3, 6)}/${padded.slice(6, 9)}/${padded.slice(9)}`;
 }
 
-/**
- * front_small.jpg 404s on current OFF image hosts.
- * 1.jpg is the stable first photo and returned 200 on probed packs.
- */
-export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
+function offBase(barcode?: string | null, type?: ProductType): string | null {
   const d = rawDigits(barcode);
   if (!d || isDemoBarcode(d) || isSyntheticBarcode(d) || d.length < 8 || d.length > 14) return null;
   const path = offPath(d);
   if (!path) return null;
-  return `https://${offHost(type)}/images/products/${path}/1.jpg`;
+  return `https://${offHost(type)}/images/products/${path}`;
 }
 
-export function offPackUrls(barcode?: string | null, type?: ProductType): string[] {
-  const d = rawDigits(barcode);
-  if (!d || isDemoBarcode(d) || isSyntheticBarcode(d) || d.length < 8 || d.length > 14) return [];
-  const path = offPath(d);
-  if (!path) return [];
-  const host = offHost(type);
-  return [
-    `https://${host}/images/products/${path}/1.jpg`,
-    `https://${host}/images/products/${path}/front_en.4.200.jpg`,
-  ];
+/** 1.100.jpg ~2KB for 64px rows. 1.400.jpg ~20KB for tiles. 1.jpg is the full pack (~300KB+). */
+export function offPackUrl(barcode?: string | null, type?: ProductType): string | null {
+  const base = offBase(barcode, type);
+  return base ? `${base}/1.100.jpg` : null;
+}
+
+export function offPackUrls(
+  barcode?: string | null,
+  type?: ProductType,
+  size: "thumb" | "tile" = "thumb",
+): string[] {
+  const base = offBase(barcode, type);
+  if (!base) return [];
+  if (size === "tile") return [`${base}/1.400.jpg`, `${base}/1.jpg`];
+  return [`${base}/1.100.jpg`, `${base}/1.400.jpg`, `${base}/1.jpg`];
 }
 
 export function packCandidates(
@@ -73,7 +73,7 @@ export function packCandidates(
     if (u && !out.includes(u) && !u.startsWith("/images/") && !u.startsWith("/packs/")) out.push(u);
   };
   add(realPackUrl(imageUrl));
-  for (const u of offPackUrls(barcode, type)) add(u);
+  for (const u of offPackUrls(barcode, type, "thumb")) add(u);
   return out;
 }
 
