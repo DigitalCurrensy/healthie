@@ -1,0 +1,73 @@
+# Standard house CI. Detects Node and Python, then lints, tests, and runs smoke.
+name: ci
+"on":
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        name: detect node and python
+        run: |
+          node=false
+          python=false
+          if [[ -f package.json ]]; then node=true; fi
+          if [[ -f pyproject.toml || -f requirements.txt || -f setup.py ]]; then python=true; fi
+          echo "node=${node}" >> "${GITHUB_OUTPUT}"
+          echo "python=${python}" >> "${GITHUB_OUTPUT}"
+      - name: setup node
+        if: steps.detect.outputs.node == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "26"
+      - name: node lint, tests, smoke
+        if: steps.detect.outputs.node == 'true'
+        run: |
+          set -euo pipefail
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            npm install
+          fi
+          npm run lint --if-present
+          npm run test --if-present
+          npm run smoke --if-present
+      - name: setup python
+        if: steps.detect.outputs.python == 'true'
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: python lint and tests
+        if: steps.detect.outputs.python == 'true'
+        run: |
+          set -euo pipefail
+          if [[ -f uv.lock ]]; then
+            uv sync --all-extras
+          elif [[ -f pyproject.toml || -f setup.py ]]; then
+            uv pip install -e ".[test]" --system
+          elif [[ -f requirements.txt ]]; then
+            uv pip install -r requirements.txt --system
+          fi
+          uvx ruff@0.17.0 check .
+          uvx ruff@0.17.0 format --check .
+          if [[ -f pyproject.toml || -f setup.py ]]; then
+            uv run pytest -q
+          fi
+      - name: shellcheck
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(git ls-files '*.sh')
+          if [[ "${#files[@]}" -gt 0 ]]; then
+            shellcheck "${files[@]}"
+          fi
+      - name: smoke
+        run: |
+          set -euo pipefail
+          if [[ -f scripts/doctor.sh ]]; then
+            bash scripts/doctor.sh
+          fi
