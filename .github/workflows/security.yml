@@ -22,17 +22,19 @@ jobs:
           ignore-unfixed: "true"
           severity: HIGH,CRITICAL
       - name: osv-scanner
+        if: always()
         uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
         with:
           scan-args: |-
             --recursive
+            --allow-no-lockfiles
             .
       - name: syft sbom artifact
+        if: always()
         uses: anchore/sbom-action@v0.24.3
         with:
           path: .
           format: spdx-json
           artifact-name: sbom.spdx.json
-          syft-version: "1.54.1"
           upload-artifact: "true"
           upload-release-assets: "false"
