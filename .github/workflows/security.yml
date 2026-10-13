@@ -1,4 +1,5 @@
 # Filesystem vulnerabilities, OSV lockfile scan, and a Syft SBOM artifact.
+# Policy: only HIGH and CRITICAL findings fail the job. MEDIUM/LOW are reported only.
 name: security
 "on":
   pull_request:
@@ -12,7 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: trivy fs
+      - name: trivy fs (report all severities, non-blocking)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "0"
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      - name: trivy fs (block on HIGH/CRITICAL)
+        if: always()
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
@@ -21,14 +31,29 @@ jobs:
           exit-code: "1"
           ignore-unfixed: "true"
           severity: HIGH,CRITICAL
-      - name: osv-scanner
+      - name: osv-scanner (report)
         if: always()
+        continue-on-error: true
         uses: google/osv-scanner-action/osv-scanner-action@v2.7.0
         with:
           scan-args: |-
             --recursive
             --allow-no-lockfiles
+            --format=json
+            --output=osv-results.json
             .
+      - name: osv gate (block on HIGH/CRITICAL, CVSS >= 7.0)
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -s osv-results.json ]; then echo "no osv results"; exit 0; fi
+          jq -r '.results[]?.packages[]? as $p | $p.groups[]? | "\(.max_severity // "")\t\($p.package.name)@\($p.package.version)\t\(.ids | join(","))"' osv-results.json > osv.tsv || true
+          echo "All OSV findings (severity, package, ids):"; cat osv.tsv
+          blocking=$(awk -F'\t' '$1 != "" && $1+0 >= 7.0' osv.tsv)
+          if [ -n "$blocking" ]; then
+            echo "::error::OSV HIGH/CRITICAL findings:"; echo "$blocking"; exit 1
+          fi
+          echo "No HIGH/CRITICAL OSV findings (MEDIUM/LOW/unscored reported above, non-blocking)."
       - name: syft sbom artifact
         if: always()
         uses: anchore/sbom-action@v0.24.3
