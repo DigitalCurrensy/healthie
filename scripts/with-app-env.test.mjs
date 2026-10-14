@@ -59,8 +59,19 @@ test("an explicit process-env override wins over the file", () => {
   assert.equal(merged.PATH, "/usr/bin");
 });
 
-test("the template ships auth off", () => {
-  assert.deepEqual(readAppEnv(projectRoot()), { VITE_AUTH_ENABLED: "false" });
+/** Printed flag for this checkout. The sandbox file is gitignored, so CI has none. */
+function shippedAuthPrint() {
+  const value = readAppEnv(projectRoot()).VITE_AUTH_ENABLED;
+  return value === undefined ? "undefined" : value;
+}
+
+test("a checkout without app-env leaves auth on; a sandbox file may turn it off", () => {
+  const env = readAppEnv(projectRoot());
+  if (env.VITE_AUTH_ENABLED === undefined) {
+    assert.deepEqual(env, {});
+    return;
+  }
+  assert.equal(env.VITE_AUTH_ENABLED, "false");
 });
 
 test("vite loadEnv resolves the wrapped value", () => {
@@ -80,7 +91,7 @@ test("the wrapped command runs with the app env applied", async () => {
     "-e",
     PRINT_FLAG,
   ]);
-  assert.equal(stdout, "false");
+  assert.equal(stdout, shippedAuthPrint());
 });
 
 test("the wrapped command sees an explicit override, not the file value", async () => {
@@ -124,5 +135,5 @@ test("the CLI still runs when invoked through a symlinked path", async () => {
     "-e",
     PRINT_FLAG,
   ]);
-  assert.equal(stdout, "false");
+  assert.equal(stdout, shippedAuthPrint());
 });

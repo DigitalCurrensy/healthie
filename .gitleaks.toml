@@ -1,0 +1,38 @@
+title = "dci gitleaks"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "dci-database-url-with-credentials"
+description = "Postgres/MySQL/Redis URL with an inline password"
+regex = '''(?i)(postgres(?:ql)?|mysql|redis|mongodb(?:\+srv)?)://[^\s:/@'"$]+:[^\s@'"$]+@[^\s'"]+'''
+keywords = ["postgres", "mysql", "redis", "mongodb"]
+
+[[rules]]
+id = "dci-database-url-assignment"
+description = "DATABASE_URL assigned a literal value"
+regex = '''(?i)\b[A-Z_]*DATABASE_URL\s*[=:]\s*['"]?[a-z]+://[^\s'"$]+'''
+keywords = ["database_url"]
+
+[[rules]]
+id = "dci-api-key-assignment"
+description = "API key assigned a literal value"
+regex = '''(?i)(?:^|[^A-Za-z0-9])(?:api[_-]?key|apikey)[ \t]*[=:][ \t]*['"]?[A-Za-z0-9_\-]{16,}'''
+keywords = ["api_key", "api-key", "apikey"]
+
+[[rules]]
+id = "dci-xai-key"
+description = "xAI API key"
+regex = '''\bxai-[A-Za-z0-9]{20,}\b'''
+keywords = ["xai-"]
+
+[[rules]]
+id = "dci-age-secret-key"
+description = "age private key"
+regex = '''AGE-SECRET-KEY-1[0-9A-Z]{58}'''
+keywords = ["age-secret-key"]
+
+[allowlist]
+description = "build caches and local envs, never committed"
+paths = ['''(^|/)(\.venv|__pycache__|\.pytest_cache|\.mypy_cache|\.ruff_cache|node_modules)/''']

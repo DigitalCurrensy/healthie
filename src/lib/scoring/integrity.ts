@@ -44,7 +44,7 @@ export function scoreIntegrity(ingredients: MatchedIngredient[]): IntegrityResul
   }
 
   const riskAdds = ingredients.filter((i) => i.isAdditive && i.riskClass !== "none");
-  let highCount = ingredients.filter((i) => i.riskClass === "high").length;
+  const highCount = ingredients.filter((i) => i.riskClass === "high").length;
   let moderateCount = ingredients.filter((i) => i.riskClass === "moderate").length;
   const sweetenerCount = ingredients.filter((i) => SWEETENERS.has(i.id)).length;
   const flavorIds = ingredients.filter((i) => FLAVOR_ENHANCERS.has(i.id)).map((i) => i.id);

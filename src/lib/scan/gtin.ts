@@ -120,7 +120,7 @@ export function parseGs1ElementString(raw: string): Gs1Scan | null {
     for (const m of marked) applyAi(ais, m[1]!, m[2]!.replace(new RegExp(GS, "g"), "").trim());
     return scanFromAis(ais);
   }
-  let compact = text.replace(/[\s()]/g, "").replace(/^\][A-Za-z0-9]{2}/, "");
+  const compact = text.replace(/[\s()]/g, "").replace(/^\][A-Za-z0-9]{2}/, "");
   if (!compact) return null;
   const ais: Record<string, string> = {};
   let i = 0;
