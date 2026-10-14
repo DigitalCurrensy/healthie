@@ -22,7 +22,7 @@ jobs:
           echo "python=${python}" >> "${GITHUB_OUTPUT}"
       - name: setup node
         if: steps.detect.outputs.node == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "26"
       - name: node lint, tests, smoke
