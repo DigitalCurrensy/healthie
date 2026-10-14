@@ -17,10 +17,11 @@ function attr(html, key) {
   return property ? property[1] : "";
 }
 
-test("Healthie identity passes the X summary_large_image checklist", () => {
-  const tags = grokOgHeadTags({ host, site, appName: "Healthie" }).join("\n");
+test("site identity passes the X summary_large_image checklist", () => {
+  const title = site.title;
+  const tags = grokOgHeadTags({ host, site, appName: title }).join("\n");
   assert.equal(attr(tags, "twitter:card"), "summary_large_image");
-  assert.equal(attr(tags, "twitter:title"), "Healthie");
+  assert.equal(attr(tags, "twitter:title"), title);
   assert.ok(attr(tags, "twitter:title").length <= 70);
   assert.ok(attr(tags, "twitter:description").length > 0);
   assert.ok(attr(tags, "twitter:description").length <= 200);
@@ -28,7 +29,7 @@ test("Healthie identity passes the X summary_large_image checklist", () => {
   assert.match(attr(tags, "twitter:image"), /^https:\/\//);
   assert.equal(attr(tags, "twitter:site"), "@IAmAdrianSwish");
   assert.equal(attr(tags, "twitter:creator"), "@IAmAdrianSwish");
-  assert.equal(attr(tags, "og:title"), "Healthie");
+  assert.equal(attr(tags, "og:title"), title);
   assert.ok(attr(tags, "og:description").length > 0);
   assert.match(attr(tags, "og:image"), new RegExp(`^https://${host}/og\\.jpg`));
   assert.equal(attr(tags, "og:image:width"), "1200");
